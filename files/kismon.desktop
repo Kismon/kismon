@@ -1,0 +1,12 @@
+
+[Desktop Entry]
+Version=1.0
+Encoding=UTF-8
+Name=Kismon
+Comment=PyGTK Kismet Client
+Exec=kismon
+Icon=network-wireless.png
+Terminal=false
+Type=Application
+Categories=GNOME;Network;
+Name=Kismon

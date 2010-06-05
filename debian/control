@@ -1,0 +1,13 @@
+Source: kismon
+Section: net
+Priority: extra
+Maintainer: Patrick Salecker <mail@salecker.org>
+Build-Depends: debhelper (>= 7), python, python-support, cdbs
+Standards-Version: 3.8.4
+
+Package: kismon
+Architecture: all
+Depends: python, python-gtk2, python-clutter
+Description: PyGTK based Kismet Newcore Client
+ Kismon is a PyGTK based Kismet Newcore (since 2009-05-RC1) Client that
+ can use libchamplain to create a live map of the networks.

@@ -1,0 +1,5 @@
+#!/usr/bin/env python
+import kismon.core
+
+if __name__ == '__main__':
+	kismon.core.main()
