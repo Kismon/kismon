@@ -36,7 +36,7 @@ import time
 class Client:
 	def __init__(self):
 		self.debug = False
-		self.server = "127.0.0.1:25011"
+		self.server = "127.0.0.1:2501"
 		self.connected = False
 		self.response_id = 1
 		self.error = []
