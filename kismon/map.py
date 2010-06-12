@@ -132,9 +132,10 @@ class Map:
 	def set_position(self, lat, lon):
 		if self.config["map"]["followgps"] is True:
 			self.view.center_on(lat, lon)
-			self.position_marker.set_position(lat, lon)
 		else:
 			self.next_position = (lat, lon)
+		
+		self.position_marker.set_position(lat, lon)
 		
 	def add_marker(self, key, name, text, color, lat, lon):
 		"""add a new marker to the marker_layer
