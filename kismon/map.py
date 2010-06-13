@@ -270,6 +270,22 @@ class Map:
 			self.start_moving()
 		else:
 			self.stop_moving()
+		
+	def locate_marker(self, key):
+		if key not in self.markers:
+			print "marker %s not found" % key
+			return
+			
+		if self.selected_marker is not None:
+			self.on_marker_clicked(self.selected_marker)
+		
+		marker = self.markers[key]
+		lat = marker.get_latitude()
+		lon = marker.get_longitude()
+		
+		self.on_marker_clicked(marker)
+		self.view.center_on(lat, lon)
+		self.toggle_moving_button.set_active(False)
 
 if __name__ == "__main__":
 	test_config = {"map": {"markerstyle": "name", "followgps": True}}

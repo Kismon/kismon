@@ -85,6 +85,7 @@ class MainWindow(KismonWindows):
 		self.network_list_types = []
 		self.network_lines = {}
 		self.network_iter = {}
+		self.network_list_network_selected = None
 		
 		self.network_scrolled = gtk.ScrolledWindow()
 		self.network_scrolled.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -249,6 +250,7 @@ class MainWindow(KismonWindows):
 			self.network_scrolled.remove(self.network_list)
 		
 		self.network_list = gtk.TreeView()
+		self.network_list.connect("button-press-event", self.on_network_list_network_popup)
 		num=0
 		columns=("BSSID", "Type", "SSID", "Channel", "Crypt",
 			"First Seen", "Last Seen", "Latitude", "Longitude")
@@ -278,6 +280,13 @@ class MainWindow(KismonWindows):
 			)
 		self.network_list.set_model(self.network_list_treestore)
 		self.network_scrolled.add(self.network_list)
+		
+		network_menu = gtk.Menu()
+		locate_item = gtk.MenuItem('Locate on map')
+		network_menu.append(locate_item)
+		locate_item.connect("activate", self.on_map_locate_marker)
+		network_menu.show_all()
+		self.network_list_network_menu = network_menu
 	
 	def add_to_network_list(self, bssid, ssid=None):
 		mac = bssid["bssid"]
@@ -334,6 +343,25 @@ class MainWindow(KismonWindows):
 					del(self.network_iter[mac])
 			elif network_iter is None:
 				self.network_iter[mac] = self.network_list_treestore.prepend(line)
+				
+	def on_network_list_network_popup(self, treeview, event):
+		if event.button != 3: # right click
+			return
+		
+		storage = self.network_list_treestore
+		x = int(event.x)
+		y = int(event.y)
+		pthinfo = treeview.get_path_at_pos(x, y)
+		if pthinfo is None:
+			return
+		
+		path, col, cellx, celly = pthinfo
+		treeview.grab_focus()
+		treeview.set_cursor(path, col, 0)
+		network_iter = storage.get_iter(path)
+		mac = storage.get_value(network_iter, 0)
+		self.network_list_network_selected = mac
+		self.network_list_network_menu.popup(None, None, None, event.button, event.time)
 		
 	def on_column_clicked(self, widget):
 		self.network_list.set_search_column(widget.num)
@@ -491,6 +519,9 @@ class MainWindow(KismonWindows):
 			page = self.notebook.page_num(self.map.widget)
 			if page >= 0:
 				self.notebook.remove_page(page)
+			
+	def on_map_locate_marker(self, widget):
+		self.map.locate_marker(self.network_list_network_selected)
 		
 	def file_choser(self, extension, do):
 		if do == "save":
