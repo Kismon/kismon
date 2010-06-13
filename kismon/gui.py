@@ -521,7 +521,8 @@ class MainWindow(KismonWindows):
 				self.notebook.remove_page(page)
 			
 	def on_map_locate_marker(self, widget):
-		self.map.locate_marker(self.network_list_network_selected)
+		if self.map is not None:
+			self.map.locate_marker(self.network_list_network_selected)
 		
 	def file_choser(self, extension, do):
 		if do == "save":
