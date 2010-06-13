@@ -98,7 +98,7 @@ class Map:
 		button.show()
 		hbox.add(button)
 		
-		self.toggle_moving_button = gtk.ToggleButton("Follow GPS")
+		self.toggle_moving_button = gtk.CheckButton("Follow GPS")
 		self.toggle_moving_button.connect("clicked", self.on_toggle_moving)
 		self.toggle_moving_button.show()
 		self.toggle_moving_button.set_active(True)
