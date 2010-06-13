@@ -288,7 +288,8 @@ class Map:
 		self.toggle_moving_button.set_active(False)
 
 if __name__ == "__main__":
-	test_config = {"map": {"markerstyle": "name", "followgps": True}}
+	from config import Config
+	test_config = Config(None).default_config
 	
 	test_map = Map(test_config)
 	test_map.set_zoom(16)
