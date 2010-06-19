@@ -34,6 +34,7 @@ import champlain
 import clutter
 
 import os
+import threading
 
 class Map:
 	def __init__(self, config, view):
@@ -195,7 +196,9 @@ class Map:
 		"""show the image on the map and remove the text and background
 		"""
 		marker.set_draw_background(False)
-		texture = clutter.texture_new_from_file(self.images[marker.color_name])
+		texture = clutter.Texture()
+		texture.set_load_data_async(True)
+		texture.set_from_file(self.images[marker.color_name])
 		marker.set_image(texture)
 		marker.set_text(" ")
 		
@@ -238,12 +241,14 @@ class MapWidget:
 		self.embed.connect("button-release-event", self.on_map_released)
 		
 		self.view = self.embed.get_view()
-		self.map = Map(self.config, self.view)
+		map = Map(self.config, self.view)
+		self.thread = MapThread(map)
+		self.thread.start()
 		
 		self.vbox = gtk.VBox()
 		self.init_menu()
 		self.vbox.add(self.embed)
-		self.map.toggle_moving_button = self.toggle_moving_button
+		map.toggle_moving_button = self.toggle_moving_button
 		
 		self.widget = self.vbox
 		
@@ -284,42 +289,101 @@ class MapWidget:
 		"""disable set_position if the map is pressed
 		"""
 		if self.config["map"]["followgps"] is True:
-			self.map.stop_moving()
+			self.thread.append(["moving", False])
 		
 	def on_map_released(self, widget, event):
 		active = self.toggle_moving_button.get_active()
 		if self.config["map"]["followgps"] is False and active is True:
-			self.map.start_moving()
+			self.thread.append(["moving", True])
 		
 	def on_change_marker_style(self, widget):
 		style = widget.get_active_text().lower()[:-1]
-		self.map.change_marker_style(style)
+		self.thread.append(["style", style])
 		
 	def on_toggle_moving(self, widget):
 		active = widget.get_active()
 		if active is True:
-			self.map.start_moving()
+			self.thread.append(["moving", True])
 		else:
-			self.map.stop_moving()
+			self.thread.append(["moving", False])
 		
 	def on_zoom_in(self, widget):
-		self.map.zoom_in()
+		self.thread.append(["zoom", "in"])
 		
 	def on_zoom_out(self, widget):
-		self.map.zoom_out()
+		self.thread.append(["zoom", "out"])
+
+class MapThread(threading.Thread):
+	def __init__(self, map):
+		threading.Thread.__init__(self)
+		#self.config = config
+		self._map = map
+		self.event=threading.Event()
+		self.queue = []
+		
+	def run(self):
+		map = self._map
+		while True:
+			self.event.clear()
+			if len(self.queue) == 0:
+				self.event.wait()
+			name, data = self.queue.pop(0)
+			
+			if name == "position":
+				map.set_position(data[0], data[1])
+			elif name == "zoom":
+				if data == "in":
+					map.zoom_in()
+				elif data == "out":
+					map.zoom_out()
+				else:
+					map.set_zoom(data)
+			elif name == "marker":
+				map.add_marker(data[0], data[1], data[2], data[3], data[4], data[5])
+			elif name == "locate":
+				map.locate_marker(data)
+			elif name == "style":
+				map.change_marker_style(data)
+			elif name == "moving":
+				if data is True:
+					map.start_moving()
+				else:
+					map.stop_moving()
+			elif name == "stop":
+				break
+			else:
+				print name
+				
+	def append(self, task):
+		self.queue.append(task)
+		if not self.event.is_set():
+			self.event.set()
 
 if __name__ == "__main__":
 	from config import Config
+	import gobject
+	gobject.threads_init()
 	test_config = Config(None).default_config
-	
 	test_map_widget = MapWidget(test_config)
 	
-	test_map = test_map_widget.map
-	test_map.set_zoom(16)
-	test_map.set_position(52.513,13.323)
-	test_map.add_marker("111", "marker 1", "long description\nbla\nblub", "green", 52.513, 13.322)
-	test_map.add_marker("222", "marker 2", "blablabla", "red", 52.512, 13.322)
-	test_map.add_marker("222", "blablub", "asdasdasd", "red", 52.512, 13.322)
+	test_thread = test_map_widget.thread
+	tasks = (
+		["zoom", 16],
+		["position", (52.513,13.323)],
+		["marker", ("111", "marker 1", "long description\nbla\nblub", "green", 52.513, 13.322)],
+		["marker", ("222", "marker 2", "blablabla", "red", 52.512, 13.322)],
+		["marker", ("222", "blablub", "asdasdasd", "red", 52.512, 13.322)],
+		["locate", "111"],
+		["style", "name"],
+		["style", "image"],
+		["zoom", "in"],
+		["zoom", "out"],
+		["moving", False],
+		["position", (52.513,13.323)],
+		["moving", True],
+	)
+	for task in tasks:
+		test_thread.append(task)
 	
 	test_window = gtk.Window()
 	test_window.set_title("Kismon Test Map")
@@ -330,3 +394,4 @@ if __name__ == "__main__":
 	test_window.show_all()
 	
 	gtk.main()
+	test_thread.append(["stop", True])
