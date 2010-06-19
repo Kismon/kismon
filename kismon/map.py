@@ -39,6 +39,7 @@ class Map:
 	def __init__(self, config, view):
 		self.config = config
 		self.view = view
+		self.toggle_moving_button = None
 		self.markers = {}
 		self.marker_text = "%s\n<span size=\"small\">%s</span>"
 		self.marker_font = "Serif 10"
@@ -225,7 +226,8 @@ class Map:
 		
 		self.on_marker_clicked(marker)
 		self.view.center_on(lat, lon)
-		self.toggle_moving_button.set_active(False)
+		if self.toggle_moving_button is not None:
+			self.toggle_moving_button.set_active(False)
 
 class MapWidget:
 	def __init__(self, config):
@@ -241,6 +243,7 @@ class MapWidget:
 		self.vbox = gtk.VBox()
 		self.init_menu()
 		self.vbox.add(self.embed)
+		self.map.toggle_moving_button = self.toggle_moving_button
 		
 		self.widget = self.vbox
 		
