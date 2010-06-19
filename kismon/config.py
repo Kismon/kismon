@@ -51,6 +51,8 @@ class Config:
 			"map": {
 				"markerstyle": "image",
 				"followgps": True,
+				"source": "osm-mapnik",
+				"osmfile": None,
 				}
 			}
 	

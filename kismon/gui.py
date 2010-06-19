@@ -202,26 +202,24 @@ class MainWindow(KismonWindows):
 		map_menu = gtk.Menu()
 		map_menuitem = gtk.MenuItem("Map")
 		map_menuitem.set_submenu(map_menu)
-		view_menu.append(map_menuitem)
+		menubar.append(map_menuitem)
 		
 		if self.map is None:
 			map_item = gtk.MenuItem("Map disabled")
 			map_menu.append(map_item)
 		else:
-			map_file = gtk.MenuItem("Select osm file")
-			map_file.connect("activate", self.on_map_select_file)
-			#map_menu.append(map_file)
-			
-			sep = gtk.SeparatorMenuItem()
-			#map_menu.append(sep)
+			map_view_menu = gtk.Menu()
+			map_view_menuitem = gtk.MenuItem("View")
+			map_view_menuitem.set_submenu(map_view_menu)
+			map_menu.append(map_view_menuitem)
 			
 			map_hide = gtk.RadioMenuItem(None, 'Hide')
 			map_hide.connect("activate", self.on_map_hide)
-			map_menu.append(map_hide)
+			map_view_menu.append(map_hide)
 			
 			map_window = gtk.RadioMenuItem(map_hide, 'In seperate window')
 			map_window.connect("activate", self.on_map_window)
-			map_menu.append(map_window)
+			map_view_menu.append(map_window)
 			
 			map_widget = gtk.RadioMenuItem(map_hide, 'In main window')
 			map_widget.connect("activate", self.on_map_widget)
@@ -232,7 +230,7 @@ class MainWindow(KismonWindows):
 				map_window.set_active(True)
 			else:
 				map_hide.set_active(True)
-			map_menu.append(map_widget)
+			map_view_menu.append(map_widget)
 			
 		help_menu = gtk.Menu()
 		help_menuitem = gtk.MenuItem("Help")
@@ -484,11 +482,6 @@ class MainWindow(KismonWindows):
 		
 	def on_client_disconnect(self, widget):
 		self.client_stop()
-		
-	def on_map_select_file(self, widget):
-		filename = self.file_choser("osm","open")
-		if filename is not False:
-			self.map.set_osm_file(filename)
 		
 	def on_map_hide(self, widget):
 		self.config["window"]["mapplace"] = "hide"
