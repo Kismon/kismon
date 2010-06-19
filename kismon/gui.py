@@ -60,12 +60,12 @@ class KismonWindows:
 		if name == "F11":
 			self.fullscreen()
 		elif name == "i" and event.state & gtk.gdk.CONTROL_MASK:
-			self.map.on_zoom_in()
+			self.map.zoom_in()
 		elif name == "o" and event.state & gtk.gdk.CONTROL_MASK:
-			self.map.on_zoom_out()
+			self.map.zoom_out()
 
 class MainWindow(KismonWindows):
-	def __init__(self, config, client_start, client_stop, map=None):
+	def __init__(self, config, client_start, client_stop, map_widget=None):
 		KismonWindows.__init__(self)
 		self.config = config
 		self.client_start = client_start
@@ -81,7 +81,8 @@ class MainWindow(KismonWindows):
 		if self.config["window"]["maximized"] is True:
 			self.gtkwin.maximize()
 		
-		self.map = map
+		self.map_widget = map_widget
+		self.map = self.map_widget.widget
 		self.network_list_types = []
 		self.network_lines = {}
 		self.network_iter = {}
@@ -495,7 +496,7 @@ class MainWindow(KismonWindows):
 			except:
 				pass
 			self.config["window"]["mapplace"] = "window"
-			self.map_window = MapWindow(self.map)
+			self.map_window = MapWindow(self.map_widget)
 			self.map_window.gtkwin.show_all()
 		else:
 			if self.map_window.gtkwin is not None:
@@ -503,13 +504,14 @@ class MainWindow(KismonWindows):
 				self.map_window.destroy()
 		
 	def on_map_widget(self, widget):
+		map_widget = self.map_widget.widget
 		if widget.get_active() is True:
 			self.config["window"]["mapplace"] = "widget"
-			self.notebook.append_page(self.map.widget)
-			self.notebook.set_tab_label_text(self.map.widget, "Map")
-			self.map.widget.show_all()
+			self.notebook.append_page(map_widget)
+			self.notebook.set_tab_label_text(map_widget, "Map")
+			map_widget.show_all()
 		else:
-			page = self.notebook.page_num(self.map.widget)
+			page = self.notebook.page_num(map_widget)
 			if page >= 0:
 				self.notebook.remove_page(page)
 			
@@ -561,13 +563,13 @@ class MainWindow(KismonWindows):
 		self.config["window"]["height"] = height
 		
 class MapWindow(KismonWindows):
-	def __init__(self, map):
+	def __init__(self, map_widget):
 		KismonWindows.__init__(self)
 		self.gtkwin.set_title("Map")
 		self.gtkwin.show()
 		self.gtkwin.set_size_request(640, 480)
-		self.map = map
-		self.gtkwin.add(self.map.widget)
+		self.map_widget = map_widget
+		self.gtkwin.add(self.map_widget.widget)
 		
 	def on_destroy(self, window):
 		self.destroy()
@@ -577,7 +579,7 @@ class MapWindow(KismonWindows):
 		self.gtkwin = None
 		
 	def remove_map(self):
-		self.gtkwin.remove(self.map.widget)
+		self.gtkwin.remove(self.map_widget.widget)
 		
 	def hide(self):
 		self.gtkwin.hide()

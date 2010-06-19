@@ -46,7 +46,7 @@ except:
 	print "Map disabled"
 	champlain = None
 if champlain is not None:
-	from map import Map
+	from map import MapWidget
 
 class Core:
 	def __init__(self):
@@ -66,13 +66,14 @@ class Core:
 		if champlain is None:
 			self.map = None
 		else:
-			self.map = Map(self.config)
+			self.map_widget = MapWidget(self.config)
+			self.map = self.map_widget.map
 			self.map.set_zoom(16)
 		
 		self.main_window = MainWindow(self.config,
 			self.client_start,
 			self.client_stop,
-			self.map)
+			self.map_widget)
 		self.main_window.add_to_log_list("Kismon started")
 		
 		self.sources = {}
