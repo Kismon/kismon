@@ -176,6 +176,7 @@ class Core:
 		
 	def quit(self):
 		self.client_thread.stop()
+		self.map_thread.append(["stop", True])
 		self.config_handler.write()
 
 def main():
