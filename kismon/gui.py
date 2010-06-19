@@ -60,9 +60,9 @@ class KismonWindows:
 		if name == "F11":
 			self.fullscreen()
 		elif name == "i" and event.state & gtk.gdk.CONTROL_MASK:
-			self.map_widget.map.zoom_in()
+			self.map_widget.thread.append(["zoom", "in"])
 		elif name == "o" and event.state & gtk.gdk.CONTROL_MASK:
-			self.map_widget.map.zoom_out()
+			self.map_widget.thread.append(["zoom", "out"])
 
 class MainWindow(KismonWindows):
 	def __init__(self, config, client_start, client_stop, map_widget=None):
@@ -82,7 +82,6 @@ class MainWindow(KismonWindows):
 			self.gtkwin.maximize()
 		
 		self.map_widget = map_widget
-		self.map = self.map_widget.widget
 		self.network_list_types = []
 		self.network_lines = {}
 		self.network_iter = {}
@@ -205,7 +204,7 @@ class MainWindow(KismonWindows):
 		map_menuitem.set_submenu(map_menu)
 		menubar.append(map_menuitem)
 		
-		if self.map is None:
+		if self.map_widget is None:
 			map_item = gtk.MenuItem("Map disabled")
 			map_menu.append(map_item)
 		else:
@@ -516,8 +515,8 @@ class MainWindow(KismonWindows):
 				self.notebook.remove_page(page)
 			
 	def on_map_locate_marker(self, widget):
-		if self.map is not None:
-			self.map.locate_marker(self.network_list_network_selected)
+		if self.map_widget is not None:
+			self.map_widget.thread.append(["locate", self.network_list_network_selected])
 		
 	def file_choser(self, extension, do):
 		if do == "save":

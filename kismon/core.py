@@ -64,11 +64,11 @@ class Core:
 			self.client_start()
 		
 		if champlain is None:
-			self.map = None
+			self.map_widget = None
 		else:
 			self.map_widget = MapWidget(self.config)
-			self.map = self.map_widget.map
-			self.map.set_zoom(16)
+			self.map_thread = self.map_widget.thread
+			self.map_thread.append(["zoom", 16])
 		
 		self.main_window = MainWindow(self.config,
 			self.client_start,
@@ -118,8 +118,8 @@ class Core:
 			
 			elif cap == "gps":
 				self.main_window.create_gps_table(data)
-				if data["fix"] > 1 and self.map is not None:
-					self.map.set_position(data["lat"], data["lon"])
+				if data["fix"] > 1 and self.map_widget is not None:
+					self.map_thread.append(["position", (data["lat"], data["lon"])])
 			
 			elif cap == "info":
 				self.main_window.create_info_table(data)
@@ -135,7 +135,7 @@ class Core:
 				if mac in self.ssids:
 					self.main_window.add_to_network_list(self.bssids[mac], self.ssids[mac])
 					
-					if self.map is None:
+					if self.map_widget is None:
 						continue
 					text = ""
 					crypt = ",".join(decode_cryptset(self.ssids[mac]["cryptset"])).upper()
@@ -159,8 +159,8 @@ class Core:
 					text = text.replace("&", "&amp;")
 					
 					if decode_network_type(data["type"]) == "infrastructure":
-						self.map.add_marker(mac, ssid,
-							text, color, data["bestlat"], data["bestlon"])
+						self.map_thread.append(["marker", (mac, ssid,
+							text, color, data["bestlat"], data["bestlon"])])
 				else:
 					self.main_window.add_to_network_list(self.bssids[mac])
 			
