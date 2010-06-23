@@ -324,8 +324,8 @@ class MapThread(threading.Thread):
 	def run(self):
 		map = self._map
 		while True:
-			self.event.clear()
-			if len(self.queue) == 0:
+			while len(self.queue) == 0:
+				self.event.clear()
 				self.event.wait()
 			name, data = self.queue.pop(0)
 			
