@@ -114,6 +114,8 @@ class Client:
 	def loop(self):
 		while self.connected is True or self.replay_dump is not None:
 			data = self.receive_data()
+			if data is False:
+				break
 			for line in data:
 				if line == "":
 					continue
@@ -126,6 +128,10 @@ class Client:
 	def receive_data(self):
 		if self.replay_dump is not None:
 			data = self.replay_dump.readline()
+			if data == "":
+				self.replay_dump.close()
+				self.replay_dump = None
+				return False
 			return data.split("\n")
 		
 		data = self.s.recv(0x10000)
@@ -147,24 +153,29 @@ class Client:
 		columns = []
 		combine = False
 		
-		while len(data) > 0:
-			row = data[0]
+		while True:
+			try:
+				row = data.pop(0)
+			except IndexError:
+				break
+			
 			if row == "\x01\x01":
 				columns.append("<empty>")
 				
 			elif combine is False:
-				if row == "\x01" or (row.startswith("\x01") and not row.endswith("\x01")):
-					string = row
+				if "\x01" not in row:
+					columns.append(row)
+				elif row == "\x01" or (row.startswith("\x01") and not row.endswith("\x01")):
+					new_string = row
 					combine = True
 				else:
 					columns.append(row.strip("\x01"))
 					
 			elif combine is True:
-				string += " " + row
+				new_string += " " + row
 				if "\x01" in row:
-					columns.append(string.strip("\x01"))
+					columns.append(new_string.strip("\x01"))
 					combine = False
-			del data[0]
 			
 		return columns
 	
@@ -172,25 +183,27 @@ class Client:
 		line = line.split(": ", 1)
 		cap = line[0][1:].lower()
 		data = {}
-		if cap in self.capabilities:
+		try:
+			cap_columns = self.capabilities[cap]
+		except:
+			cap_columns = None
+		if cap_columns is not None:
 			columns = self.split_line(line)
 			
 			y = 0
 			for column in columns:
-				if column == "":
-					continue
-					
 				try:
 					column = float(column)
-					if column == int(column):
-						column = int(column)
-				except:
+					column_int = int(column)
+					if column == column_int:
+						column = column_int
+				except ValueError:
 					pass
-				if y < len(self.capabilities[cap]):
-					data[self.capabilities[cap][y]] = column
-				else:
+				try:
+					data[cap_columns[y]] = column
+				except:
 					print "Parser error:", cap, y, len(columns), \
-						len(self.capabilities[cap]), data
+						len(cap_columns), data
 				y += 1
 			
 			return cap, data
