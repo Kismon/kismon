@@ -185,11 +185,7 @@ class Map:
 		"""
 		marker.set_text(marker.get_name())
 		marker.set_draw_background(True)
-		#marker.set_image(None)
-		#FIXME: set_image(None) is not fixed yet, so hide it
-		for child in marker.get_children():
-			if type(child) == clutter.Texture:
-				child.hide()
+		marker.set_image(None)
 
 	
 	def marker_style_image(self, marker):

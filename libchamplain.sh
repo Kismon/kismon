@@ -25,9 +25,9 @@ cd ..
 
 # download and install libchamplain
 #git clone git://git.gnome.org/libchamplain
-wget http://download.gnome.org/sources/libchamplain/0.6/libchamplain-0.6.0.tar.gz
-tar -xf libchamplain-0.6.0.tar.gz
-cd libchamplain-0.6.0
+wget http://download.gnome.org/sources/libchamplain/0.6/libchamplain-0.6.1.tar.gz
+tar -xf libchamplain-0.6.1.tar.gz
+cd libchamplain-0.6.1
 #./autogen.sh
 ./configure --enable-python
 make
