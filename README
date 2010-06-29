@@ -10,7 +10,7 @@ Dependencies:
 -------------
 
 * libchamplain >=0.6.1 with python bindings (./configure --enable-python)
-* libmemhis >=0.2.1
+* libmemhis >=0.2.3
 * pyclutter
 * python 2.6
 * pygtk

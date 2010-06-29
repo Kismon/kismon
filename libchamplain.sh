@@ -7,9 +7,9 @@ sudo apt-get install git-core autoconf libtool gtk-doc-tools libsqlite3-dev libc
 sudo apt-get install python-dev python-gobject-dev python-gtk2-dev python-clutter-dev python-clutter-gtk-dev python-cairo-dev
 
 # download and install libmemphis
-wget https://trac.openstreetmap.ch/trac/memphis/downloads/3 --no-check-certificate -O memphis-0.2.1.tar.gz 
-tar -xf memphis-0.2.1.tar.gz
-cd memphis-0.2.1
+wget https://trac.openstreetmap.ch/trac/memphis/downloads/5 --no-check-certificate -O memphis-0.2.3.tar.gz
+tar -xf memphis-0.2.3.tar.gz
+cd memphis-0.2.3
 ./configure
 make
 sudo make install
