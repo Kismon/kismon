@@ -273,24 +273,20 @@ def decode_cryptset(cryptset):
 	cryptsets=["none", "unknown", "wep", "layer3 ", "wep40", "wep104",
 		"tkip", "wpa", "psk", "aes_ocb", "aes_ccm", "leap", "ttls",
 		"peap", "pptp", "fortress", "keyguard"]
-	try:
-		cryptset = int(cryptset)
-	except:
-		return False
-	crypts = []
-	binlist = []
 	if cryptset == 0:
 		return [cryptsets[cryptset]]
-	#byte shifting (>>)
-	while cryptset>0:
-		binlist.append(cryptset % 2)
-		cryptset = cryptset >> 1
+	
+	crypts = []
 	pos = 1
-	for bit in binlist:
-		if bit == 1:
-			if len(cryptsets) > pos:
+	bin_cryptset = bin(cryptset)[2:][::-1]
+	for bit in bin_cryptset:
+		if bit == "1":
+			try:
 				crypts.append(cryptsets[pos])
-		pos += 1
+			except IndexError:
+				pass
+		pos +=1
+	
 	return crypts
 	
 def decode_network_type(num):
