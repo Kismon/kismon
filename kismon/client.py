@@ -267,7 +267,7 @@ class ClientThread(threading.Thread):
 					print "%s: %s" % (result[0], result[1])
 				self.queue.append(result)
 			
-def decode_cryptset(cryptset):
+def decode_cryptset(cryptset, str=False):
 	"""see packet_ieee80211.h from kismet-newcore
 	"""
 	cryptsets=["none", "unknown", "wep", "layer3 ", "wep40", "wep104",
@@ -287,7 +287,10 @@ def decode_cryptset(cryptset):
 				pass
 		pos +=1
 	
-	return crypts
+	if str is True:
+		return ",".join(crypts).upper()
+	else:
+		return crypts
 	
 def decode_network_type(num):
 	"""see netracker.h from kismet-newcore

@@ -296,7 +296,7 @@ class MainWindow(KismonWindows):
 			try:
 				crypt = self.crypt_cache[ssid["cryptset"]]
 			except KeyError:
-				crypt =  ",".join(client.decode_cryptset(ssid["cryptset"])).upper()
+				crypt = client.decode_cryptset(ssid["cryptset"], True)
 				self.crypt_cache[ssid["cryptset"]] = crypt
 			
 		line = [mac,

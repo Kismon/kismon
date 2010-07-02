@@ -143,7 +143,7 @@ class Core:
 					try:
 						crypt = self.crypt_cache[self.ssids[mac]["cryptset"]]
 					except KeyError:
-						crypt = join(decode_cryptset(self.ssids[mac]["cryptset"])).upper()
+						crypt = decode_cryptset(self.ssids[mac]["cryptset"], True)
 						self.crypt_cache[self.ssids[mac]["cryptset"]] = crypt
 					
 					text = ""
