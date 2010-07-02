@@ -384,25 +384,6 @@ class MainWindow(KismonWindows):
 		self.log_list_treestore.prepend(None, 
 			[time.strftime("%H:%M:%S"), message])
 	
-	def create_table(self, rows, data):
-		table = gtk.Table(len(rows), 2)
-		row=0
-		for title, varname in rows:
-			value = data[varname]
-			label = gtk.Label("%s: "%title)
-			label.set_alignment(xalign=0, yalign=0)
-			table.attach(label, 0, 1, row, row+1)
-			label.show()
-			
-			label = gtk.Label(value)
-			label.set_alignment(xalign=0, yalign=0)
-			table.attach(label, 1, 2, row, row+1)
-			label.show()
-			row += 1
-			
-		table.show()
-		return table
-		
 	def init_info_table(self):
 		table = gtk.Table(2, 2)
 		
