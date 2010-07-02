@@ -124,7 +124,7 @@ class MainWindow(KismonWindows):
 		self.gps_expander = gtk.Expander("GPS Data")
 		self.gps_expander.set_expanded(True)
 		right_table.attach(self.gps_expander, 0, 1, 1, 2, yoptions=gtk.SHRINK)
-		self.gps_table=None
+		self.init_gps_table()
 		
 		self.sources_expander = gtk.Expander("Sources")
 		self.sources_expander.set_expanded(True)
@@ -432,7 +432,41 @@ class MainWindow(KismonWindows):
 		self.info_table_networks.set_text("%s" % data["networks"])
 		self.info_table_packets.set_text("%s" % data["packets"])
 	
-	def create_gps_table(self,data):
+	def init_gps_table(self):
+		table = gtk.Table(3, 2)
+		
+		fix_label = gtk.Label("Fix: ")
+		fix_label.set_alignment(xalign=0, yalign=0)
+		table.attach(fix_label, 0, 1, 0, 1)
+		
+		fix_value_label = gtk.Label()
+		fix_value_label.set_alignment(xalign=0, yalign=0)
+		table.attach(fix_value_label, 1, 2, 0, 1)
+		self.gps_table_fix = fix_value_label
+		
+		lat_label = gtk.Label("Latitude: ")
+		lat_label.set_alignment(xalign=0, yalign=0)
+		table.attach(lat_label, 0, 1, 1, 2)
+		
+		lat_value_label = gtk.Label()
+		lat_value_label.set_alignment(xalign=0, yalign=0)
+		table.attach(lat_value_label, 1, 2, 1, 2)
+		self.gps_table_lat = lat_value_label
+		
+		lon_label = gtk.Label("Longitude: ")
+		lon_label.set_alignment(xalign=0, yalign=0)
+		table.attach(lon_label, 0, 1, 2, 3)
+		
+		lon_value_label = gtk.Label()
+		lon_value_label.set_alignment(xalign=0, yalign=0)
+		table.attach(lon_value_label, 1, 2, 2, 3)
+		self.gps_table_lon = lon_value_label
+		
+		table.show_all()
+		self.gps_table = table
+		self.gps_expander.add(self.gps_table)
+		
+	def update_gps_table(self, data):
 		if data["fix"] == -1:
 			data["fix"] = "None"
 		elif data["fix"] == 2:
@@ -440,16 +474,9 @@ class MainWindow(KismonWindows):
 		elif data["fix"] == 3:
 			data["fix"] = "3D"
 		
-		rows=(
-			("Fix", "fix"),
-			("Latitude", "lat"),
-			("Longitude", "lon")
-		)
-		if self.gps_table is not None:
-			self.gps_expander.remove(self.gps_table)
-		
-		self.gps_table = self.create_table(rows, data)
-		self.gps_expander.add(self.gps_table)
+		self.gps_table_fix.set_text("%s" % data["fix"])
+		self.gps_table_lat.set_text("%s" % data["lat"])
+		self.gps_table_lon.set_text("%s" % data["lon"])
 		
 	def create_sources_table(self, sources):
 		if self.sources_table is not None:

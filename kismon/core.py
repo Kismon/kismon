@@ -117,7 +117,7 @@ class Core:
 				self.main_window.add_to_log_list(data["text"])
 			
 			elif cap == "gps":
-				self.main_window.create_gps_table(data)
+				self.main_window.update_gps_table(data)
 				if data["fix"] > 1 and self.map_widget is not None:
 					self.map_thread.append(["position", (data["lat"], data["lon"])])
 			
