@@ -293,9 +293,9 @@ def decode_network_type(num):
 	"""see netracker.h from kismet-newcore
 	"""
 	types = {0:"infrastructure", 1:"ad-hoc", 2:"probe", 4:"data"}
-	if num in types:
+	try:
 		return types[num]
-	else:
+	except KeyError:
 		return False
 	
 if __name__ == "__main__":
