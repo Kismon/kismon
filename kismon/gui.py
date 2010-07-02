@@ -129,7 +129,8 @@ class MainWindow(KismonWindows):
 		self.sources_expander = gtk.Expander("Sources")
 		self.sources_expander.set_expanded(True)
 		right_table.attach(self.sources_expander, 0, 1, 2, 3, yoptions=gtk.SHRINK)
-		self.sources_table=None
+		self.sources_table = None
+		self.sources_table_sources = {}
 		
 		self.create_log_list()
 		log_scrolled = gtk.ScrolledWindow()
@@ -459,38 +460,55 @@ class MainWindow(KismonWindows):
 		self.gps_table_lat.set_text("%s" % data["lat"])
 		self.gps_table_lon.set_text("%s" % data["lon"])
 		
-	def create_sources_table(self, sources):
+	def init_sources_table(self, sources):
+		self.sources_table_sources = {}
 		if self.sources_table is not None:
 			self.sources_expander.remove(self.sources_table)
+			
+		table = gtk.Table(len(sources)*5-1, 2)
+		for uuid in sources:
+			self.init_sources_table_source(sources[uuid], table)
+		
+		table.show_all()
+		self.sources_table = table
+		self.sources_expander.add(self.sources_table)
+	
+	def init_sources_table_source(self, source, table):
+		self.sources_table_sources[source["uuid"]] = {}
 		
 		rows = []
-		for uuid in sources:
-			if len(rows) != 0:
-				rows.append((None, None))
-			rows.append((sources[uuid]["username"], ""))
-			rows.append(("Type", sources[uuid]["type"]))
-			rows.append(("Channel", sources[uuid]["channel"]))
-			rows.append(("Packets", sources[uuid]["packets"]))
+		if len(self.sources_table_sources) != 1:
+			rows.append((None, None))
+		rows.append((source["username"], ""))
+		rows.append(("Type", source["type"]))
+		rows.append(("Channel", source["channel"]))
+		rows.append(("Packets", source["packets"]))
 		
-		table = gtk.Table(len(rows),2)
-		row = 0
+		row = len(self.sources_table_sources) * 5
 		for title, value in rows:
 			if title is not None:
 				label = gtk.Label("%s: "%title)
 				label.set_alignment(xalign=0, yalign=0)
 				table.attach(label, 0, 1, row, row+1)
-				label.show()
 			
 			label = gtk.Label(value)
 			label.set_alignment(xalign=0, yalign=0)
 			table.attach(label, 1, 2, row, row+1)
-			label.show()
+			self.sources_table_sources[source["uuid"]][title] = label
 			row += 1
 			
-		table.show()
-		
-		self.sources_table = table
-		self.sources_expander.add(self.sources_table)
+	def update_sources_table(self, sources):
+		for source in sources:
+			if source not in self.sources_table_sources:
+				self.init_sources_table(sources)
+				break
+			
+		for uuid in sources:
+			source = sources[uuid]
+			sources_table_source = self.sources_table_sources[uuid]
+			sources_table_source["Type"].set_text("%s" % source["type"])
+			sources_table_source["Channel"].set_text("%s" % source["channel"])
+			sources_table_source["Packets"].set_text("%s" % source["packets"])
 		
 	def on_client_connect(self, widget):
 		dialog = gtk.Dialog("Connect", parent=self.gtkwin)

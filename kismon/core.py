@@ -126,7 +126,7 @@ class Core:
 			
 			elif cap == "source":
 				self.sources[data["uuid"]] = data
-				self.main_window.create_sources_table(self.sources)
+				self.main_window.update_sources_table(self.sources)
 			
 			elif cap == "bssid":
 				mac = data["bssid"]
