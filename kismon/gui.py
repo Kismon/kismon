@@ -309,6 +309,10 @@ class MainWindow(KismonWindows):
 				bssid["bestlat"],
 				bssid["bestlon"]
 				]
+		try:
+			old_line = self.network_lines[mac]
+		except:
+			old_line = None
 		self.network_lines[mac] = line
 		storage = self.network_list_treestore
 		if mac in self.network_iter:
@@ -316,6 +320,9 @@ class MainWindow(KismonWindows):
 			storage.move_after(network_iter, None)
 			num = 0
 			for value in line:
+				if old_line is not None and old_line.pop(0) == value:
+					num += 1
+					continue
 				storage.set_value(network_iter, num, value)
 				num += 1
 		elif network_type in self.network_list_types:
