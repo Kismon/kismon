@@ -122,7 +122,7 @@ class Core:
 					self.map_thread.append(["position", (data["lat"], data["lon"])])
 			
 			elif cap == "info":
-				self.main_window.create_info_table(data)
+				self.main_window.update_info_table(data)
 			
 			elif cap == "source":
 				self.sources[data["uuid"]] = data

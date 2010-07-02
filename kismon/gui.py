@@ -119,7 +119,7 @@ class MainWindow(KismonWindows):
 		self.info_expander = gtk.Expander("Infos")
 		self.info_expander.set_expanded(True)
 		right_table.attach(self.info_expander, 0, 1, 0, 1, yoptions=gtk.SHRINK)
-		self.info_table = None
+		self.init_info_table()
 		
 		self.gps_expander = gtk.Expander("GPS Data")
 		self.gps_expander.set_expanded(True)
@@ -403,16 +403,34 @@ class MainWindow(KismonWindows):
 		table.show()
 		return table
 		
-	def create_info_table(self, data):
-		rows=(
-			("Network","networks"),
-			("Packets","packets")
-		)
-		if self.info_table is not None:
-			self.info_expander.remove(self.info_table)
+	def init_info_table(self):
+		table = gtk.Table(2, 2)
 		
-		self.info_table=self.create_table(rows,data)
+		networks_label = gtk.Label("Networks: ")
+		networks_label.set_alignment(xalign=0, yalign=0)
+		table.attach(networks_label, 0, 1, 0, 1)
+		
+		networks_value_label = gtk.Label()
+		networks_value_label.set_alignment(xalign=0, yalign=0)
+		table.attach(networks_value_label, 1, 2, 0, 1)
+		self.info_table_networks = networks_value_label
+		
+		packets_label = gtk.Label("Packets: ")
+		packets_label.set_alignment(xalign=0, yalign=0)
+		table.attach(packets_label, 0, 1, 1, 2)
+		
+		packets_value_label = gtk.Label()
+		packets_value_label.set_alignment(xalign=0, yalign=0)
+		table.attach(packets_value_label, 1, 2, 1, 2)
+		self.info_table_packets = packets_value_label
+		
+		table.show_all()
+		self.info_table = table
 		self.info_expander.add(self.info_table)
+		
+	def update_info_table(self, data):
+		self.info_table_networks.set_text("%s" % data["networks"])
+		self.info_table_packets.set_text("%s" % data["packets"])
 	
 	def create_gps_table(self,data):
 		if data["fix"] == -1:
