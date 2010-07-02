@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='kismon',
-	version='0.0',
+	version='0.1',
 	description='PyGTK based kismet client',
 	author='Patrick Salecker',
 	author_email='mail@salecker.org',
