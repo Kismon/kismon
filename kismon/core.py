@@ -79,6 +79,8 @@ class Core:
 		self.sources = {}
 		self.bssids = {}
 		self.ssids = {}
+		self.crypt_cache = {}
+		self.main_window.crypt_cache = self.crypt_cache
 		
 		gobject.threads_init()
 		gobject.timeout_add(self.config["core"]["refreshrate"], self.queue_handler)
@@ -137,8 +139,14 @@ class Core:
 					
 					if self.map_widget is None:
 						continue
+						
+					try:
+						crypt = self.crypt_cache[self.ssids[mac]["cryptset"]]
+					except KeyError:
+						crypt = join(decode_cryptset(self.ssids[mac]["cryptset"])).upper()
+						self.crypt_cache[self.ssids[mac]["cryptset"]] = crypt
+					
 					text = ""
-					crypt = ",".join(decode_cryptset(self.ssids[mac]["cryptset"])).upper()
 					ssid = str(self.ssids[mac]["ssid"])
 					evils = [("&", "&amp;"),("<", "&lt;"),(">", "&gt;")]
 					for evil, good in evils:

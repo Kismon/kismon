@@ -293,7 +293,11 @@ class MainWindow(KismonWindows):
 		if ssid is None:
 			crypt = None
 		else:
-			crypt = ",".join(client.decode_cryptset(ssid["cryptset"])).upper()
+			try:
+				crypt = self.crypt_cache[ssid["cryptset"]]
+			except KeyError:
+				crypt =  ",".join(client.decode_cryptset(ssid["cryptset"])).upper()
+				self.crypt_cache[ssid["cryptset"]] = crypt
 			
 		line = [mac,
 				network_type,
