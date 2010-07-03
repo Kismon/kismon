@@ -32,6 +32,7 @@ import socket
 import sys
 import threading
 import time
+import os
 
 class Client:
 	def __init__(self):
@@ -56,9 +57,10 @@ class Client:
 			self.capabilities[cap.lower()] = ()
 			
 	def enable_dump(self):
-		filename = "/tmp/kismet-rawdump-%s.dump" % int(time.time())
+		time_format = "%Y%m%d-%H%M%S"
+		filename = "~/kismet-rawdump-%s.dump" % time.strftime(time_format)
 		print "Client: Dump %s" % filename
-		self.dump = open(filename, "w")
+		self.dump = open(os.path.expanduser(filename), "w")
 		return filename
 		
 	def load_dump(self, filename):
