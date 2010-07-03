@@ -138,7 +138,8 @@ class Map:
 		
 	def update_marker(self, key, name, text, lat, lon):
 		marker = self.markers[key]
-		marker.set_position(lat, lon)
+		if marker.get_latitude() != lat or marker.get_longitude() != lon:
+			marker.set_position(lat, lon)
 		marker.long_text = text
 		marker.set_name(name)
 		if self.config["map"]["markerstyle"] == "marker":
