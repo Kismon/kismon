@@ -321,10 +321,13 @@ class MapThread(threading.Thread):
 	def run(self):
 		map = self._map
 		while True:
-			while len(self.queue) == 0:
-				self.event.clear()
-				self.event.wait()
-			name, data = self.queue.pop(0)
+			while True:
+				try:
+					name, data = self.queue.pop(0)
+					break
+				except IndexError:
+					self.event.clear()
+					self.event.wait()
 			
 			if name == "position":
 				map.set_position(data[0], data[1])
