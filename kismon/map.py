@@ -363,6 +363,8 @@ class MapThread(threading.Thread):
 					map.start_moving()
 				else:
 					map.stop_moving()
+			elif name == "source":
+				map.set_source(data)
 			elif name == "stop":
 				break
 			else:

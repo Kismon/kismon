@@ -233,6 +233,24 @@ class MainWindow(KismonWindows):
 				map_hide.set_active(True)
 			map_view_menu.append(map_widget)
 			
+			map_source_menu = gtk.Menu()
+			map_source_menuitem = gtk.MenuItem("Source")
+			map_source_menuitem.set_submenu(map_source_menu)
+			map_menu.append(map_source_menuitem)
+			
+			map_source_mapnik = gtk.RadioMenuItem(None,
+				'OSM Mapnik (internet)')
+			map_source_mapnik.connect("activate", self.on_map_source_mapnik)
+			map_source_menu.append(map_source_mapnik)
+			
+			map_source_memphis = gtk.RadioMenuItem(map_source_mapnik,
+				'Memphis (local rendering)')
+			if self.config["map"]["source"] == "memphis-local":
+				map_source_memphis.set_active(True)
+				self.on_map_source_memphis(map_source_memphis, False)
+			map_source_memphis.connect("activate", self.on_map_source_memphis)
+			map_source_menu.append(map_source_memphis)
+			
 		help_menu = gtk.Menu()
 		help_menuitem = gtk.MenuItem("Help")
 		help_menuitem.set_submenu(help_menu)
@@ -573,7 +591,22 @@ class MainWindow(KismonWindows):
 		if self.map_widget is not None:
 			self.map_widget.thread.append(["locate", self.network_list_network_selected])
 		
-	def file_choser(self, extension, do):
+	def on_map_source_mapnik(self, widget):
+		if widget.get_active() is True:
+			self.map_widget.thread.append(["source", "osm-mapnik"])
+		
+	def on_map_source_memphis(self, widget, ask=True):
+		if widget.get_active() is False:
+			return
+		if ask is True:
+			filename = self.file_choser("osm", "open", self.config["map"]["osmfile"])
+			print "osm file: %s" % filename
+			if filename is not False:
+				self.config["map"]["osmfile"] = filename
+		if self.config["map"]["osmfile"] is not None:
+			self.map_widget.thread.append(["source", "memphis-local"])
+		
+	def file_choser(self, extension, do, filename=None):
 		if do == "save":
 			dialog = gtk.FileChooserDialog(title="Save %s" % (extension),
 				parent=self.gtkwin,	action=gtk.FILE_CHOOSER_ACTION_SAVE)
@@ -587,6 +620,8 @@ class MainWindow(KismonWindows):
 				dialog = gtk.FileChooserDialog(title="Open %s" % (extension),
 				parent=self.gtkwin, action=gtk.FILE_CHOOSER_ACTION_OPEN)
 			dialog.add_button(gtk.STOCK_OPEN, gtk.RESPONSE_OK)
+		if filename is not None:
+			dialog.set_filename(filename)
 		dialog.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
 		
 		filename = False
