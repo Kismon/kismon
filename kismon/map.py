@@ -31,6 +31,7 @@ POSSIBILITY OF SUCH DAMAGE.
 import gtk
 import champlaingtk
 import champlain
+import champlainmemphis
 import clutter
 
 import os
@@ -69,6 +70,7 @@ class Map:
 		self.view.add_layer(self.marker_layer)
 		self.view.add_layer(self.position_layer)
 		
+		self.map_source_factory = champlain.map_source_factory_dup_default()
 		
 	def init_position_marker(self):
 		"""show a marker at the current position
@@ -86,9 +88,6 @@ class Map:
 		
 	def zoom_out(self):
 		self.view.zoom_out()
-		
-	def set_osm_file(self, filename):
-		print "set_osm_file stub!",filename
 		
 	def set_position(self, lat, lon):
 		if self.config["map"]["followgps"] is True:
@@ -228,6 +227,21 @@ class Map:
 		self.view.center_on(lat, lon)
 		if self.toggle_moving_button is not None:
 			self.toggle_moving_button.set_active(False)
+		
+	def set_source(self, id):
+		self.config["map"]["source"] = id
+		source = self.map_source_factory.create(id)
+		
+		if id == "memphis-local":
+			datasource = champlainmemphis.LocalMapDataSource()
+			print "Loading osm file..."
+			datasource.load_map_data(self.config["map"]["osmfile"])
+			print "Done"
+			
+			#source.load_rules("rules.xml")
+			source.set_map_data_source(datasource)
+		
+		self.view.set_map_source(source)
 
 class MapWidget:
 	def __init__(self, config):
