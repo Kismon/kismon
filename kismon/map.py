@@ -127,13 +127,13 @@ class Map:
 		if self.selected_marker is not None:
 			marker.hide()
 		
-		self.marker_layer.add_marker(marker)
-		self.markers[key] = marker
-		
 		if self.config["map"]["markerstyle"] == "image":
 			self.marker_style_image(marker)
 		else:
 			self.marker_style_name(marker)
+		
+		self.marker_layer.add_marker(marker)
+		self.markers[key] = marker
 		
 	def update_marker(self, key, name, text, lat, lon):
 		marker = self.markers[key]
