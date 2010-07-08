@@ -201,6 +201,8 @@ class Client:
 						column = column_int
 				except ValueError:
 					pass
+				except OverflowError:
+					column = float(column)
 				try:
 					data[cap_columns[y]] = column
 				except:
