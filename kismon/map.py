@@ -141,7 +141,7 @@ class Map:
 			marker.set_position(lat, lon)
 		marker.long_text = text
 		marker.set_name(name)
-		if self.config["map"]["markerstyle"] == "marker":
+		if self.config["map"]["markerstyle"] == "name":
 			marker.set_text(name)
 	
 	def on_marker_clicked(self, marker, event=None):
@@ -196,7 +196,8 @@ class Map:
 		texture.set_load_data_async(True)
 		texture.set_from_file(self.images[marker.color_name])
 		marker.set_image(texture)
-		marker.set_text(" ")
+		if marker.get_text() is not None:
+			marker.set_text(" ")
 		
 	def stop_moving(self):
 		self.config["map"]["followgps"] = False
@@ -375,7 +376,7 @@ class MapThread(threading.Thread):
 		if not self.event.is_set():
 			self.event.set()
 
-if __name__ == "__main__":
+def test():
 	from config import Config
 	import gobject
 	gobject.threads_init()
@@ -391,15 +392,23 @@ if __name__ == "__main__":
 		["marker", ("222", "blablub", "asdasdasd", "red", 52.512, 13.322)],
 		["locate", "111"],
 		["style", "name"],
+		["marker", ("222", "blablub", "asdasdasd", "red", 52.512, 13.321)],
+		["marker", ("333", "marker 3", "test", "orange", 52.511, 13.322)],
 		["style", "image"],
 		["zoom", "in"],
 		["zoom", "out"],
 		["moving", False],
 		["position", (52.513,13.323)],
 		["moving", True],
+		["source", "osm-mapnik"],
 	)
 	for task in tasks:
 		test_thread.append(task)
+	
+	test_map_widget.on_zoom_out(None)
+	test_map_widget.on_zoom_in(None)
+	test_map_widget.on_map_pressed(None, None)
+	test_map_widget.on_map_released(None, None)
 	
 	test_window = gtk.Window()
 	test_window.set_title("Kismon Test Map")
@@ -411,3 +420,6 @@ if __name__ == "__main__":
 	
 	gtk.main()
 	test_thread.append(["stop", True])
+	
+if __name__ == "__main__":
+	test()
