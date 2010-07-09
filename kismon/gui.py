@@ -31,6 +31,7 @@ POSSIBILITY OF SUCH DAMAGE.
 import client
 
 import time
+import os
 
 import gtk
 import gobject
@@ -68,6 +69,7 @@ class MainWindow(KismonWindows):
 	def __init__(self, config, client_start, client_stop, map_widget=None):
 		KismonWindows.__init__(self)
 		self.config = config
+		self.config_window = None
 		self.client_start = client_start
 		self.client_stop = client_stop
 		
@@ -200,57 +202,11 @@ class MainWindow(KismonWindows):
 		show_data.connect("activate", self.on_network_list_filter_type)
 		network_menu.append(show_data)
 		
-		map_menu = gtk.Menu()
-		map_menuitem = gtk.MenuItem("Map")
-		map_menuitem.set_submenu(map_menu)
-		menubar.append(map_menuitem)
+		config_menuitem = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)
+		config_menuitem.connect("activate", self.on_config_window)
+		config_menuitem.activate()
+		view_menu.append(config_menuitem)
 		
-		if self.map_widget is None:
-			map_item = gtk.MenuItem("Map disabled")
-			map_menu.append(map_item)
-		else:
-			map_view_menu = gtk.Menu()
-			map_view_menuitem = gtk.MenuItem("View")
-			map_view_menuitem.set_submenu(map_view_menu)
-			map_menu.append(map_view_menuitem)
-			
-			map_hide = gtk.RadioMenuItem(None, 'Hide')
-			map_hide.connect("activate", self.on_map_hide)
-			map_view_menu.append(map_hide)
-			
-			map_window = gtk.RadioMenuItem(map_hide, 'In seperate window')
-			map_window.connect("activate", self.on_map_window)
-			map_view_menu.append(map_window)
-			
-			map_widget = gtk.RadioMenuItem(map_hide, 'In main window')
-			map_widget.connect("activate", self.on_map_widget)
-			
-			if self.config["window"]["mapplace"] == "widget":
-				map_widget.set_active(True)
-			elif self.config["window"]["mapplace"] == "window":
-				map_window.set_active(True)
-			else:
-				map_hide.set_active(True)
-			map_view_menu.append(map_widget)
-			
-			map_source_menu = gtk.Menu()
-			map_source_menuitem = gtk.MenuItem("Source")
-			map_source_menuitem.set_submenu(map_source_menu)
-			map_menu.append(map_source_menuitem)
-			
-			map_source_mapnik = gtk.RadioMenuItem(None,
-				'OSM Mapnik (internet)')
-			map_source_mapnik.connect("activate", self.on_map_source_mapnik)
-			map_source_menu.append(map_source_mapnik)
-			
-			map_source_memphis = gtk.RadioMenuItem(map_source_mapnik,
-				'Memphis (local rendering)')
-			if self.config["map"]["source"] == "memphis-local":
-				map_source_memphis.set_active(True)
-				self.on_map_source_memphis(map_source_memphis, False)
-			map_source_memphis.connect("activate", self.on_map_source_memphis)
-			map_source_menu.append(map_source_memphis)
-			
 		help_menu = gtk.Menu()
 		help_menuitem = gtk.MenuItem("Help")
 		help_menuitem.set_submenu(help_menu)
@@ -571,9 +527,10 @@ class MainWindow(KismonWindows):
 			self.map_window = MapWindow(self.map_widget)
 			self.map_window.gtkwin.show_all()
 		else:
-			if self.map_window.gtkwin is not None:
-				self.map_window.hide()
-				self.map_window.destroy()
+			try:
+				self.map_window.gtkwin.destroy()
+			except AttributeError:
+				pass
 		
 	def on_map_widget(self, widget):
 		map_widget = self.map_widget.widget
@@ -590,45 +547,6 @@ class MainWindow(KismonWindows):
 	def on_map_locate_marker(self, widget):
 		if self.map_widget is not None:
 			self.map_widget.thread.append(["locate", self.network_list_network_selected])
-		
-	def on_map_source_mapnik(self, widget):
-		if widget.get_active() is True:
-			self.map_widget.thread.append(["source", "osm-mapnik"])
-		
-	def on_map_source_memphis(self, widget, ask=True):
-		if widget.get_active() is False:
-			return
-		if ask is True:
-			filename = self.file_choser("osm", "open", self.config["map"]["osmfile"])
-			print "osm file: %s" % filename
-			if filename is not False:
-				self.config["map"]["osmfile"] = filename
-		if self.config["map"]["osmfile"] is not None:
-			self.map_widget.thread.append(["source", "memphis-local"])
-		
-	def file_choser(self, extension, do, filename=None):
-		if do == "save":
-			dialog = gtk.FileChooserDialog(title="Save %s" % (extension),
-				parent=self.gtkwin,	action=gtk.FILE_CHOOSER_ACTION_SAVE)
-			dialog.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_OK)
-			dialog.set_do_overwrite_confirmation(True)
-		elif do == "open":
-			if extension is False:
-				dialog = gtk.FileChooserDialog(title="Open directory",
-					parent=self.gtkwin, action=gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
-			else:
-				dialog = gtk.FileChooserDialog(title="Open %s" % (extension),
-				parent=self.gtkwin, action=gtk.FILE_CHOOSER_ACTION_OPEN)
-			dialog.add_button(gtk.STOCK_OPEN, gtk.RESPONSE_OK)
-		if filename is not None:
-			dialog.set_filename(filename)
-		dialog.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
-		
-		filename = False
-		if dialog.run() == gtk.RESPONSE_OK:
-			filename = dialog.get_filename()
-		dialog.destroy()
-		return filename
 		
 	def on_about_dialog(self, widget):
 		dialog = gtk.AboutDialog()
@@ -651,6 +569,17 @@ class MainWindow(KismonWindows):
 		self.config["window"]["width"] = width
 		self.config["window"]["height"] = height
 		
+	def on_config_window(self, widget):
+		if self.config_window is not None:
+			try:
+				self.config_window.gtkwin.hide()
+				self.config_window.gtkwin.show()
+				return
+			except:
+				pass
+		
+		self.config_window = ConfigWindow(self)
+		
 class MapWindow(KismonWindows):
 	def __init__(self, map_widget):
 		KismonWindows.__init__(self)
@@ -661,18 +590,132 @@ class MapWindow(KismonWindows):
 		self.gtkwin.add(self.map_widget.widget)
 		
 	def on_destroy(self, window):
-		self.destroy()
-		
-	def destroy(self):
 		self.remove_map()
 		self.gtkwin = None
 		
 	def remove_map(self):
-		self.gtkwin.remove(self.map_widget.widget)
+		if self.gtkwin is not None:
+			self.gtkwin.remove(self.map_widget.widget)
 		
 	def hide(self):
 		self.gtkwin.hide()
 		
+class ConfigWindow:
+	def __init__(self, main_window):
+		self.gtkwin = gtk.Window()
+		self.gtkwin.set_position(gtk.WIN_POS_CENTER)
+		self.gtkwin.connect("destroy", self.on_destroy)
+		self.gtkwin.set_size_request(640, 480)
+		self.gtkwin.set_title("Kismon Preferences")
+		self.main_window = main_window
+		self.config = main_window.config
+		self.map_widget = main_window.map_widget
+		
+		self.notebook = gtk.Notebook()
+		self.gtkwin.add(self.notebook)
+		
+		map_page = gtk.Table(rows=2, columns=1)
+		self.notebook.append_page(map_page)
+		self.notebook.set_tab_label_text(map_page, "Map")
+		
+		if self.map_widget is None:
+			label = gtk.Label("Map disabled")
+			map_page.attach(label, 0, 1, 0, 1, yoptions=gtk.SHRINK)
+		else:
+			self.init_map_page(map_page)
+		
+		self.gtkwin.show_all()
+	
+	def init_map_page(self, map_page):
+		position_frame = gtk.Frame("Position")
+		map_page.attach(position_frame, 0, 1, 0, 1, yoptions=gtk.SHRINK)
+		position_vbox = gtk.VBox()
+		position_frame.add(position_vbox)
+		
+		map_widget = gtk.RadioButton(None, 'In main window (default)')
+		map_widget.connect("clicked", self.main_window.on_map_widget)
+		position_vbox.add(map_widget)
+		
+		map_window = gtk.RadioButton(map_widget, 'In seperate window')
+		map_window.connect("clicked", self.main_window.on_map_window)
+		position_vbox.add(map_window)
+		
+		map_hide = gtk.RadioButton(map_widget, 'Hide')
+		map_hide.connect("clicked", self.main_window.on_map_hide)
+		position_vbox.add(map_hide)
+		
+		if self.config["window"]["mapplace"] == "widget":
+			map_widget.clicked()
+		elif self.config["window"]["mapplace"] == "window":
+			map_window.clicked()
+		else:
+			map_hide.clicked()
+		
+		source_frame = gtk.Frame("Source")
+		source_vbox = gtk.VBox()
+		source_frame.add(source_vbox)
+		map_page.attach(source_frame, 0, 1, 1, 2, yoptions=gtk.SHRINK)
+		
+		map_source_mapnik = gtk.RadioButton(None,
+			'OSM Mapnik (default)')
+		map_source_mapnik.connect("clicked", self.on_map_source_mapnik)
+		if self.config["map"]["source"] == "osm-mapnik":
+			map_source_mapnik.clicked()
+		source_vbox.add(map_source_mapnik)
+		
+		map_source_memphis = gtk.RadioButton(map_source_mapnik,
+			'Memphis (local rendering)')
+		map_source_memphis.connect("clicked", self.on_map_source_memphis)
+		if self.config["map"]["source"] == "memphis-local":
+			map_source_memphis.clicked()
+		source_vbox.add(map_source_memphis)
+		
+		osm_frame = gtk.Frame("OSM File")
+		osm_vbox = gtk.VBox()
+		osm_frame.add(osm_vbox)
+		dialog = gtk.FileChooserDialog(title="Select OSM File",
+			parent=self.gtkwin, action=gtk.FILE_CHOOSER_ACTION_OPEN,
+			buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN,gtk.RESPONSE_ACCEPT)
+			)
+		dialog.connect("file-activated", self.on_osm_file_changed)
+		osm_file_chooser_button = gtk.FileChooserButton(dialog)
+		if self.config["map"]["osmfile"] != "":
+			osm_file_chooser_button.set_filename(self.config["map"]["osmfile"])
+		
+		osm_vbox.add(osm_file_chooser_button)
+		map_page.attach(osm_frame, 0, 1, 2, 3, yoptions=gtk.SHRINK)
+		
+		rule_frame = gtk.Frame("Memphis Rule")
+		rule_vbox = gtk.VBox()
+		rule_frame.add(rule_vbox)
+		#map_page.attach(rule_frame, 0, 1, 3, 4, yoptions=gtk.SHRINK)
+		
+	def on_destroy(self, window):
+		self.gtkwin = None
+		
+	def on_osm_file_changed(self, widget):
+		filename = widget.get_filename()
+		self.config["map"]["osmfile"] = filename
+		if self.config["map"]["source"] == "memphis-local":
+			self.map_widget.thread.append(["source", "memphis-local"])
+		
+	def on_map_source_mapnik(self, widget):
+		if widget.get_active():
+			self.config["map"]["source"] = "osm-mapnik"
+			self.map_widget.thread.append(["source", "osm-mapnik"])
+		
+	def on_map_source_memphis(self, widget):
+		if not widget.get_active():
+			return
+		self.config["map"]["source"] = "memphis-local"
+		
+		if os.path.isfile(self.config["map"]["osmfile"]):
+			self.map_widget.thread.append(["source", "memphis-local"])
+		
 def show_timestamp(timestamp):
 	time_format = "%H:%M:%S"
 	return time.strftime(time_format, time.localtime(timestamp))
+	
+if __name__ == "__main__":
+	import core
+	core.main()

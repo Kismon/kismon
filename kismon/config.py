@@ -52,7 +52,7 @@ class Config:
 				"markerstyle": "image",
 				"followgps": True,
 				"source": "osm-mapnik",
-				"osmfile": None,
+				"osmfile": "",
 				}
 			}
 	
