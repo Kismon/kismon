@@ -59,6 +59,14 @@ class Core:
 		self.config_handler.read()
 		self.config = self.config_handler.config
 		
+		self.marker_text = """Encryption: %s
+MAC: %s
+Manuf: %s
+Type: %s
+Channel: %s
+First seen: %s
+Last seen: %s"""
+		
 		self.init_client_thread()
 		if self.config["kismet"]["connect"] is True:
 			self.client_start()
@@ -146,24 +154,23 @@ class Core:
 						crypt = decode_cryptset(self.ssids[mac]["cryptset"], True)
 						self.crypt_cache[self.ssids[mac]["cryptset"]] = crypt
 					
-					text = ""
-					ssid = str(self.ssids[mac]["ssid"])
-					evils = [("&", "&amp;"),("<", "&lt;"),(">", "&gt;")]
-					for evil, good in evils:
-						ssid = ssid.replace(evil, good)
-					text += "Encryption: %s\n" % crypt
 					if "WPA" in crypt:
 						color = "red"
 					elif "WEP" in crypt:
 						color = "orange"
 					else:
 						color = "green"
-					text += "MAC: %s\n" % mac
-					text += "Manuf: %s\n" % data["manuf"]
-					text += "Type: %s\n" % decode_network_type(data["type"])
-					text += "Channel: %s\n" % data["channel"]
-					text += "First seen: %s\n" % show_timestamp(data["firsttime"])
-					text += "Last seen: %s\n" % show_timestamp(data["lasttime"])
+					
+					ssid = str(self.ssids[mac]["ssid"])
+					evils = (("&", "&amp;"),("<", "&lt;"),(">", "&gt;"))
+					for evil, good in evils:
+						ssid = ssid.replace(evil, good)
+					
+					text = self.marker_text % (crypt, mac, data["manuf"],
+						decode_network_type(data["type"]), data["channel"],
+						show_timestamp(data["firsttime"]),
+						show_timestamp(data["lasttime"])
+						)
 					text = text.replace("&", "&amp;")
 					
 					if decode_network_type(data["type"]) == "infrastructure":
