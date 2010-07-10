@@ -196,7 +196,6 @@ class Map:
 		"""
 		marker.set_draw_background(False)
 		texture = clutter.Texture()
-		texture.set_load_data_async(True)
 		texture.set_from_file(self.images[marker.color_name])
 		marker.set_image(texture)
 		if marker.get_text() is not None:
