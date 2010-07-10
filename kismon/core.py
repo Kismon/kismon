@@ -162,6 +162,8 @@ Last seen: %s"""
 						color = "green"
 					
 					ssid = str(self.ssids[mac]["ssid"])
+					if ssid == "":
+						ssid = "<no ssid>"
 					evils = (("&", "&amp;"),("<", "&lt;"),(">", "&gt;"))
 					for evil, good in evils:
 						ssid = ssid.replace(evil, good)

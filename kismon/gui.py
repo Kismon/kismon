@@ -281,10 +281,15 @@ class MainWindow(KismonWindows):
 			except KeyError:
 				crypt = client.decode_cryptset(ssid["cryptset"], True)
 				self.crypt_cache[ssid["cryptset"]] = crypt
-			
+		if ssid is None:
+			ssid_str = ""
+		elif ssid["ssid"] == "":
+			ssid_str = "<no ssid>"
+		else:
+			ssid_str = ssid["ssid"]
 		line = [mac,
 				network_type,
-				ssid["ssid"] if ssid!=None else "",
+				ssid_str,
 				bssid["channel"],
 				crypt,
 				show_timestamp(bssid["firsttime"]),

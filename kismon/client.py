@@ -151,6 +151,29 @@ class Client:
 		return data.split("\n")
 		
 	def split_line(self, line):
+		line = " " + line[1]
+		columns = []
+		last_pos = 0
+		
+		if "\x01" not in line:
+			return line.split()
+		
+		while True:
+			pos = line.find(" \x01", last_pos)
+			if pos == -1:
+				columns.extend(line[last_pos:].split())
+				break
+			if pos - last_pos > 1:
+				columns.extend(line[last_pos:pos].split())
+			
+			end = line.find("\x01 ", pos+2)
+			columns.append(line[pos+2:end])
+			
+			last_pos = end+1
+			
+		return columns
+		
+	def split_line_old(self, line):
 		data = line[1].split()
 		columns = []
 		combine = False
@@ -208,6 +231,7 @@ class Client:
 				except:
 					print "Parser error:", cap, y, len(columns), \
 						len(cap_columns), data
+					print repr(line)
 				y += 1
 			
 			return cap, data
