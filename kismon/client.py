@@ -278,7 +278,10 @@ def decode_cryptset(cryptset, str=False):
 		"tkip", "wpa", "psk", "aes_ocb", "aes_ccm", "leap", "ttls",
 		"peap", "pptp", "fortress", "keyguard"]
 	if cryptset == 0:
-		return [cryptsets[cryptset]]
+		if str is True:
+			return cryptsets[cryptset]
+		else:
+			return [cryptsets[cryptset]]
 	
 	crypts = []
 	pos = 1
