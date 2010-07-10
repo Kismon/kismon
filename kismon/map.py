@@ -111,9 +111,12 @@ class Map:
 		lat: latitude
 		lon: longitude
 		"""
-		if key in self.markers:
-			self.update_marker(key, name, text, lat, lon)
+		try:
+			marker = self.markers[key]
+			self.update_marker(marker, name, text, lat, lon)
 			return
+		except KeyError:
+			pass
 		
 		marker = champlain.Marker()
 		marker.set_position(lat, lon)
@@ -139,8 +142,7 @@ class Map:
 		self.marker_layer.add_marker(marker)
 		self.markers[key] = marker
 		
-	def update_marker(self, key, name, text, lat, lon):
-		marker = self.markers[key]
+	def update_marker(self, marker, name, text, lat, lon):
 		if marker.get_latitude() != lat or marker.get_longitude() != lon:
 			marker.set_position(lat, lon)
 		marker.long_text = text
