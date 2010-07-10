@@ -700,10 +700,16 @@ class ConfigWindow:
 		osm_vbox.add(osm_file_chooser_button)
 		map_page.attach(osm_frame, 0, 1, 2, 3, yoptions=gtk.SHRINK)
 		
-		rule_frame = gtk.Frame("Memphis Rule")
-		rule_vbox = gtk.VBox()
-		rule_frame.add(rule_vbox)
-		#map_page.attach(rule_frame, 0, 1, 3, 4, yoptions=gtk.SHRINK)
+		rules_frame = gtk.Frame("Memphis Rules")
+		rules_vbox = gtk.VBox()
+		rules_frame.add(rules_vbox)
+		map_page.attach(rules_frame, 0, 1, 3, 4, yoptions=gtk.SHRINK)
+		
+		rules_default = gtk.RadioButton(None, 'Memphis default rules')
+		if self.config["map"]["memphisrules"] == "default":
+			rules_default.clicked()
+		rules_default.connect("clicked", self.on_memphis_rules_default)
+		rules_vbox.add(rules_default)
 		
 	def on_destroy(self, window):
 		self.gtkwin = None
@@ -726,6 +732,14 @@ class ConfigWindow:
 		
 		if os.path.isfile(self.config["map"]["osmfile"]):
 			self.map.set_source("memphis-local")
+			
+	def on_memphis_rules_default(self, widget):
+		if not widget.get_active():
+			return
+		self.config["map"]["memphisrules"] = "default"
+		
+		if self.config["map"]["source"] == "memphis-local":
+			self.map.load_memphis_rules()
 		
 def show_timestamp(timestamp):
 	time_format = "%H:%M:%S"

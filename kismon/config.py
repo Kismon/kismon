@@ -53,6 +53,7 @@ class Config:
 				"followgps": True,
 				"source": "osm-mapnik",
 				"osmfile": "",
+				"memphisrules": "default",
 				}
 			}
 	
@@ -69,7 +70,11 @@ class Config:
 				if len(items) == 0:
 					continue
 				for key, value in items:
-					valtype = type(self.config[section][key])
+					try:
+						valtype = type(self.config[section][key])
+					except KeyError:
+						print "Old config entry: %s" % key
+						continue
 					if valtype == bool:
 						if value in ("True", "true"):
 							value = True

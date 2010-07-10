@@ -234,7 +234,8 @@ class Map:
 			self.toggle_moving_button.set_active(False)
 		
 	def set_source(self, id):
-		source = self.map_source_factory.create(id)
+		self.source = self.map_source_factory.create(id)
+		self.config["source"] = id
 		
 		if id == "memphis-local":
 			if not os.path.isfile(self.config["osmfile"]):
@@ -246,11 +247,17 @@ class Map:
 			datasource.load_map_data(self.config["osmfile"])
 			print "Done"
 			
-			#source.load_rules("rules.xml")
-			source.set_map_data_source(datasource)
+			self.load_memphis_rules()
+			self.source.set_map_data_source(datasource)
 		
-		self.config["source"] = id
-		self.view.set_map_source(source)
+		self.view.set_map_source(self.source)
+		
+	def load_memphis_rules(self):
+		if self.config["source"] != "memphis-local":
+			return
+			
+		if self.config["memphisrules"] == "default":
+			self.source.load_rules("/usr/local/share/memphis/default-rules.xml")
 
 class MapWidget:
 	def __init__(self, config):
