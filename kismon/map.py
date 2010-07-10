@@ -35,7 +35,6 @@ import champlainmemphis
 import clutter
 
 import os
-import threading
 
 class Map:
 	def __init__(self, config, view):
@@ -166,7 +165,7 @@ class Map:
 			self.selected_marker = None
 			self.marker_layer.show_all_markers()
 			
-	def change_marker_style(self, style):
+	def set_marker_style(self, style):
 		self.config["map"]["markerstyle"] = style
 		
 		if self.selected_marker is not None:
@@ -186,8 +185,7 @@ class Map:
 		marker.set_text(marker.get_name())
 		marker.set_draw_background(True)
 		marker.set_image(None)
-
-	
+		
 	def marker_style_image(self, marker):
 		"""show the image on the map and remove the text and background
 		"""
@@ -253,14 +251,12 @@ class MapWidget:
 		self.embed.connect("button-release-event", self.on_map_released)
 		
 		self.view = self.embed.get_view()
-		map = Map(self.config, self.view)
-		self.thread = MapThread(map)
-		self.thread.start()
+		self.map = Map(self.config, self.view)
 		
 		self.vbox = gtk.VBox()
 		self.init_menu()
 		self.vbox.add(self.embed)
-		map.toggle_moving_button = self.toggle_moving_button
+		self.map.toggle_moving_button = self.toggle_moving_button
 		
 		self.widget = self.vbox
 		
@@ -301,80 +297,29 @@ class MapWidget:
 		"""disable set_position if the map is pressed
 		"""
 		if self.config["map"]["followgps"] is True:
-			self.thread.append(["moving", False])
+			self.map.stop_moving()
 		
 	def on_map_released(self, widget, event):
 		active = self.toggle_moving_button.get_active()
 		if self.config["map"]["followgps"] is False and active is True:
-			self.thread.append(["moving", True])
+			self.map.start_moving()
 		
 	def on_change_marker_style(self, widget):
 		style = widget.get_active_text().lower()[:-1]
-		self.thread.append(["style", style])
+		self.map.set_marker_style(style)
 		
 	def on_toggle_moving(self, widget):
 		active = widget.get_active()
 		if active is True:
-			self.thread.append(["moving", True])
+			self.map.start_moving()
 		else:
-			self.thread.append(["moving", False])
+			self.map.stop_moving()
 		
 	def on_zoom_in(self, widget):
-		self.thread.append(["zoom", "in"])
+		self.map.zoom_in()
 		
 	def on_zoom_out(self, widget):
-		self.thread.append(["zoom", "out"])
-
-class MapThread(threading.Thread):
-	def __init__(self, map):
-		threading.Thread.__init__(self)
-		#self.config = config
-		self._map = map
-		self.event=threading.Event()
-		self.queue = []
-		
-	def run(self):
-		map = self._map
-		while True:
-			while True:
-				try:
-					name, data = self.queue.pop(0)
-					break
-				except IndexError:
-					self.event.clear()
-					self.event.wait()
-			
-			if name == "position":
-				map.set_position(data[0], data[1])
-			elif name == "zoom":
-				if data == "in":
-					map.zoom_in()
-				elif data == "out":
-					map.zoom_out()
-				else:
-					map.set_zoom(data)
-			elif name == "marker":
-				map.add_marker(data[0], data[1], data[2], data[3], data[4], data[5])
-			elif name == "locate":
-				map.locate_marker(data)
-			elif name == "style":
-				map.change_marker_style(data)
-			elif name == "moving":
-				if data is True:
-					map.start_moving()
-				else:
-					map.stop_moving()
-			elif name == "source":
-				map.set_source(data)
-			elif name == "stop":
-				break
-			else:
-				print name
-				
-	def append(self, task):
-		self.queue.append(task)
-		if not self.event.is_set():
-			self.event.set()
+		self.map.zoom_out()
 
 def test():
 	from config import Config
@@ -382,33 +327,24 @@ def test():
 	gobject.threads_init()
 	test_config = Config(None).default_config
 	test_map_widget = MapWidget(test_config)
+	test_map = test_map_widget.map
 	
-	test_thread = test_map_widget.thread
-	tasks = (
-		["zoom", 16],
-		["position", (52.513,13.323)],
-		["marker", ("111", "marker 1", "long description\nbla\nblub", "green", 52.513, 13.322)],
-		["marker", ("222", "marker 2", "blablabla", "red", 52.512, 13.322)],
-		["marker", ("222", "blablub", "asdasdasd", "red", 52.512, 13.322)],
-		["locate", "111"],
-		["style", "name"],
-		["marker", ("222", "blablub", "asdasdasd", "red", 52.512, 13.321)],
-		["marker", ("333", "marker 3", "test", "orange", 52.511, 13.322)],
-		["style", "image"],
-		["zoom", "in"],
-		["zoom", "out"],
-		["moving", False],
-		["position", (52.513,13.323)],
-		["moving", True],
-		["source", "osm-mapnik"],
-	)
-	for task in tasks:
-		test_thread.append(task)
-	
+	test_map.set_zoom(16)
+	test_map.set_position(52.513, 13.323)
+	test_map.add_marker("111", "marker 1", "long description\nbla\nblub", "green", 52.513, 13.322)
+	test_map.add_marker("222", "marker 2", "bla", "red", 52.512, 13.322)
+	test_map.add_marker("222", "marker 2 test1", "foobar", "red", 52.512, 13.322)
+	test_map.locate_marker("111")
+	test_map.set_marker_style("name")
+	test_map.add_marker("222", "marker 2 test2", "blub", "red", 52.512, 13.321)
+	test_map.add_marker("333", "marker 3", "test", "orange", 52.511, 13.322)
+	test_map.set_marker_style("image")
+	test_map_widget.toggle_moving_button.set_active(False)
+	test_map.set_position(52.513,13.323)
+	test_map_widget.toggle_moving_button.set_active(True)
 	test_map_widget.on_zoom_out(None)
 	test_map_widget.on_zoom_in(None)
-	test_map_widget.on_map_pressed(None, None)
-	test_map_widget.on_map_released(None, None)
+	test_map.set_source("osm-mapnik")
 	
 	test_window = gtk.Window()
 	test_window.set_title("Kismon Test Map")
@@ -419,7 +355,6 @@ def test():
 	test_window.show_all()
 	
 	gtk.main()
-	test_thread.append(["stop", True])
 	
 if __name__ == "__main__":
 	test()

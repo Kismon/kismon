@@ -67,8 +67,8 @@ class Core:
 			self.map_widget = None
 		else:
 			self.map_widget = MapWidget(self.config)
-			self.map_thread = self.map_widget.thread
-			self.map_thread.append(["zoom", 16])
+			self.map = self.map_widget.map
+			self.map.set_zoom(16)
 		
 		self.main_window = MainWindow(self.config,
 			self.client_start,
@@ -121,7 +121,7 @@ class Core:
 			elif cap == "gps":
 				self.main_window.update_gps_table(data)
 				if data["fix"] > 1 and self.map_widget is not None:
-					self.map_thread.append(["position", (data["lat"], data["lon"])])
+					self.map.set_position(data["lat"], data["lon"])
 			
 			elif cap == "info":
 				self.main_window.update_info_table(data)
@@ -167,8 +167,8 @@ class Core:
 					text = text.replace("&", "&amp;")
 					
 					if decode_network_type(data["type"]) == "infrastructure":
-						self.map_thread.append(["marker", (mac, ssid,
-							text, color, data["bestlat"], data["bestlon"])])
+						self.map.add_marker(mac, ssid, text, color,
+							data["bestlat"], data["bestlon"])
 				else:
 					self.main_window.add_to_network_list(self.bssids[mac])
 			
@@ -184,7 +184,6 @@ class Core:
 		
 	def quit(self):
 		self.client_thread.stop()
-		self.map_thread.append(["stop", True])
 		self.config_handler.write()
 
 def main():

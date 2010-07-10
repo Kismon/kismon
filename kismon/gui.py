@@ -61,9 +61,9 @@ class KismonWindows:
 		if name == "F11":
 			self.fullscreen()
 		elif name == "i" and event.state & gtk.gdk.CONTROL_MASK:
-			self.map_widget.thread.append(["zoom", "in"])
+			self.map.zoom_in()
 		elif name == "o" and event.state & gtk.gdk.CONTROL_MASK:
-			self.map_widget.thread.append(["zoom", "out"])
+			self.map.zoom_out()
 
 class MainWindow(KismonWindows):
 	def __init__(self, config, client_start, client_stop, map_widget=None):
@@ -84,6 +84,7 @@ class MainWindow(KismonWindows):
 			self.gtkwin.maximize()
 		
 		self.map_widget = map_widget
+		self.map = map_widget.map
 		self.network_list_types = []
 		self.network_lines = {}
 		self.network_iter = {}
@@ -546,7 +547,7 @@ class MainWindow(KismonWindows):
 			
 	def on_map_locate_marker(self, widget):
 		if self.map_widget is not None:
-			self.map_widget.thread.append(["locate", self.network_list_network_selected])
+			self.map.locate_marker(self.network_list_network_selected)
 		
 	def on_about_dialog(self, widget):
 		dialog = gtk.AboutDialog()
@@ -610,6 +611,7 @@ class ConfigWindow:
 		self.main_window = main_window
 		self.config = main_window.config
 		self.map_widget = main_window.map_widget
+		self.map = self.map_widget.map
 		
 		self.notebook = gtk.Notebook()
 		self.gtkwin.add(self.notebook)
@@ -697,12 +699,12 @@ class ConfigWindow:
 		filename = widget.get_filename()
 		self.config["map"]["osmfile"] = filename
 		if self.config["map"]["source"] == "memphis-local":
-			self.map_widget.thread.append(["source", "memphis-local"])
+			self.map.set_source("memphis-local")
 		
 	def on_map_source_mapnik(self, widget):
 		if widget.get_active():
 			self.config["map"]["source"] = "osm-mapnik"
-			self.map_widget.thread.append(["source", "osm-mapnik"])
+			self.map.set_source("osm-mapnik")
 		
 	def on_map_source_memphis(self, widget):
 		if not widget.get_active():
@@ -710,7 +712,7 @@ class ConfigWindow:
 		self.config["map"]["source"] = "memphis-local"
 		
 		if os.path.isfile(self.config["map"]["osmfile"]):
-			self.map_widget.thread.append(["source", "memphis-local"])
+			self.map.set_source("memphis-local")
 		
 def show_timestamp(timestamp):
 	time_format = "%H:%M:%S"
