@@ -66,7 +66,7 @@ class Core:
 		if champlain is None:
 			self.map_widget = None
 		else:
-			self.map_widget = MapWidget(self.config)
+			self.map_widget = MapWidget(self.config["map"])
 			self.map = self.map_widget.map
 			self.map.set_zoom(16)
 		
