@@ -146,6 +146,15 @@ class MainWindow(KismonWindows):
 		self.notebook.set_tab_label_text(log_scrolled, "Log")
 		
 		self.gtkwin.show_all()
+		self.apply_config()
+		
+	def apply_config(self):
+		if self.config["window"]["mapplace"] == "widget":
+			self.on_map_widget(None, True)
+		elif self.config["window"]["mapplace"] == "window":
+			self.on_map_window(None, True)
+		else:
+			self.on_map_hide(None)
 	
 	def on_destroy(self, widget):
 		print "Window destroyed"
@@ -205,7 +214,6 @@ class MainWindow(KismonWindows):
 		
 		config_menuitem = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)
 		config_menuitem.connect("activate", self.on_config_window)
-		config_menuitem.activate()
 		view_menu.append(config_menuitem)
 		
 		help_menu = gtk.Menu()
@@ -516,8 +524,8 @@ class MainWindow(KismonWindows):
 	def on_map_hide(self, widget):
 		self.config["window"]["mapplace"] = "hide"
 			
-	def on_map_window(self, widget):
-		if widget.get_active() is True:
+	def on_map_window(self, widget, override=False):
+		if (widget is not None and widget.get_active()) or override is True:
 			try:
 				self.map_window.gtkwin.hide()
 				self.map_window.gtkwin.show()
@@ -533,9 +541,9 @@ class MainWindow(KismonWindows):
 			except AttributeError:
 				pass
 		
-	def on_map_widget(self, widget):
+	def on_map_widget(self, widget, override=False):
 		map_widget = self.map_widget.widget
-		if widget.get_active() is True:
+		if (widget is not None and widget.get_active()) or override is True:
 			self.config["window"]["mapplace"] = "widget"
 			self.notebook.append_page(map_widget)
 			self.notebook.set_tab_label_text(map_widget, "Map")
@@ -635,41 +643,41 @@ class ConfigWindow:
 		position_frame.add(position_vbox)
 		
 		map_widget = gtk.RadioButton(None, 'In main window (default)')
+		if self.config["window"]["mapplace"] == "widget":
+			map_widget.clicked()
 		map_widget.connect("clicked", self.main_window.on_map_widget)
 		position_vbox.add(map_widget)
 		
 		map_window = gtk.RadioButton(map_widget, 'In seperate window')
+		if self.config["window"]["mapplace"] == "window":
+			map_window.clicked()
 		map_window.connect("clicked", self.main_window.on_map_window)
 		position_vbox.add(map_window)
 		
 		map_hide = gtk.RadioButton(map_widget, 'Hide')
+		if self.config["window"]["mapplace"] == "hide":
+			map_hide.clicked()
 		map_hide.connect("clicked", self.main_window.on_map_hide)
 		position_vbox.add(map_hide)
-		
-		if self.config["window"]["mapplace"] == "widget":
-			map_widget.clicked()
-		elif self.config["window"]["mapplace"] == "window":
-			map_window.clicked()
-		else:
-			map_hide.clicked()
 		
 		source_frame = gtk.Frame("Source")
 		source_vbox = gtk.VBox()
 		source_frame.add(source_vbox)
 		map_page.attach(source_frame, 0, 1, 1, 2, yoptions=gtk.SHRINK)
 		
-		map_source_mapnik = gtk.RadioButton(None,
-			'OSM Mapnik (default)')
-		map_source_mapnik.connect("clicked", self.on_map_source_mapnik)
+		map_source_mapnik = gtk.RadioButton(None, 'OSM Mapnik (default)')
+		
 		if self.config["map"]["source"] == "osm-mapnik":
 			map_source_mapnik.clicked()
+		map_source_mapnik.connect("clicked", self.on_map_source_mapnik)
 		source_vbox.add(map_source_mapnik)
 		
 		map_source_memphis = gtk.RadioButton(map_source_mapnik,
 			'Memphis (local rendering)')
-		map_source_memphis.connect("clicked", self.on_map_source_memphis)
+		
 		if self.config["map"]["source"] == "memphis-local":
 			map_source_memphis.clicked()
+		map_source_memphis.connect("clicked", self.on_map_source_memphis)
 		source_vbox.add(map_source_memphis)
 		
 		osm_frame = gtk.Frame("OSM File")

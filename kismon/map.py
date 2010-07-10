@@ -70,6 +70,11 @@ class Map:
 		self.view.add_layer(self.position_layer)
 		
 		self.map_source_factory = champlain.map_source_factory_dup_default()
+		self.apply_config()
+		
+	def apply_config(self):
+		if self.config["map"]["source"] == "memphis-local":
+			self.set_source("memphis-local")
 		
 	def init_position_marker(self):
 		"""show a marker at the current position
@@ -228,10 +233,13 @@ class Map:
 			self.toggle_moving_button.set_active(False)
 		
 	def set_source(self, id):
-		self.config["map"]["source"] = id
 		source = self.map_source_factory.create(id)
 		
 		if id == "memphis-local":
+			if not os.path.isfile(self.config["map"]["osmfile"]):
+				print "no valid OSM file"
+				return
+			
 			datasource = champlainmemphis.LocalMapDataSource()
 			print "Loading osm file..."
 			datasource.load_map_data(self.config["map"]["osmfile"])
@@ -240,6 +248,7 @@ class Map:
 			#source.load_rules("rules.xml")
 			source.set_map_data_source(datasource)
 		
+		self.config["map"]["source"] = id
 		self.view.set_map_source(source)
 
 class MapWidget:
