@@ -91,7 +91,7 @@ Last seen: %s"""
 		self.main_window.crypt_cache = self.crypt_cache
 		
 		gobject.threads_init()
-		gobject.timeout_add(self.config["core"]["refreshrate"], self.queue_handler)
+		gobject.timeout_add(self.config["core"]["refresh_rate"], self.queue_handler)
 		
 	def init_client_thread(self):
 		self.client_thread = ClientThread(self.config["kismet"]["server"])

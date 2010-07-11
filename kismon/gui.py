@@ -149,9 +149,9 @@ class MainWindow(KismonWindows):
 		self.apply_config()
 		
 	def apply_config(self):
-		if self.config["window"]["mapplace"] == "widget":
+		if self.config["window"]["map_position"] == "widget":
 			self.on_map_widget(None, True)
-		elif self.config["window"]["mapplace"] == "window":
+		elif self.config["window"]["map_position"] == "window":
 			self.on_map_window(None, True)
 		else:
 			self.on_map_hide(None)
@@ -527,7 +527,7 @@ class MainWindow(KismonWindows):
 		self.client_stop()
 		
 	def on_map_hide(self, widget):
-		self.config["window"]["mapplace"] = "hide"
+		self.config["window"]["map_position"] = "hide"
 			
 	def on_map_window(self, widget, override=False):
 		if (widget is not None and widget.get_active()) or override is True:
@@ -537,7 +537,7 @@ class MainWindow(KismonWindows):
 				return
 			except:
 				pass
-			self.config["window"]["mapplace"] = "window"
+			self.config["window"]["map_position"] = "window"
 			self.map_window = MapWindow(self.map_widget)
 			self.map_window.gtkwin.show_all()
 		else:
@@ -549,7 +549,7 @@ class MainWindow(KismonWindows):
 	def on_map_widget(self, widget, override=False):
 		map_widget = self.map_widget.widget
 		if (widget is not None and widget.get_active()) or override is True:
-			self.config["window"]["mapplace"] = "widget"
+			self.config["window"]["map_position"] = "widget"
 			self.notebook.append_page(map_widget)
 			self.notebook.set_tab_label_text(map_widget, "Map")
 			map_widget.show_all()
@@ -648,19 +648,19 @@ class ConfigWindow:
 		position_frame.add(position_vbox)
 		
 		map_widget = gtk.RadioButton(None, 'In main window (default)')
-		if self.config["window"]["mapplace"] == "widget":
+		if self.config["window"]["map_position"] == "widget":
 			map_widget.clicked()
 		map_widget.connect("clicked", self.main_window.on_map_widget)
 		position_vbox.add(map_widget)
 		
 		map_window = gtk.RadioButton(map_widget, 'In seperate window')
-		if self.config["window"]["mapplace"] == "window":
+		if self.config["window"]["map_position"] == "window":
 			map_window.clicked()
 		map_window.connect("clicked", self.main_window.on_map_window)
 		position_vbox.add(map_window)
 		
 		map_hide = gtk.RadioButton(map_widget, 'Hide')
-		if self.config["window"]["mapplace"] == "hide":
+		if self.config["window"]["map_position"] == "hide":
 			map_hide.clicked()
 		map_hide.connect("clicked", self.main_window.on_map_hide)
 		position_vbox.add(map_hide)
@@ -694,8 +694,8 @@ class ConfigWindow:
 			)
 		dialog.connect("file-activated", self.on_osm_file_changed)
 		osm_file_chooser_button = gtk.FileChooserButton(dialog)
-		if self.config["map"]["osmfile"] != "":
-			osm_file_chooser_button.set_filename(self.config["map"]["osmfile"])
+		if self.config["map"]["osm_file"] != "":
+			osm_file_chooser_button.set_filename(self.config["map"]["osm_file"])
 		
 		osm_vbox.add(osm_file_chooser_button)
 		map_page.attach(osm_frame, 0, 1, 2, 3, yoptions=gtk.SHRINK)
@@ -706,7 +706,7 @@ class ConfigWindow:
 		map_page.attach(rules_frame, 0, 1, 3, 4, yoptions=gtk.SHRINK)
 		
 		rules_default = gtk.RadioButton(None, 'Memphis default rules')
-		if self.config["map"]["memphisrules"] == "default":
+		if self.config["map"]["memphis_rules"] == "default":
 			rules_default.clicked()
 		rules_default.connect("clicked", self.on_memphis_rules_default)
 		rules_vbox.add(rules_default)
@@ -727,7 +727,7 @@ class ConfigWindow:
 		
 	def on_osm_file_changed(self, widget):
 		filename = widget.get_filename()
-		self.config["map"]["osmfile"] = filename
+		self.config["map"]["osm_file"] = filename
 		if self.config["map"]["source"] == "memphis-local":
 			self.map.set_source("memphis-local")
 		
@@ -741,13 +741,13 @@ class ConfigWindow:
 			return
 		self.config["map"]["source"] = "memphis-local"
 		
-		if os.path.isfile(self.config["map"]["osmfile"]):
+		if os.path.isfile(self.config["map"]["osm_file"]):
 			self.map.set_source("memphis-local")
 			
 	def on_memphis_rules_default(self, widget):
 		if not widget.get_active():
 			return
-		self.config["map"]["memphisrules"] = "default"
+		self.config["map"]["memphis_rules"] = "default"
 		
 		if self.config["map"]["source"] == "memphis-local":
 			self.map.load_memphis_rules()

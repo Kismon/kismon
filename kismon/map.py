@@ -94,7 +94,7 @@ class Map:
 		self.view.zoom_out()
 		
 	def set_position(self, lat, lon):
-		if self.config["followgps"] is True:
+		if self.config["follow_gps"] is True:
 			self.view.center_on(lat, lon)
 		else:
 			self.next_position = (lat, lon)
@@ -134,7 +134,7 @@ class Map:
 		if self.selected_marker is not None:
 			marker.hide()
 		
-		if self.config["markerstyle"] == "image":
+		if self.config["marker_style"] == "image":
 			self.marker_style_image(marker)
 		else:
 			self.marker_style_name(marker)
@@ -145,7 +145,7 @@ class Map:
 	def update_marker(self, marker, name, text, lat, lon):
 		marker.long_text = text
 		marker.set_name(name)
-		if self.config["markerstyle"] == "name":
+		if self.config["marker_style"] == "name":
 			marker.set_text(name)
 			
 		if self.config["update_marker_positions"] is False:
@@ -176,15 +176,15 @@ class Map:
 			self.marker_layer.show_all_markers()
 			
 	def set_marker_style(self, style):
-		self.config["markerstyle"] = style
+		self.config["marker_style"] = style
 		
 		if self.selected_marker is not None:
 			self.on_marker_clicked(self.selected_marker)
-		if self.config["markerstyle"] == "name":
+		if style == "name":
 			for key in self.markers:
 				marker = self.markers[key]
 				self.marker_style_name(marker)
-		elif self.config["markerstyle"] == "image":
+		elif style == "image":
 			for key in self.markers:
 				marker = self.markers[key]
 				self.marker_style_image(marker)
@@ -207,10 +207,10 @@ class Map:
 			marker.set_text(" ")
 		
 	def stop_moving(self):
-		self.config["followgps"] = False
+		self.config["follow_gps"] = False
 	
 	def start_moving(self):
-		self.config["followgps"] = True
+		self.config["follow_gps"] = True
 		
 		if self.next_position is None:
 			return
@@ -241,13 +241,13 @@ class Map:
 		self.config["source"] = id
 		
 		if id == "memphis-local":
-			if not os.path.isfile(self.config["osmfile"]):
+			if not os.path.isfile(self.config["osm_file"]):
 				print "no valid OSM file"
 				return
 			
 			datasource = champlainmemphis.LocalMapDataSource()
 			print "Loading osm file..."
-			datasource.load_map_data(self.config["osmfile"])
+			datasource.load_map_data(self.config["osm_file"])
 			print "Done"
 			
 			self.load_memphis_rules()
@@ -259,7 +259,7 @@ class Map:
 		if self.config["source"] != "memphis-local":
 			return
 			
-		if self.config["memphisrules"] == "default":
+		if self.config["memphis_rules"] == "default":
 			self.source.load_rules("/usr/local/share/memphis/default-rules.xml")
 
 class MapWidget:
@@ -307,7 +307,7 @@ class MapWidget:
 		combobox.connect("changed", self.on_change_marker_style)
 		combobox.append_text('Names')
 		combobox.append_text('Images')
-		if self.config["markerstyle"] == "name":
+		if self.config["marker_style"] == "name":
 			combobox.set_active(0)
 		else:
 			combobox.set_active(1)
@@ -316,12 +316,12 @@ class MapWidget:
 	def on_map_pressed(self, widget, event):
 		"""disable set_position if the map is pressed
 		"""
-		if self.config["followgps"] is True:
+		if self.config["follo_wgps"] is True:
 			self.map.stop_moving()
 		
 	def on_map_released(self, widget, event):
 		active = self.toggle_moving_button.get_active()
-		if self.config["followgps"] is False and active is True:
+		if self.config["follow_gps"] is False and active is True:
 			self.map.start_moving()
 		
 	def on_change_marker_style(self, widget):

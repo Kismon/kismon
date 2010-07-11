@@ -43,17 +43,17 @@ class Config:
 				"maximized": False,
 				"width": 800,
 				"height": 600,
-				"mapplace": "hide",
+				"map_position": "hide",
 				},
 			"core": {
-				"refreshrate": 1000,
+				"refresh_rate": 1000,
 				},
 			"map": {
-				"markerstyle": "image",
-				"followgps": True,
+				"marker_style": "image",
+				"follow_gps": True,
 				"source": "osm-mapnik",
-				"osmfile": "",
-				"memphisrules": "default",
+				"osm_file": "",
+				"memphis_rules": "default",
 				"update_marker_positions": True,
 				}
 			}
