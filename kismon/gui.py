@@ -703,7 +703,7 @@ class ConfigWindow:
 		rules_frame = gtk.Frame("Memphis Rules")
 		rules_vbox = gtk.VBox()
 		rules_frame.add(rules_vbox)
-		map_page.attach(rules_frame, 0, 1, 3, 4, yoptions=gtk.SHRINK)
+		#map_page.attach(rules_frame, 0, 1, 3, 4, yoptions=gtk.SHRINK)
 		
 		rules_default = gtk.RadioButton(None, 'Memphis default rules')
 		if self.config["map"]["memphis_rules"] == "default":
