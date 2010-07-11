@@ -60,10 +60,12 @@ class KismonWindows:
 		name = gtk.gdk.keyval_name(keyval)
 		if name == "F11":
 			self.fullscreen()
-		elif name == "i" and event.state & gtk.gdk.CONTROL_MASK:
-			self.map.zoom_in()
-		elif name == "o" and event.state & gtk.gdk.CONTROL_MASK:
-			self.map.zoom_out()
+		elif event.state & gtk.gdk.CONTROL_MASK:
+			if self.map_widget is not None:
+				if name == "i":
+					self.map_widget.map.zoom_in()
+				elif name == "o":
+					self.map_widget.map.zoom_out()
 
 class MainWindow(KismonWindows):
 	def __init__(self, config, client_start, client_stop, map_widget=None):
