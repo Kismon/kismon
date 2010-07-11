@@ -54,6 +54,7 @@ class Config:
 				"source": "osm-mapnik",
 				"osmfile": "",
 				"memphisrules": "default",
+				"update_marker_positions": True,
 				}
 			}
 	

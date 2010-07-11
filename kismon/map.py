@@ -143,12 +143,15 @@ class Map:
 		self.markers[key] = marker
 		
 	def update_marker(self, marker, name, text, lat, lon):
-		if marker.get_latitude() != lat or marker.get_longitude() != lon:
-			marker.set_position(lat, lon)
 		marker.long_text = text
 		marker.set_name(name)
 		if self.config["markerstyle"] == "name":
 			marker.set_text(name)
+			
+		if self.config["update_marker_positions"] is False:
+			return
+		if marker.get_latitude() != lat or marker.get_longitude() != lon:
+			marker.set_position(lat, lon)
 	
 	def on_marker_clicked(self, marker, event=None):
 		"""hide all markers and create a new marker with the long text

@@ -711,6 +711,17 @@ class ConfigWindow:
 		rules_default.connect("clicked", self.on_memphis_rules_default)
 		rules_vbox.add(rules_default)
 		
+		perf_frame = gtk.Frame("Performance")
+		perf_vbox = gtk.VBox()
+		perf_frame.add(perf_vbox)
+		map_page.attach(perf_frame, 0, 1, 4, 5, yoptions=gtk.SHRINK)
+		
+		perf_marker_positions = gtk.CheckButton("Update marker positions")
+		if self.config["map"]["update_marker_positions"] == True:
+			perf_marker_positions.clicked()
+		perf_marker_positions.connect("clicked", self.on_update_marker_positions)
+		perf_vbox.add(perf_marker_positions)
+		
 	def on_destroy(self, window):
 		self.gtkwin = None
 		
@@ -740,6 +751,9 @@ class ConfigWindow:
 		
 		if self.config["map"]["source"] == "memphis-local":
 			self.map.load_memphis_rules()
+		
+	def on_update_marker_positions(self, widget):
+		self.config["map"]["update_marker_positions"] = widget.get_active()
 		
 def show_timestamp(timestamp):
 	time_format = "%H:%M:%S"
