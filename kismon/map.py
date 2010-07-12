@@ -316,7 +316,7 @@ class MapWidget:
 	def on_map_pressed(self, widget, event):
 		"""disable set_position if the map is pressed
 		"""
-		if self.config["follo_wgps"] is True:
+		if self.config["follow_gps"] is True:
 			self.map.stop_moving()
 		
 	def on_map_released(self, widget, event):
@@ -364,6 +364,8 @@ def test():
 	test_map_widget.toggle_moving_button.set_active(True)
 	test_map_widget.on_zoom_out(None)
 	test_map_widget.on_zoom_in(None)
+	test_map_widget.on_map_pressed(None, None)
+	test_map_widget.on_map_released(None, None)
 	test_map.set_source("osm-mapnik")
 	
 	test_window = gtk.Window()
