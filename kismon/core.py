@@ -42,7 +42,8 @@ try:
 	import champlaingtk
 	import champlain
 except:
-	print sys.exc_info()[1]
+	champlain_error = sys.exc_info()[1]
+	print champlain_error
 	print "Map disabled"
 	champlain = None
 if champlain is not None:
@@ -83,6 +84,9 @@ Last seen: %s"""
 			self.client_stop,
 			self.map_widget)
 		self.main_window.add_to_log_list("Kismon started")
+		if champlain is None:
+			self.main_window.add_to_log_list(champlain_error)
+			self.main_window.add_to_log_list("Map diabled")
 		
 		self.sources = {}
 		self.bssids = {}

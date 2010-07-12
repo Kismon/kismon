@@ -86,7 +86,8 @@ class MainWindow(KismonWindows):
 			self.gtkwin.maximize()
 		
 		self.map_widget = map_widget
-		self.map = map_widget.map
+		if self.map_widget is not None:
+			self.map = map_widget.map
 		self.network_list_types = []
 		self.network_lines = {}
 		self.network_iter = {}
@@ -151,6 +152,8 @@ class MainWindow(KismonWindows):
 		self.apply_config()
 		
 	def apply_config(self):
+		if self.map_widget is None:
+			return
 		if self.config["window"]["map_position"] == "widget":
 			self.on_map_widget(None, True)
 		elif self.config["window"]["map_position"] == "window":
@@ -626,7 +629,8 @@ class ConfigWindow:
 		self.main_window = main_window
 		self.config = main_window.config
 		self.map_widget = main_window.map_widget
-		self.map = self.map_widget.map
+		if self.map_widget is not None:
+			self.map = self.map_widget.map
 		
 		self.notebook = gtk.Notebook()
 		self.gtkwin.add(self.notebook)
