@@ -94,6 +94,18 @@ Last seen: %s"""
 		self.crypt_cache = {}
 		self.main_window.crypt_cache = self.crypt_cache
 		
+		if os.path.isdir("/proc/acpi/battery/BAT0"):
+			f = open("/proc/acpi/battery/BAT0/info")
+			for line in f.readlines():
+				if line.startswith("last full capacity:"):
+					max = line.split(":")[1].strip()
+					self.battery_max = int(max.split()[0])
+					break
+			self.update_battery_bar()
+			gobject.timeout_add(30000, self.update_battery_bar)
+		else:
+			self.battery_max = None
+		
 		gobject.threads_init()
 		gobject.timeout_add(self.config["core"]["refresh_rate"], self.queue_handler)
 		
@@ -198,6 +210,23 @@ Last seen: %s"""
 	def quit(self):
 		self.client_thread.stop()
 		self.config_handler.write()
+		
+	def get_battery_capacity(self):
+		filename = "/proc/acpi/battery/BAT0/state"
+		if not os.path.isfile(filename):
+			return False
+		f = open(filename)
+		for line in f.readlines():
+			if line.startswith("remaining capacity:"):
+				current = line.split(":")[1].strip()
+				current = int(current.split()[0])
+				return round(100.0 / self.battery_max * current, 1)
+		
+	def update_battery_bar(self):
+		battery = self.get_battery_capacity()
+		if battery is not False:
+			self.main_window.set_battery_bar(battery)
+		return True
 
 def main():
 	core = Core()

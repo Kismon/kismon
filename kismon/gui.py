@@ -138,6 +138,12 @@ class MainWindow(KismonWindows):
 		self.sources_table = None
 		self.sources_table_sources = {}
 		
+		battery_expander = gtk.Expander("Battery")
+		right_table.attach(battery_expander, 0, 1, 3, 4, yoptions=gtk.SHRINK)
+		self.battery_bar = gtk.ProgressBar()
+		battery_expander.add(self.battery_bar)
+		self.set_battery_bar(100.0)
+		
 		self.create_log_list()
 		log_scrolled = gtk.ScrolledWindow()
 		log_scrolled.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -598,6 +604,10 @@ class MainWindow(KismonWindows):
 				pass
 		
 		self.config_window = ConfigWindow(self)
+		
+	def set_battery_bar(self, percent):
+		self.battery_bar.set_text("%s%%" % percent)
+		self.battery_bar.set_fraction(percent / 100)
 		
 class MapWindow(KismonWindows):
 	def __init__(self, map_widget):
