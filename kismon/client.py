@@ -47,10 +47,9 @@ class Client:
 		
 	def set_capabilities(self, capabilities):
 		"""
-		'ERROR', 'TERMINATE', 'TIME', 'PACKET', 'STATUS', 'PLUGIN',
-		'SOURCE', 'ALERT', 'WEPKEY', 'STRING', 'GPS', 'SPECTRUM',
-		'BSSID', 'SSID', 'CLIENT', 'BSSIDSRC', 'CLISRC', 'REMOVE',
-		'CHANNEL', 'INFO'
+		'ERROR', 'TIME', 'PACKET', 'STATUS', 'PLUGIN', 'SOURCE',
+		'ALERT', 'WEPKEY', 'STRING', 'GPS', 'SPECTRUM', 'BSSID', 'SSID',
+		'CLIENT', 'BSSIDSRC', 'CLISRC', 'REMOVE', 'CHANNEL', 'INFO'
 		"""
 		self.capabilities = {}
 		for cap in capabilities:
@@ -151,7 +150,6 @@ class Client:
 		return data.split("\n")
 		
 	def split_line(self, line):
-		line = " " + line[1]
 		columns = []
 		last_pos = 0
 		
@@ -168,52 +166,20 @@ class Client:
 			
 			end = line.find("\x01 ", pos+2)
 			columns.append(line[pos+2:end])
-			
 			last_pos = end+1
 			
 		return columns
 		
-	def split_line_old(self, line):
-		data = line[1].split()
-		columns = []
-		combine = False
-		
-		while True:
-			try:
-				row = data.pop(0)
-			except IndexError:
-				break
-			
-			if row == "\x01\x01":
-				columns.append("<empty>")
-				
-			elif combine is False:
-				if "\x01" not in row:
-					columns.append(row)
-				elif row == "\x01" or (row.startswith("\x01") and not row.endswith("\x01")):
-					new_string = row
-					combine = True
-				else:
-					columns.append(row.strip("\x01"))
-					
-			elif combine is True:
-				new_string += " " + row
-				if "\x01" in row:
-					columns.append(new_string.strip("\x01"))
-					combine = False
-			
-		return columns
-	
 	def parse_line(self, line):
-		line = line.split(": ", 1)
+		line = line.split(":", 1)
 		cap = line[0][1:].lower()
 		data = {}
 		try:
 			cap_columns = self.capabilities[cap]
-		except:
+		except KeyError:
 			cap_columns = None
 		if cap_columns is not None:
-			columns = self.split_line(line)
+			columns = self.split_line(line[1])
 			
 			y = 0
 			for column in columns:
