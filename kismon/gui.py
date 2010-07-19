@@ -752,7 +752,7 @@ class ConfigWindow:
 		filename = widget.get_filename()
 		self.config["map"]["osm_file"] = filename
 		if self.config["map"]["source"] == "memphis-local":
-			self.map.set_source("memphis-local")
+			self.map.load_osm_file()
 		
 	def on_map_source_mapnik(self, widget):
 		if widget.get_active():

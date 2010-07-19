@@ -35,6 +35,7 @@ import champlainmemphis
 import clutter
 
 import os
+import hashlib
 
 class Map:
 	def __init__(self, config, view):
@@ -70,6 +71,7 @@ class Map:
 		self.view.add_layer(self.position_layer)
 		
 		self.map_source_factory = champlain.map_source_factory_dup_default()
+		self.map_data_source = None
 		self.apply_config()
 		
 	def apply_config(self):
@@ -237,27 +239,37 @@ class Map:
 			self.toggle_moving_button.set_active(False)
 		
 	def set_source(self, id):
-		self.source = self.map_source_factory.create(id)
 		self.config["source"] = id
 		
 		if id == "memphis-local":
-			if not os.path.isfile(self.config["osm_file"]):
-				print "no valid OSM file"
-				return
-			
-			datasource = champlainmemphis.LocalMapDataSource()
-			print "Loading osm file..."
-			datasource.load_map_data(self.config["osm_file"])
-			print "Done"
-			
 			self.load_memphis_rules()
-			self.source.set_map_data_source(datasource)
+			if self.map_data_source is None:
+				self.load_osm_file()
+			return
 		
+		self.source = self.map_source_factory.create(id)
 		self.view.set_map_source(self.source)
+		
+	def load_osm_file(self):
+		if not os.path.isfile(self.config["osm_file"]):
+			print "no valid OSM file"
+			return
+		
+		self.map_data_source = champlainmemphis.LocalMapDataSource()
+		print "Loading osm file..."
+		self.map_data_source.load_map_data(self.config["osm_file"])
+		print "Done"
+		
+		if self.config["source"] == "memphis-local":
+			self.source.set_map_data_source(self.map_data_source)
 		
 	def load_memphis_rules(self):
 		if self.config["source"] != "memphis-local":
 			return
+			
+		self.source = self.map_source_factory.create("memphis-local")
+		if self.map_data_source is not None:
+			self.source.set_map_data_source(self.map_data_source)
 			
 		filename = "/usr/local/share/memphis/default-rules.xml"
 		
@@ -265,6 +277,21 @@ class Map:
 			filename = "%sminimal-rules.xml" % self.share_folder
 		
 		self.source.load_rules(filename)
+		hash = hashlib.md5(open(filename).read()).hexdigest()
+		name = "%s-%s" % (self.config["memphis_rules"], hash)
+		
+		tile_size = self.source.get_tile_size()
+		error_tile_source = champlain.error_tile_source_new_full(tile_size)
+		
+		file_cache_path = "%s%s.cache%skismon%smemphis%s%s" % (
+			os.path.expanduser("~"), os.sep, os.sep, os.sep, os.sep, name)
+		file_cache = champlain.file_cache_new_full(1024*1024*50, file_cache_path, True)
+		
+		source_chain = champlain.MapSourceChain()
+		source_chain.push(error_tile_source)
+		source_chain.push(self.source)
+		source_chain.push(file_cache)
+		self.view.set_map_source(source_chain)
 
 class MapWidget:
 	def __init__(self, config):
