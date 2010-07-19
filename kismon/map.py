@@ -53,14 +53,14 @@ class Map:
 			"black": clutter.Color(0, 0, 0, 255)
 			}
 		if os.path.isdir("/usr/share/kismon"):
-			image_folder = "/usr/share/kismon/"
+			self.share_folder = "/usr/share/kismon/"
 		else:
-			image_folder = "..%sfiles%s" % (os.sep, os.sep)
+			self.share_folder = "..%sfiles%s" % (os.sep, os.sep)
 		self.images = {
-			"green": "%sopen.png" % image_folder,
-			"orange": "%swep.png" % image_folder,
-			"red": "%swpa.png" % image_folder,
-			"position": "%sposition.png" % image_folder
+			"green": "%sopen.png" % self.share_folder,
+			"orange": "%swep.png" % self.share_folder,
+			"red": "%swpa.png" % self.share_folder,
+			"position": "%sposition.png" % self.share_folder
 			}
 		
 		self.marker_layer = champlain.Layer()
@@ -259,8 +259,12 @@ class Map:
 		if self.config["source"] != "memphis-local":
 			return
 			
-		if self.config["memphis_rules"] == "default":
-			self.source.load_rules("/usr/local/share/memphis/default-rules.xml")
+		filename = "/usr/local/share/memphis/default-rules.xml"
+		
+		if self.config["memphis_rules"] == "minimal":
+			filename = "%sminimal-rules.xml" % self.share_folder
+		
+		self.source.load_rules(filename)
 
 class MapWidget:
 	def __init__(self, config):
