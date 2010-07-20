@@ -34,27 +34,36 @@ from config import Config
 
 import os
 import sys
+import subprocess
 
 import gtk
 import gobject
 
-try:
-	import champlaingtk
-	import champlain
-except:
-	champlain_error = sys.exc_info()[1]
-	champlain = None
-if champlain is not None:
+def check_map_dependencies():
+	try:
+		import champlaingtk
+		import champlain
+		import champlainmemphis
+	except:
+		return sys.exc_info()[1]
+	
 	try:
 		champlain.Marker().set_image(None)
 	except TypeError:
-		champlain_error = "libchamplain older than 0.6.1"
-		champlain = None
-if champlain is not None:
+		return "libchamplain older than 0.6.1"
+	
+	pipe = subprocess.Popen("pkg-config --exists --print-errors 'memphis-0.2 >= 0.2.3'",
+		shell=True, stderr=subprocess.PIPE)
+	memphis_check = pipe.stderr.read().strip()
+	if memphis_check != '':
+		return memphis_check
+
+map_error = check_map_dependencies()
+if map_error is None:
 	from map import MapWidget
 else:
-	print champlain_error
-	print "Map disabled"
+	map_error += "\nMap disabled"
+	print map_error
 
 class Core:
 	def __init__(self):
@@ -79,7 +88,7 @@ Last seen: %s"""
 		if self.config["kismet"]["connect"] is True:
 			self.client_start()
 		
-		if champlain is None:
+		if map_error is not None:
 			self.map_widget = None
 		else:
 			self.map_widget = MapWidget(self.config["map"])
@@ -91,9 +100,8 @@ Last seen: %s"""
 			self.client_stop,
 			self.map_widget)
 		self.main_window.add_to_log_list("Kismon started")
-		if champlain is None:
-			self.main_window.add_to_log_list(champlain_error)
-			self.main_window.add_to_log_list("Map diabled")
+		if map_error is not None:
+			self.main_window.add_to_log_list(map_error)
 		
 		self.sources = {}
 		self.bssids = {}
