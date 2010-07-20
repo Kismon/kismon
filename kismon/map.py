@@ -29,6 +29,7 @@ POSSIBILITY OF SUCH DAMAGE.
 """
 
 import gtk
+import gobject
 import champlaingtk
 import champlain
 import champlainmemphis
@@ -256,12 +257,28 @@ class Map:
 			return
 		
 		self.map_data_source = champlainmemphis.LocalMapDataSource()
+		
+		win = gtk.Window()
+		win.set_title("Loading")
+		label = gtk.Label("Loading OSM file %s ..." % self.config["osm_file"])
+		win.add(label)
+		win.set_position(gtk.WIN_POS_CENTER)
+		win.set_keep_above(True)
+		win.show_all()
+		
+		self.load_osm_file_window = win
+		gobject.idle_add(self._load_osm_file)
+		
+	def _load_osm_file(self):
 		print "Loading osm file..."
 		self.map_data_source.load_map_data(self.config["osm_file"])
 		print "Done"
+		self.load_osm_file_window.destroy()
 		
 		if self.config["source"] == "memphis-local":
 			self.source.set_map_data_source(self.map_data_source)
+			
+		return False
 		
 	def load_memphis_rules(self):
 		if self.config["source"] != "memphis-local":
