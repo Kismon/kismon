@@ -43,11 +43,18 @@ try:
 	import champlain
 except:
 	champlain_error = sys.exc_info()[1]
-	print champlain_error
-	print "Map disabled"
 	champlain = None
 if champlain is not None:
+	try:
+		champlain.Marker().set_image(None)
+	except TypeError:
+		champlain_error = "libchamplain older than 0.6.1"
+		champlain = None
+if champlain is not None:
 	from map import MapWidget
+else:
+	print champlain_error
+	print "Map disabled"
 
 class Core:
 	def __init__(self):
