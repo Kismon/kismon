@@ -236,6 +236,7 @@ Last seen: %s"""
 				current = line.split(":")[1].strip()
 				current = int(current.split()[0])
 				return round(100.0 / self.battery_max * current, 1)
+		return False
 		
 	def update_battery_bar(self):
 		battery = self.get_battery_capacity()
