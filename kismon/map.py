@@ -292,6 +292,8 @@ class Map:
 		
 		if self.config["memphis_rules"] == "minimal":
 			filename = "%sminimal-rules.xml" % self.share_folder
+		elif self.config["memphis_rules"] == "night":
+			filename = "%snight-rules.xml" % self.share_folder
 		
 		self.source.load_rules(filename)
 		hash = hashlib.md5(open(filename).read()).hexdigest()

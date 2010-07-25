@@ -721,18 +721,23 @@ class ConfigWindow:
 		rules_frame.add(rules_vbox)
 		map_page.attach(rules_frame, 0, 1, 3, 4, yoptions=gtk.SHRINK)
 		
-		rules_default = gtk.RadioButton(None, 'Memphis default rules')
-		rules_default.set_name("default")
+		rules_default = gtk.RadioButton(None, 'Memphis default')
 		if self.config["map"]["memphis_rules"] == "default":
 			rules_default.clicked()
-		rules_default.connect("toggled", self.on_memphis_rules)
+		rules_default.connect("toggled", self.on_memphis_rules, "default")
 		rules_vbox.add(rules_default)
 		
-		rules_minimal = gtk.RadioButton(rules_default, 'Minimal rules (fast)')
-		rules_minimal.set_name("minimal")
+		rules_minimal = gtk.RadioButton(rules_default, 'Minimal')
 		if self.config["map"]["memphis_rules"] == "minimal":
 			rules_minimal.clicked()
+		rules_minimal.connect("toggled", self.on_memphis_rules, "minimal")
 		rules_vbox.add(rules_minimal)
+		
+		rules_night = gtk.RadioButton(rules_default, 'Night')
+		if self.config["map"]["memphis_rules"] == "night":
+			rules_night.clicked()
+		rules_night.connect("toggled", self.on_memphis_rules, "night")
+		rules_vbox.add(rules_night)
 		
 		perf_frame = gtk.Frame("Performance")
 		perf_vbox = gtk.VBox()
@@ -767,13 +772,11 @@ class ConfigWindow:
 		if os.path.isfile(self.config["map"]["osm_file"]):
 			self.map.set_source("memphis-local")
 			
-	def on_memphis_rules(self, widget):
-		for button in widget.get_group():
-			if button.get_active():
-				self.config["map"]["memphis_rules"] = button.get_name()
-				self.map.load_memphis_rules()
-				break
-	
+	def on_memphis_rules(self, widget, name):
+		if widget.get_active():
+			self.config["map"]["memphis_rules"] = name
+			self.map.load_memphis_rules()
+		
 	def on_update_marker_positions(self, widget):
 		self.config["map"]["update_marker_positions"] = widget.get_active()
 		

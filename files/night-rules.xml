@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rules version="0.1" background="#332C36">
+    <!-- Draw highways -->
+    <rule e="way" k="highway" v="*">
+        <rule e="way" k="highway" v="footway|track|steps">
+            <line color="#777777" width="1" zoom="14:18"/>
+            <line color="#efeaa0" width="0.5" zoom="14:18"/>
+        </rule>
+        <rule e="way" k="highway" v="bridleway">
+            <line color="#777777" width="1" zoom="14:18"/>
+            <line color="#efa0a0" width="0.5" zoom="14:18"/>
+        </rule>
+        <rule e="way" k="highway" v="cycleway">
+            <line color="#777777" width="1" zoom="14:18"/>
+            <line color="#485FD2" width="0.5" zoom="14:18"/>
+        </rule>
+        <rule e="way" k="highway" v="track">
+            <line color="#777777" width="1.5" zoom="13:18"/>
+            <line color="#efeaa0" width="1" zoom="13:18"/>
+        </rule>
+        <rule e="way" k="highway" v="living_street|service">
+            <line color="#777777" width="2.5" zoom="13:18"/>
+            <line color="#D2D2D2" width="2" zoom="13:18"/>
+            <text color="#000000" width="2" zoom="17:18"/>
+        </rule>
+        <rule e="way" k="highway" v="residential|unclassified|pedestrian">
+            <line color="#777777" width="3" zoom="12:18"/>
+            <line color="#D9CFDB" width="2.5" zoom="12:18"/>
+            <text color="#000000" width="2" zoom="17:18"/>
+        </rule>
+        <rule e="way" k="highway" v="tertiary">
+            <line color="#777777" width="3"/>
+            <line color="#8C8C8C" width="2.5"/>
+            <text color="#000000" width="2" zoom="17:18"/>
+        </rule>
+        <rule e="way" k="highway" v="secondary">
+            <line color="#777777" width="3.5"/>
+            <line color="#D9A45F" width="3"/>
+            <text color="#000000" width="3" zoom="16:18"/>
+        </rule>
+        <rule e="way" k="highway" v="primary">
+            <line color="#777777" width="3.5"/>
+            <line color="#EC989A" width="3"/> <!-- red -->
+            <text color="#000000" width="3" zoom="16:18"/>
+        </rule>
+        <rule e="way" k="highway" v="trunk_link">
+            <line color="#777777" width="5"/>
+            <line color="#7FC97F" width="4.5"/> <!-- green -->
+        </rule>
+        <rule e="way" k="highway" v="trunk">
+            <line color="#777777" width="5"/>
+            <line color="#7FC97F" width="4.5"/>
+            <text color="#000000" width="4" zoom="16:18"/>
+        </rule>
+        <rule e="way" k="highway" v="motorway">
+            <line color="#777777" width="5.5"/>
+            <line color="#809BC0" width="5"/> <!-- blue -->
+            <text color="#000000" width="4.5" zoom="16:18"/>
+        </rule>
+    </rule>
+</rules>
