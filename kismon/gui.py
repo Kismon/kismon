@@ -92,6 +92,7 @@ class MainWindow(KismonWindows):
 		self.network_lines = {}
 		self.network_iter = {}
 		self.network_list_network_selected = None
+		self.signal_graphs = {}
 		
 		self.network_scrolled = gtk.ScrolledWindow()
 		self.network_scrolled.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -280,6 +281,11 @@ class MainWindow(KismonWindows):
 		locate_item = gtk.MenuItem('Locate on map')
 		network_menu.append(locate_item)
 		locate_item.connect("activate", self.on_map_locate_marker)
+		
+		signal_item = gtk.MenuItem('Signal graph')
+		network_menu.append(signal_item)
+		signal_item.connect("activate", self.on_signal_graph)
+		
 		network_menu.show_all()
 		self.network_list_network_menu = network_menu
 	
@@ -329,6 +335,9 @@ class MainWindow(KismonWindows):
 				num += 1
 		elif network_type in self.network_list_types:
 			self.network_iter[mac] = storage.prepend(line)
+		
+		if mac in self.signal_graphs:
+			self.signal_graphs[mac].add_value(bssid["signal_dbm"])
 			
 	def on_network_list_filter_type(self, widget):
 		types = ("infrastructure", "ad-hoc", "probe", "data")
@@ -608,6 +617,15 @@ class MainWindow(KismonWindows):
 		
 		self.config_window = ConfigWindow(self)
 		
+	def on_signal_graph(self, widget):
+		mac = self.network_list_network_selected
+		signal_window = SignalWindow(mac, self.on_signal_graph_destroy)
+		self.signal_graphs[mac] = signal_window
+		
+	def on_signal_graph_destroy(self, window, mac):
+		print "Signal graph %s closed" % mac
+		del self.signal_graphs[mac]
+		
 	def set_battery_bar(self, percent):
 		self.battery_bar.set_text("%s%%" % percent)
 		self.battery_bar.set_fraction(percent / 100)
@@ -783,6 +801,81 @@ class ConfigWindow:
 	def on_update_marker_positions(self, widget):
 		self.config["map"]["update_marker_positions"] = widget.get_active()
 		
+class SignalWindow:
+	def __init__(self, mac, destroy):
+		self.mac = mac
+		self.history = {}
+		self.time_range = 60 * 2
+		
+		self.gtkwin = gtk.Window()
+		self.gtkwin.set_position(gtk.WIN_POS_CENTER)
+		self.gtkwin.connect("destroy", destroy, mac)
+		self.gtkwin.set_size_request(640, 320)
+		self.gtkwin.set_title("Signal Graph: %s" % self.mac)
+		
+		self.graph = gtk.DrawingArea()
+		self.graph.connect("expose_event", self.draw_graph)
+		self.gtkwin.add(self.graph)
+		
+		self.gtkwin.show_all()
+		
+	def draw_graph(self, widget, event):
+		ctx=widget.window.cairo_create()
+		width = event.area.width
+		height = event.area.height
+		
+		#background
+		ctx.set_source_rgb(1, 1, 1)
+		ctx.rectangle(0, 0, width, height)
+		ctx.fill()
+		ctx.stroke()
+		
+		ctx.set_line_width(2)
+		ctx.set_source_rgb(0, 1, 0)
+		
+		if len(self.history) < 2:
+			ctx.move_to(width / 2, height / 2)
+			ctx.show_text("collecting data")
+			ctx.stroke()
+			return False
+		
+		values = self.history.values()
+		signal_min = min(values) - 1
+		signal_max = max(values) + 1
+		if signal_max < -30:
+			signal_max = -30
+		signal_range = signal_max - signal_min
+		
+		start_sec = max(self.history) - self.time_range
+		x_rel = 1.0 * width / self.time_range
+		y_rel = 1.0 * height / signal_range
+		start = False
+		sec = 0
+		
+		while True:
+			if start_sec + sec in self.history:
+				signal = self.history[start_sec + sec]
+				x = x_rel * sec
+				y = y_rel * (signal_max - signal)
+				if not start:
+					ctx.move_to(x, y)
+					start = True
+					sec += 1
+				else:
+					ctx.line_to(x, y)
+			
+			sec += 1
+			if sec > self.time_range:
+				break
+		ctx.stroke()
+		
+		return False
+		
+	def add_value(self, value):
+		self.history[int(time.time())] = value
+		self.graph.queue_draw()
+		
+
 def show_timestamp(timestamp):
 	time_format = "%H:%M:%S"
 	return time.strftime(time_format, time.localtime(timestamp))
