@@ -246,7 +246,8 @@ class MainWindow(KismonWindows):
 		self.network_list.connect("button-press-event", self.on_network_list_network_popup)
 		num=0
 		columns=("BSSID", "Type", "SSID", "Channel", "Crypt",
-			"First Seen", "Last Seen", "Latitude", "Longitude")
+			"First Seen", "Last Seen", "Latitude", "Longitude",
+			"Signal dbm")
 		for column in columns:
 			tvcolumn = gtk.TreeViewColumn(column)
 			self.network_list.append_column(tvcolumn)
@@ -269,7 +270,8 @@ class MainWindow(KismonWindows):
 			gobject.TYPE_STRING, #firsttime
 			gobject.TYPE_STRING, #lasttime
 			gobject.TYPE_FLOAT, #lat
-			gobject.TYPE_FLOAT #lon
+			gobject.TYPE_FLOAT, #lon
+			gobject.TYPE_INT, #signal dbm
 			)
 		self.network_list.set_model(self.network_list_treestore)
 		self.network_scrolled.add(self.network_list)
@@ -306,7 +308,8 @@ class MainWindow(KismonWindows):
 				show_timestamp(bssid["firsttime"]),
 				show_timestamp(bssid["lasttime"]),
 				bssid["bestlat"],
-				bssid["bestlon"]
+				bssid["bestlon"],
+				bssid["signal_dbm"]
 				]
 		try:
 			old_line = self.network_lines[mac]
