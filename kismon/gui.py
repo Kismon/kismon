@@ -824,12 +824,57 @@ class SignalWindow:
 		width = event.area.width
 		height = event.area.height
 		
+		border_left = 60
+		border_bottom = 30
+		
+		graph_width = width - border_left
+		graph_height = height - border_bottom
+		
+		values = self.history.values()
+		if len(values) > 1:
+			signal_min = min(values)
+			signal_max = max(values) + 1
+		else:
+			signal_min = -100
+			signal_max = -60
+		
+		signal_min = min(signal_min, -100)
+		signal_max = max(signal_max, -60)
+		
+		signal_range = signal_max - signal_min
+		
 		#background
-		ctx.set_source_rgb(1, 1, 1)
+		ctx.set_source_rgb(0, 0, 0)
 		ctx.rectangle(0, 0, width, height)
 		ctx.fill()
 		ctx.stroke()
 		
+		#legend
+		ctx.set_line_width(1)
+		ctx.set_source_rgb(1, 1, 1)
+		
+		ctx.move_to(border_left, 0)
+		ctx.line_to(border_left, graph_height + 5)
+		ctx.move_to(border_left - 5, graph_height)
+		ctx.line_to(width, height - border_bottom)
+		
+		ctx.move_to(border_left - 55, graph_height + 4)
+		ctx.show_text("%s dbm" % signal_min)
+		ctx.move_to(border_left - 1, graph_height / 2)
+		ctx.line_to(border_left - 5, graph_height / 2)
+		ctx.move_to(border_left - 55, graph_height / 2 + 4)
+		ctx.show_text("%s dbm" % ((signal_min - signal_max) / 2 + signal_max))
+		
+		ctx.move_to(border_left - 15, graph_height + 16)
+		ctx.show_text("-%ss" % self.time_range)
+		ctx.move_to(border_left + graph_width / 2, graph_height + 1)
+		ctx.line_to(border_left + graph_width / 2, graph_height + 6)
+		ctx.move_to(border_left + graph_width / 2 - 12, graph_height + 16)
+		ctx.show_text("-%ss" % (self.time_range / 2))
+		
+		ctx.stroke()
+		
+		#graph
 		ctx.set_line_width(2)
 		ctx.set_source_rgb(0, 1, 0)
 		
@@ -839,23 +884,16 @@ class SignalWindow:
 			ctx.stroke()
 			return False
 		
-		values = self.history.values()
-		signal_min = min(values) - 1
-		signal_max = max(values) + 1
-		if signal_max < -30:
-			signal_max = -30
-		signal_range = signal_max - signal_min
-		
 		start_sec = max(self.history) - self.time_range
-		x_rel = 1.0 * width / self.time_range
-		y_rel = 1.0 * height / signal_range
+		x_rel = 1.0 * graph_width / self.time_range
+		y_rel = 1.0 * graph_height / signal_range
 		start = False
 		sec = 0
 		
 		while True:
 			if start_sec + sec in self.history:
 				signal = self.history[start_sec + sec]
-				x = x_rel * sec
+				x = x_rel * sec + border_left
 				y = y_rel * (signal_max - signal)
 				if not start:
 					ctx.move_to(x, y)
