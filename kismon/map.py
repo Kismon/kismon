@@ -390,43 +390,8 @@ class MapWidget:
 		
 	def on_zoom_out(self, widget):
 		self.map.zoom_out()
-
-def test():
-	from config import Config
-	import gobject
-	gobject.threads_init()
-	test_config = Config(None).default_config["map"]
-	test_map_widget = MapWidget(test_config)
-	test_map = test_map_widget.map
-	
-	test_map.set_zoom(16)
-	test_map.set_position(52.513, 13.323)
-	test_map.add_marker("111", "marker 1", "long description\nbla\nblub", "green", 52.513, 13.322)
-	test_map.add_marker("222", "marker 2", "bla", "red", 52.512, 13.322)
-	test_map.add_marker("222", "marker 2 test1", "foobar", "red", 52.512, 13.322)
-	test_map.locate_marker("111")
-	test_map.set_marker_style("name")
-	test_map.add_marker("222", "marker 2 test2", "blub", "red", 52.512, 13.321)
-	test_map.add_marker("333", "marker 3", "test", "orange", 52.511, 13.322)
-	test_map.set_marker_style("image")
-	test_map_widget.toggle_moving_button.set_active(False)
-	test_map.set_position(52.513,13.323)
-	test_map_widget.toggle_moving_button.set_active(True)
-	test_map_widget.on_zoom_out(None)
-	test_map_widget.on_zoom_in(None)
-	test_map_widget.on_map_pressed(None, None)
-	test_map_widget.on_map_released(None, None)
-	test_map.set_source("osm-mapnik")
-	
-	test_window = gtk.Window()
-	test_window.set_title("Kismon Test Map")
-	test_window.connect("destroy", gtk.main_quit)
-	test_window.show()
-	test_window.set_size_request(640, 480)
-	test_window.add(test_map_widget.widget)
-	test_window.show_all()
-	
-	gtk.main()
 	
 if __name__ == "__main__":
-	test()
+	import test
+	test.map()
+	gtk.main()

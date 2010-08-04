@@ -106,8 +106,5 @@ class Config:
 		return txt
 	
 if __name__ == "__main__":
-	conf=Config("/tmp/testconfig.conf")
-	conf.read()
-	conf.write()
-	conf.read()
-	print conf.show()
+	import test
+	test.config()
