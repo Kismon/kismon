@@ -35,6 +35,8 @@ from client import *
 
 import gobject
 gobject.threads_init()
+import time
+import gtk
 
 def config():
 	conf=Config("/tmp/testconfig.conf")
@@ -42,6 +44,63 @@ def config():
 	conf.write()
 	conf.read()
 	conf.show()
+
+def gui_main_window():
+	def client_start():
+		return
+	def client_stop():
+		return
+	
+	test_config = Config(None).default_config
+	test_map = MapWidget(test_config["map"])
+	
+	main_window = MainWindow(test_config, client_start, client_stop, test_map)
+	main_window.crypt_cache = {}
+	
+	main_window.add_to_log_list("test")
+	now = int(time.time())
+	bssid = {"bssid": "11:22:33:44:55:66", "type": 0, "channel": 11,
+		"firsttime": now, "lasttime": now, "bestlat": 52.0, "bestlon": 13.0,
+		"signal_dbm": -70}
+	ssid = {"cryptset": 706, "ssid": "test"}
+	main_window.add_to_network_list(bssid, ssid)
+	main_window.add_to_network_list(bssid, ssid)
+	main_window.network_list_network_selected = "11:22:33:44:55:66"
+	main_window.update_info_table({"networks":100, "packets":200})
+	main_window.update_gps_table({"fix": 3, "lat": 52.0, "lon": 13.0})
+	sources = {"1": {"uuid": "1", "username": "test", "type": "bla",
+		"channel": 11, "packets": 100}}
+	main_window.update_sources_table(sources)
+	main_window.on_configure_event(None, None)
+	main_window.on_config_window(None)
+	main_window.on_config_window(None)
+	main_window.on_signal_graph(None)
+	main_window.on_signal_graph_destroy(None, "11:22:33:44:55:66")
+	main_window.fullscreen()
+	main_window.fullscreen()
+	main_window.on_map_window(None, True)
+	main_window.on_map_window(None, False)
+	main_window.on_map_widget(None, True)
+	main_window.on_map_widget(None, False)
+
+def gui_map_window():
+	test_config = Config(None).default_config["map"]
+	test_map = MapWidget(test_config)
+	map_window = MapWindow(test_map)
+	map_window.hide()
+	map_window.on_destroy(None)
+
+def gui_signal_window():
+	def destroy(obj, window):
+		return
+	signal_window = SignalWindow("11:22:33:44:55:66", destroy)
+	signal_window.add_value(-30)
+	signal_window.draw_graph(600, 400)
+	now = int(time.time())
+	for signal in (-50, -60, -70, -80, -50):
+		now -= 1
+		signal_window.history[now] = signal
+	signal_window.draw_graph(600, 400)
 
 def map():
 	test_config = Config(None).default_config["map"]
@@ -77,6 +136,9 @@ def map():
 
 def test():
 	config()
+	gui_main_window()
+	gui_map_window()
+	gui_signal_window()
 	map()
 
 if __name__ == "__main__":

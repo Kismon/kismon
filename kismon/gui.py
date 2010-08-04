@@ -814,15 +814,18 @@ class SignalWindow:
 		self.gtkwin.set_title("Signal Graph: %s" % self.mac)
 		
 		self.graph = gtk.DrawingArea()
-		self.graph.connect("expose_event", self.draw_graph)
+		self.graph.connect("expose_event", self.on_expose_event)
 		self.gtkwin.add(self.graph)
 		
 		self.gtkwin.show_all()
 		
-	def draw_graph(self, widget, event):
-		ctx=widget.window.cairo_create()
+	def on_expose_event(self, widget, event):
 		width = event.area.width
 		height = event.area.height
+		self.draw_graph(width, height)
+		
+	def draw_graph(self, width, height):
+		ctx=self.graph.window.cairo_create()
 		
 		border_left = 60
 		border_bottom = 30
