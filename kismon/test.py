@@ -38,6 +38,78 @@ import gobject
 gobject.threads_init()
 import time
 import gtk
+import sys
+
+def client():
+	class TestClient(Client):
+		def send(self, msg):
+			return
+			
+	test_lines = [
+	'*KISMET: 0.0.0 1276329809 \x01Kismet_2009\x01 \x01netxml\x01 0 ',
+	'*PROTOCOLS: KISMET,ERROR,ACK,PROTOCOLS,CAPABILITY,TERMINATE,TIME,PACKET,STATUS,PLUGIN,SOURCE,ALERT,WEPKEY,STRING,GPS,BSSID,SSID,CLIENT,BSSIDSRC,CLISRC,NETTAG,CLITAG,REMOVE,CHANNEL,INFO,BATTERY',
+	'*CAPABILITY: INFO networks,packets,crypt,noise,dropped,rate,filtered,clients,llcpackets,datapackets,numsources,numerrorsources',
+	'*CAPABILITY: STATUS text,flags',
+	'*CAPABILITY: SSID mac,checksum,type,ssid,beaconinfo,cryptset,cloaked,firsttime,lasttime,maxrate,beaconrate,packets,beacons,dot11d',
+	'*CAPABILITY: BSSID bssid,type,llcpackets,datapackets,cryptpackets,manuf,channel,firsttime,lasttime,atype,rangeip,netmaskip,gatewayip,gpsfixed,minlat,minlon,minalt,minspd,maxlat,maxlon,maxalt,maxspd,signal_dbm,noise_dbm,minsignal_dbm,minnoise_dbm,maxsignal_dbm,maxnoise_dbm,signal_rssi,noise_rssi,minsignal_rssi,minnoise_rssi,maxsignal_rssi,maxnoise_rssi,bestlat,bestlon,bestalt,agglat,agglon,aggalt,aggpoints,datasize,turbocellnid,turbocellmode,turbocellsat,carrierset,maxseenrate,encodingset,decrypted,dupeivpackets,bsstimestamp,cdpdevice,cdpport,fragments,retries,newpackets,freqmhz,datacryptset',
+	'*CAPABILITY: SOURCE interface,type,username,channel,uuid,packets,hop,velocity,dwell,hop_time_sec,hop_time_usec,channellist,error,warning',
+	'*CAPABILITY: GPS lat,lon,alt,spd,heading,fix,satinfo,hdop,vdop,connected',
+	'*SSID: 00:09:5B:D5:50:10 3604535 0 \x01\x01 \x01 \x01 226 1 1276329814 1276329814 54 10 3 0  ',
+	'*SSID: 00:12:2A:03:B9:12 566756343 0 \x01bla 123\x01 \x01 \x01 706 0 1276329811 1276329811 54 10 1 0  ',
+	'*SSID: 00:23:08:B4:AF:1C 399639338 0 \x01WLAN-123\x01 \x01 \x01 738 0 1276329819 1276329819 54 10 4 0 \x01DE :2-13-20:\x01 ',
+	'*BSSID: 00:12:2A:03:B9:12 0 1 0 0 \x01VtechTelec\x01 6 1276329811 1276329811 0 0.0.0.0 0.0.0.0 0.0.0.0 1 52.1234 13.1232 25.578 0 52.1234 13.1232 25.578 0 -75 0 -75 0 -75 -256 0 0 1024 1024 0 0 52.1234 13.1232 25.578 52.1234 13.1232 25.578 1 0 0 0 0 1 10 0 0 0 5750318387682 \x01 \x01 \x01 \x01 0 0 0 2437:1* 0 ',
+	'*BSSID: 00:23:08:23:F6:19 0 2 0 0 \x01ArcadyanTe\x01 1 1276329809 1276329809 0 0.0.0.0 0.0.0.0 0.0.0.0 1 52.1232 13.1231 25.905 0 52.1232 13.1231 25.905 0 -74 0 -76 0 -74 -256 0 0 1024 1024 0 0 52.1232 13.1231 25.905 105.086 26.3162 51.81 2 0 0 0 0 1 10 0 0 0 1084647629116 \x01 \x01 \x01 \x01 0 0 0 2412:2* 0 ',
+	'*STATUS: \x01Detected new managed network "test", BSSID 00:26:4D:4A:1C:11, encryption yes, channel 1, 54.00 mbit\x01 2 ',
+	'*INFO: 13 58 2 0 0 0 0 0 56 2 1 0 ',
+	]
+	result_split_line = [
+		['0.0.0', '1276329809', 'Kismet_2009', 'netxml', '0'],
+		['KISMET,ERROR,ACK,PROTOCOLS,CAPABILITY,TERMINATE,TIME,PACKET,STATUS,PLUGIN,SOURCE,ALERT,WEPKEY,STRING,GPS,BSSID,SSID,CLIENT,BSSIDSRC,CLISRC,NETTAG,CLITAG,REMOVE,CHANNEL,INFO,BATTERY'],
+		['INFO', 'networks,packets,crypt,noise,dropped,rate,filtered,clients,llcpackets,datapackets,numsources,numerrorsources'],
+		['STATUS', 'text,flags'],
+		['SSID', 'mac,checksum,type,ssid,beaconinfo,cryptset,cloaked,firsttime,lasttime,maxrate,beaconrate,packets,beacons,dot11d'],
+		['BSSID', 'bssid,type,llcpackets,datapackets,cryptpackets,manuf,channel,firsttime,lasttime,atype,rangeip,netmaskip,gatewayip,gpsfixed,minlat,minlon,minalt,minspd,maxlat,maxlon,maxalt,maxspd,signal_dbm,noise_dbm,minsignal_dbm,minnoise_dbm,maxsignal_dbm,maxnoise_dbm,signal_rssi,noise_rssi,minsignal_rssi,minnoise_rssi,maxsignal_rssi,maxnoise_rssi,bestlat,bestlon,bestalt,agglat,agglon,aggalt,aggpoints,datasize,turbocellnid,turbocellmode,turbocellsat,carrierset,maxseenrate,encodingset,decrypted,dupeivpackets,bsstimestamp,cdpdevice,cdpport,fragments,retries,newpackets,freqmhz,datacryptset'],
+		['SOURCE', 'interface,type,username,channel,uuid,packets,hop,velocity,dwell,hop_time_sec,hop_time_usec,channellist,error,warning'],
+		['GPS', 'lat,lon,alt,spd,heading,fix,satinfo,hdop,vdop,connected'],
+		['00:09:5B:D5:50:10', '3604535', '0', '', ' ', '226', '1', '1276329814', '1276329814', '54', '10', '3', '0'],
+		['00:12:2A:03:B9:12', '566756343', '0', 'bla 123', ' ', '706', '0', '1276329811', '1276329811', '54', '10', '1', '0'],
+		['00:23:08:B4:AF:1C', '399639338', '0', 'WLAN-123', ' ', '738', '0', '1276329819', '1276329819', '54', '10', '4', '0', 'DE :2-13-20:'],
+		['00:12:2A:03:B9:12', '0', '1', '0', '0', 'VtechTelec', '6', '1276329811', '1276329811', '0', '0.0.0.0', '0.0.0.0', '0.0.0.0', '1', '52.1234', '13.1232', '25.578', '0', '52.1234', '13.1232', '25.578', '0', '-75', '0', '-75', '0', '-75', '-256', '0', '0', '1024', '1024', '0', '0', '52.1234', '13.1232', '25.578', '52.1234', '13.1232', '25.578', '1', '0', '0', '0', '0', '1', '10', '0', '0', '0', '5750318387682', ' ', ' ', '0', '0', '0', '2437:1*', '0'],
+		['00:23:08:23:F6:19', '0', '2', '0', '0', 'ArcadyanTe', '1', '1276329809', '1276329809', '0', '0.0.0.0', '0.0.0.0', '0.0.0.0', '1', '52.1232', '13.1231', '25.905', '0', '52.1232', '13.1231', '25.905', '0', '-74', '0', '-76', '0', '-74', '-256', '0', '0', '1024', '1024', '0', '0', '52.1232', '13.1231', '25.905', '105.086', '26.3162', '51.81', '2', '0', '0', '0', '0', '1', '10', '0', '0', '0', '1084647629116', ' ', ' ', '0', '0', '0', '2412:2*', '0'],
+		['Detected new managed network "test", BSSID 00:26:4D:4A:1C:11, encryption yes, channel 1, 54.00 mbit', '2'],
+		['13', '58', '2', '0', '0', '0', '0', '0', '56', '2', '1', '0'],
+	]
+	result_parse_line = [
+		None, None, None, None, None, None, None, None,
+		('ssid', {'firsttime': 1276329814, 'ssid': '', 'beacons': 0, 'checksum': 3604535, 'packets': 3, 'beaconrate': 10, 'mac': '00:09:5B:D5:50:10', 'maxrate': 54, 'cloaked': 1, 'type': 0, 'beaconinfo': ' ', 'lasttime': 1276329814, 'cryptset': 226}),
+		('ssid', {'firsttime': 1276329811, 'ssid': 'bla 123', 'beacons': 0, 'checksum': 566756343, 'packets': 1, 'beaconrate': 10, 'mac': '00:12:2A:03:B9:12', 'maxrate': 54, 'cloaked': 0, 'type': 0, 'beaconinfo': ' ', 'lasttime': 1276329811, 'cryptset': 706}),
+		('ssid', {'firsttime': 1276329819, 'ssid': 'WLAN-123', 'beacons': 0, 'checksum': 399639338, 'dot11d': 'DE :2-13-20:', 'packets': 4, 'beaconrate': 10, 'mac': '00:23:08:B4:AF:1C', 'maxrate': 54, 'cloaked': 0, 'type': 0, 'beaconinfo': ' ', 'lasttime': 1276329819, 'cryptset': 738}),
+		('bssid', {'manuf': 'VtechTelec', 'maxalt': 25.577999999999999, 'encodingset': 0, 'agglon': 13.123200000000001, 'minnoise_dbm': 0, 'maxseenrate': 10, 'bssid': '00:12:2A:03:B9:12', 'maxspd': 0, 'maxsignal_dbm': -75, 'minlat': 52.123399999999997, 'cryptpackets': 0, 'llcpackets': 1, 'signal_rssi': 0, 'aggalt': 25.577999999999999, 'newpackets': 0, 'minsignal_dbm': -75, 'noise_dbm': 0, 'noise_rssi': 0, 'aggpoints': 1, 'cdpdevice': ' ', 'maxnoise_rssi': 0, 'maxnoise_dbm': -256, 'retries': 0, 'bsstimestamp': 5750318387682, 'turbocellnid': 0, 'bestlon': 13.123200000000001, 'dupeivpackets': 0, 'minalt': 25.577999999999999, 'fragments': 0, 'datasize': 0, 'type': 0, 'channel': 6, 'agglat': 52.123399999999997, 'maxlon': 13.123200000000001, 'decrypted': 0, 'turbocellmode': 0, 'gatewayip': '0.0.0.0', 'signal_dbm': -75, 'maxlat': 52.123399999999997, 'freqmhz': '2437:1*', 'lasttime': 1276329811, 'minspd': 0, 'bestalt': 25.577999999999999, 'bestlat': 52.123399999999997, 'firsttime': 1276329811, 'minlon': 13.123200000000001, 'carrierset': 1, 'datapackets': 0, 'turbocellsat': 0, 'atype': 0, 'datacryptset': 0, 'gpsfixed': 1, 'rangeip': '0.0.0.0', 'minsignal_rssi': 1024, 'maxsignal_rssi': 0, 'netmaskip': '0.0.0.0', 'minnoise_rssi': 1024, 'cdpport': ' '}),
+		('bssid', {'manuf': 'ArcadyanTe', 'maxalt': 25.905000000000001, 'encodingset': 0, 'agglon': 26.316199999999998, 'minnoise_dbm': 0, 'maxseenrate': 10, 'bssid': '00:23:08:23:F6:19', 'maxspd': 0, 'maxsignal_dbm': -74, 'minlat': 52.123199999999997, 'cryptpackets': 0, 'llcpackets': 2, 'signal_rssi': 0, 'aggalt': 51.810000000000002, 'newpackets': 0, 'minsignal_dbm': -76, 'noise_dbm': 0, 'noise_rssi': 0, 'aggpoints': 2, 'cdpdevice': ' ', 'maxnoise_rssi': 0, 'maxnoise_dbm': -256, 'retries': 0, 'bsstimestamp': 1084647629116, 'turbocellnid': 0, 'bestlon': 13.123100000000001, 'dupeivpackets': 0, 'minalt': 25.905000000000001, 'fragments': 0, 'datasize': 0, 'type': 0, 'channel': 1, 'agglat': 105.086, 'maxlon': 13.123100000000001, 'decrypted': 0, 'turbocellmode': 0, 'gatewayip': '0.0.0.0', 'signal_dbm': -74, 'maxlat': 52.123199999999997, 'freqmhz': '2412:2*', 'lasttime': 1276329809, 'minspd': 0, 'bestalt': 25.905000000000001, 'bestlat': 52.123199999999997, 'firsttime': 1276329809, 'minlon': 13.123100000000001, 'carrierset': 1, 'datapackets': 0, 'turbocellsat': 0, 'atype': 0, 'datacryptset': 0, 'gpsfixed': 1, 'rangeip': '0.0.0.0', 'minsignal_rssi': 1024, 'maxsignal_rssi': 0, 'netmaskip': '0.0.0.0', 'minnoise_rssi': 1024, 'cdpport': ' '}),
+		('status', {'text': 'Detected new managed network "test", BSSID 00:26:4D:4A:1C:11, encryption yes, channel 1, 54.00 mbit', 'flags': 2}),
+		('info', {'noise': 0, 'datapackets': 2, 'crypt': 2, 'clients': 0, 'packets': 58, 'rate': 0, 'llcpackets': 56, 'dropped': 0, 'numerrorsources': 0, 'numsources': 1, 'filtered': 0, 'networks': 13}),
+	]
+	
+	client = TestClient()
+	client.set_capabilities(["bssid", "ssid"])
+	pos = 0
+	errors = 0
+	for line in test_lines:
+		result = client.split_line(line.split(":", 1)[1])
+		if result != result_split_line[pos]:
+			print "split_line error %s" % pos
+			print "%s\n!=\n%s" % (result, result_split_line[pos])
+			errors += 1
+		
+		result = client.parse_line(line)
+		if result != result_parse_line[pos]:
+			print "parse_line error %s" % pos
+			print "%s\n!=\n%s" % (result, result_parse_line[pos])
+			errors += 1
+		pos += 1
+	
+	if errors != 0:
+		sys.exit("client test failed, %s errors" % errors)
 
 def config():
 	conf=Config("/tmp/testconfig.conf")
@@ -164,6 +236,7 @@ def map():
 	test_window.show_all()
 
 def test():
+	client()
 	core()
 	config()
 	gui_main_window()
