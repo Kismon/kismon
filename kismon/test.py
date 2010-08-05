@@ -28,6 +28,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
 
+from core import *
 from config import Config
 from map import *
 from gui import *
@@ -44,6 +45,10 @@ def config():
 	conf.write()
 	conf.read()
 	conf.show()
+
+def core():
+	core = Core()
+	core.queue_handler()
 
 def gui_main_window():
 	def client_start():
@@ -159,6 +164,7 @@ def map():
 	test_window.show_all()
 
 def test():
+	core()
 	config()
 	gui_main_window()
 	gui_map_window()
