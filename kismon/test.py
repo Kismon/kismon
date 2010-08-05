@@ -82,6 +82,19 @@ def gui_main_window():
 	main_window.on_map_window(None, False)
 	main_window.on_map_widget(None, True)
 	main_window.on_map_widget(None, False)
+	
+	class TestWidget:
+		def __init__(self):
+			self.active = True
+		
+		def get_active(self):
+			return self.active
+	
+	test_widget = TestWidget()
+	config_window = main_window.config_window
+	config_window.on_map_source_mapnik(test_widget)
+	config_window.on_map_source_memphis(test_widget)
+	config_window.on_memphis_rules(test_widget, "default")
 
 def gui_map_window():
 	test_config = Config(None).default_config["map"]
@@ -125,6 +138,17 @@ def map():
 	test_map_widget.on_map_pressed(None, None)
 	test_map_widget.on_map_released(None, None)
 	test_map.set_source("osm-mapnik")
+	
+	tmp_osm_file = "/tmp/test-%s.osm" % int(time.time())
+	tmp_osm = open(tmp_osm_file, "w")
+	tmp_osm.write('''
+	<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="OpenStreetMap server">
+</osm>
+	''')
+	tmp_osm.close()
+	test_config["osm_file"] = tmp_osm_file
+	test_map.set_source("memphis-local")
 	
 	test_window = gtk.Window()
 	test_window.set_title("Kismon Test Map")
