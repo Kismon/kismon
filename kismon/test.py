@@ -218,8 +218,7 @@ def map():
 	
 	tmp_osm_file = "/tmp/test-%s.osm" % int(time.time())
 	tmp_osm = open(tmp_osm_file, "w")
-	tmp_osm.write('''
-	<?xml version="1.0" encoding="UTF-8"?>
+	tmp_osm.write('''<?xml version="1.0" encoding="UTF-8"?>
 <osm version="0.6" generator="OpenStreetMap server">
 </osm>
 	''')
