@@ -206,6 +206,7 @@ def map():
 	test_map.set_marker_style("name")
 	test_map.add_marker("222", "marker 2 test2", "blub", "red", 52.512, 13.321)
 	test_map.add_marker("333", "marker 3", "test", "orange", 52.511, 13.322)
+	test_map.marker_layer_add_new_markers()
 	test_map.set_marker_style("image")
 	test_map_widget.toggle_moving_button.set_active(False)
 	test_map.set_position(52.513,13.323)

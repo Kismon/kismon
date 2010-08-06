@@ -215,11 +215,8 @@ Last seen: %s"""
 			elif cap == "ssid":
 				mac = data["mac"]
 				self.ssids[mac] = data
-				
-			else:
-				pass
-				#print cap, data
-				
+		
+		self.map.marker_layer_add_new_markers()
 		return True
 		
 	def quit(self):

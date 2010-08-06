@@ -67,6 +67,7 @@ class Map:
 		self.load_images()
 		
 		self.marker_layer = champlain.Layer()
+		self.marker_layer_queue = []
 		self.init_position_marker()
 		
 		self.view.add_layer(self.marker_layer)
@@ -151,7 +152,7 @@ class Map:
 		else:
 			self.marker_style_name(marker)
 		
-		self.marker_layer.add_marker(marker)
+		self.marker_layer_queue.append(marker)
 		self.markers[key] = marker
 		
 	def update_marker(self, marker, name, text, lat, lon):
@@ -217,6 +218,11 @@ class Map:
 		marker.set_image(texture)
 		if marker.get_text() is not None:
 			marker.set_text(" ")
+		
+	def marker_layer_add_new_markers(self):
+		if len(self.marker_layer_queue) > 0:
+			self.marker_layer.add(*self.marker_layer_queue)
+			self.marker_layer_queue = []
 		
 	def stop_moving(self):
 		self.config["follow_gps"] = False
