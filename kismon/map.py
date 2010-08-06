@@ -64,6 +64,7 @@ class Map:
 			"red": "%swpa.png" % self.share_folder,
 			"position": "%sposition.png" % self.share_folder
 			}
+		self.load_images()
 		
 		self.marker_layer = champlain.Layer()
 		self.init_position_marker()
@@ -86,6 +87,14 @@ class Map:
 		self.position_marker = champlain.marker_new_from_file(self.images["position"])
 		self.position_marker.set_draw_background(False)
 		self.position_layer.add_marker(self.position_marker)
+		
+	def load_images(self):
+		self.textures = {}
+		for name in self.images:
+			filename = self.images[name]
+			texture = clutter.Texture()
+			texture.set_from_file(self.images[name])
+			self.textures[name] = texture.get_cogl_texture()
 		
 	def set_zoom(self, zoom):
 		self.view.set_property("zoom-level", zoom)
@@ -204,7 +213,7 @@ class Map:
 		"""
 		marker.set_draw_background(False)
 		texture = clutter.Texture()
-		texture.set_from_file(self.images[marker.color_name])
+		texture.set_cogl_texture(self.textures[marker.color_name])
 		marker.set_image(texture)
 		if marker.get_text() is not None:
 			marker.set_text(" ")
