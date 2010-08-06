@@ -59,7 +59,7 @@ class Config:
 			}
 	
 	def read(self):
-		print "reading config %s" % self.config_file
+		#print "reading config %s" % self.config_file
 		self.config = self.default_config
 		config = ConfigParser.RawConfigParser()
 		config.read(self.config_file)
@@ -86,7 +86,7 @@ class Config:
 					self.config[section][key] = value
 	
 	def write(self):
-		print "writing config %s" % self.config_file
+		#print "writing config %s" % self.config_file
 		config = ConfigParser.SafeConfigParser()
 		
 		for section in self.config:

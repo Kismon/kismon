@@ -623,7 +623,6 @@ class MainWindow(KismonWindows):
 		self.signal_graphs[mac] = signal_window
 		
 	def on_signal_graph_destroy(self, window, mac):
-		print "Signal graph %s closed" % mac
 		del self.signal_graphs[mac]
 		
 	def set_battery_bar(self, percent):
