@@ -228,7 +228,7 @@ class ClientThread(threading.Thread):
 		self.debug = False
 		self.client = Client()
 		self.is_running = False
-		self.queue = []
+		self.queue = {}
 		if server != None:
 			self.client.server = server
 	
@@ -236,11 +236,17 @@ class ClientThread(threading.Thread):
 		self.is_running = None
 		if self.client.connected is True:
 			self.client.stop()
-		self.queue.append(("stop", True))
+		
+	def get_queue(self, cap):
+		queue = self.queue[cap]
+		self.queue[cap] = []
+		return queue
 	
 	def run(self):
 		self.is_running = True
 		self.client.error = []
+		for cap in self.client.capabilities:
+			self.queue[cap] = []
 		if self.client.start() is False and self.client.replay_dump is None:
 			self.stop()
 		while self.is_running is True and (self.client.connected is True or self.client.replay_dump is not None):
@@ -259,7 +265,7 @@ class ClientThread(threading.Thread):
 					self.stop()
 				if self.debug is True:
 					print "%s: %s" % (result[0], result[1])
-				self.queue.append(result)
+				self.queue[result[0]].append(result[1])
 			
 def decode_cryptset(cryptset, str=False):
 	"""see packet_ieee80211.h from kismet-newcore

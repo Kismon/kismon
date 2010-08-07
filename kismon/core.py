@@ -122,7 +122,8 @@ Last seen: %s"""
 			self.battery_max = None
 		
 		gobject.threads_init()
-		gobject.timeout_add(self.config["core"]["refresh_rate"], self.queue_handler)
+		gobject.timeout_add(1000, self.queue_handler)
+		gobject.timeout_add(300, self.queue_handler_networks)
 		
 	def init_client_thread(self):
 		self.client_thread = ClientThread(self.config["kismet"]["server"])
@@ -151,70 +152,101 @@ Last seen: %s"""
 				self.main_window.add_to_log_list(error)
 			self.client_thread.client.error = []
 		
-		queue = self.client_thread.queue
-		self.client_thread.queue=[]
-		for cap, data in queue:
-			if cap == "status":
-				self.main_window.add_to_log_list(data["text"])
+		#gps
+		gps = None
+		fix = None
+		gps_queue = self.client_thread.get_queue("gps")
+		while True:
+			try:
+				data = gps_queue.pop()
+				if gps is None:
+					gps = data
+				if data["fix"] > 1:
+					fix = (data["lat"], data["lon"])
+					break
+			except IndexError:
+				break
+		if gps is not None:
+			self.main_window.update_gps_table(gps)
+			if fix is not None and self.map_widget is not None:
+				self.map.set_position(fix[0], fix[1])
+		
+		#status
+		for data in self.client_thread.get_queue("status"):
+			self.main_window.add_to_log_list(data["text"])
+		
+		#info
+		info_queue = self.client_thread.get_queue("info")
+		try:
+			data = info_queue.pop()
+			self.main_window.update_info_table(data)
+		except IndexError:
+			pass
 			
-			elif cap == "gps":
-				self.main_window.update_gps_table(data)
-				if data["fix"] > 1 and self.map_widget is not None:
-					self.map.set_position(data["lat"], data["lon"])
-			
-			elif cap == "info":
-				self.main_window.update_info_table(data)
-			
-			elif cap == "source":
-				self.sources[data["uuid"]] = data
-				self.main_window.update_sources_table(self.sources)
-			
-			elif cap == "bssid":
-				mac = data["bssid"]
-				self.bssids[mac] = data
+		#source
+		update = False
+		for data in self.client_thread.get_queue("source"):
+			self.sources[data["uuid"]] = data
+			update = True
+		if update is True:
+			self.main_window.update_sources_table(self.sources)
+		
+		return True
+		
+	def queue_handler_networks(self):
+		#ssid
+		for data in self.client_thread.get_queue("ssid"):
+			mac = data["mac"]
+			self.ssids[mac] = data
+		
+		#bssid
+		bssids = {}
+		for data in self.client_thread.get_queue("bssid"):
+			mac = data["bssid"]
+			self.bssids[mac] = data
+			bssids[mac] = True
+		
+		for mac in bssids:
+			data = self.bssids[mac]
+			if mac in self.ssids:
+				ssid_data = self.ssids[mac]
+				self.main_window.add_to_network_list(self.bssids[mac], ssid_data)
 				
-				if mac in self.ssids:
-					self.main_window.add_to_network_list(self.bssids[mac], self.ssids[mac])
-					
-					if self.map_widget is None:
-						continue
-						
-					try:
-						crypt = self.crypt_cache[self.ssids[mac]["cryptset"]]
-					except KeyError:
-						crypt = decode_cryptset(self.ssids[mac]["cryptset"], True)
-						self.crypt_cache[self.ssids[mac]["cryptset"]] = crypt
-					
-					if "WPA" in crypt:
-						color = "red"
-					elif "WEP" in crypt:
-						color = "orange"
-					else:
-						color = "green"
-					
-					ssid = str(self.ssids[mac]["ssid"])
-					if ssid == "":
-						ssid = "<no ssid>"
-					evils = (("&", "&amp;"),("<", "&lt;"),(">", "&gt;"))
-					for evil, good in evils:
-						ssid = ssid.replace(evil, good)
-					
-					text = self.marker_text % (crypt, mac, data["manuf"],
-						decode_network_type(data["type"]), data["channel"],
-						show_timestamp(data["firsttime"]),
-						show_timestamp(data["lasttime"])
-						)
-					text = text.replace("&", "&amp;")
-					
-					if decode_network_type(data["type"]) == "infrastructure":
-						self.map.add_marker(mac, ssid, text, color,
-							data["bestlat"], data["bestlon"])
+				if self.map_widget is None:
+					continue
+				
+				try:
+					crypt = self.crypt_cache[ssid_data["cryptset"]]
+				except KeyError:
+					crypt = decode_cryptset(ssid_data["cryptset"], True)
+					self.crypt_cache[ssid_data["cryptset"]] = crypt
+				
+				if "WPA" in crypt:
+					color = "red"
+				elif "WEP" in crypt:
+					color = "orange"
 				else:
-					self.main_window.add_to_network_list(self.bssids[mac])
-			
-			elif cap == "ssid":
-				mac = data["mac"]
-				self.ssids[mac] = data
+					color = "green"
+					
+				ssid = str(ssid_data["ssid"])
+				if ssid == "":
+					ssid = "<no ssid>"
+				evils = (("&", "&amp;"),("<", "&lt;"),(">", "&gt;"))
+				for evil, good in evils:
+					ssid = ssid.replace(evil, good)
+				
+				text = self.marker_text % (crypt, mac, data["manuf"],
+					decode_network_type(data["type"]), data["channel"],
+					show_timestamp(data["firsttime"]),
+					show_timestamp(data["lasttime"])
+					)
+				text = text.replace("&", "&amp;")
+				
+				if decode_network_type(data["type"]) == "infrastructure":
+					self.map.add_marker(mac, ssid, text, color,
+						data["bestlat"], data["bestlon"])
+			else:
+				self.main_window.add_to_network_list(self.bssids[mac])
 		
 		self.map.marker_layer_add_new_markers()
 		return True
