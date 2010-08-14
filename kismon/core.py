@@ -31,6 +31,7 @@ POSSIBILITY OF SUCH DAMAGE.
 from client import *
 from gui import MainWindow, MapWindow, show_timestamp
 from config import Config
+from map import MapWidget
 
 import os
 import sys
@@ -58,13 +59,6 @@ def check_map_dependencies():
 	if memphis_check != '':
 		return memphis_check
 
-map_error = check_map_dependencies()
-if map_error is None:
-	from map import MapWidget
-else:
-	map_error += "\nMap disabled"
-	print map_error
-
 class Core:
 	def __init__(self):
 		user_dir = "%s%s.kismon%s" % (os.path.expanduser("~"), os.sep, os.sep)
@@ -88,19 +82,19 @@ Last seen: %s"""
 		if self.config["kismet"]["connect"] is True:
 			self.client_start()
 		
-		if map_error is not None:
-			self.map_widget = None
-		else:
-			self.map_widget = MapWidget(self.config["map"])
-			self.map = self.map_widget.map
-			self.map.set_zoom(16)
+		self.map_error = check_map_dependencies()
+		if self.map_error is not None:
+			self.map_error += "\nMap disabled"
+			print self.map_error
+		
+		self.init_map()
 		
 		self.main_window = MainWindow(self.config,
 			self.client_start,
 			self.client_stop,
 			self.map_widget)
 		self.main_window.add_to_log_list("Kismon started")
-		if map_error is not None:
+		if self.map_error is not None:
 			self.main_window.add_to_log_list(map_error)
 		
 		self.sources = {}
@@ -124,6 +118,15 @@ Last seen: %s"""
 		gobject.threads_init()
 		gobject.timeout_add(1000, self.queue_handler)
 		gobject.timeout_add(300, self.queue_handler_networks)
+		
+	def init_map(self):
+		if self.map_error is not None:
+			self.map_widget = None
+			self.map = None
+		else:
+			self.map_widget = MapWidget(self.config["map"])
+			self.map = self.map_widget.map
+			self.map.set_zoom(16)
 		
 	def init_client_thread(self):
 		self.client_thread = ClientThread(self.config["kismet"]["server"])
@@ -248,7 +251,8 @@ Last seen: %s"""
 			else:
 				self.main_window.add_to_network_list(self.bssids[mac])
 		
-		self.map.marker_layer_add_new_markers()
+		if self.map_widget is not None:
+			self.map.marker_layer_add_new_markers()
 		return True
 		
 	def quit(self):

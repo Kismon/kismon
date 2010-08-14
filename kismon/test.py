@@ -122,6 +122,12 @@ def core():
 	core = Core()
 	core.queue_handler()
 	core.queue_handler_networks()
+	
+	core.map_error = "test"
+	core.init_map()
+	core.queue_handler()
+	core.queue_handler_networks()
+	
 	core.client_stop()
 
 def gui_main_window():
