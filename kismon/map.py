@@ -57,7 +57,8 @@ class Map:
 		if os.path.isdir("/usr/share/kismon"):
 			self.share_folder = "/usr/share/kismon/"
 		else:
-			self.share_folder = "..%sfiles%s" % (os.sep, os.sep)
+			dir = os.path.realpath(__file__).rsplit("/", 2)[0]
+			self.share_folder = "%s%sfiles%s" % (dir, os.sep, os.sep)
 		self.images = {
 			"green": "%sopen.png" % self.share_folder,
 			"orange": "%swep.png" % self.share_folder,
@@ -302,13 +303,22 @@ class Map:
 		self.source = self.map_source_factory.create("memphis-local")
 		if self.map_data_source is not None:
 			self.source.set_map_data_source(self.map_data_source)
-			
-		filename = "/usr/local/share/memphis/default-rules.xml"
+		
+		filename = None
+		shares = ["/usr/share/memphis/", "/usr/local/share/memphis/"]
+		for path in shares:
+			full = "%sdefault-rules.xml" % path
+			if os.path.isfile(full):
+				filename = full
 		
 		if self.config["memphis_rules"] == "minimal":
 			filename = "%sminimal-rules.xml" % self.share_folder
 		elif self.config["memphis_rules"] == "night":
 			filename = "%snight-rules.xml" % self.share_folder
+		
+		if filename is None:
+			print "Rules %s not found" % self.config["memphis_rules"]
+			return
 		
 		self.source.load_rules(filename)
 		hash = hashlib.md5(open(filename).read()).hexdigest()
