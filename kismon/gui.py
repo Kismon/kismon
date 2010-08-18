@@ -809,7 +809,7 @@ class SignalWindow:
 		self.gtkwin = gtk.Window()
 		self.gtkwin.set_position(gtk.WIN_POS_CENTER)
 		self.gtkwin.connect("destroy", destroy, mac)
-		self.gtkwin.set_size_request(640, 320)
+		self.gtkwin.set_default_size(480, 240)
 		self.gtkwin.set_title("Signal Graph: %s" % self.mac)
 		
 		self.graph = gtk.DrawingArea()
