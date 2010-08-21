@@ -839,12 +839,13 @@ class SignalWindow:
 			signal_max = max(values) + 1
 		else:
 			signal_min = -100
-			signal_max = -60
+			signal_max = -49
 		
 		signal_min = min(signal_min, -100)
-		signal_max = max(signal_max, -60)
+		signal_max = max(signal_max, -49)
 		
 		signal_range = signal_max - signal_min
+		y_rel = 1.0 * graph_height / signal_range
 		
 		#background
 		ctx.set_source_rgb(0, 0, 0)
@@ -867,6 +868,10 @@ class SignalWindow:
 		ctx.line_to(border_left - 5, graph_height / 2)
 		ctx.move_to(border_left - 55, graph_height / 2 + 4)
 		ctx.show_text("%s dbm" % ((signal_min - signal_max) / 2 + signal_max))
+		ctx.move_to(border_left - 1, y_rel)
+		ctx.line_to(border_left - 5, y_rel)
+		ctx.move_to(border_left - 55, y_rel + 4)
+		ctx.show_text("%s dbm" % (signal_max -1))
 		
 		ctx.move_to(border_left - 15, graph_height + 16)
 		ctx.show_text("-%ss" % self.time_range)
@@ -889,7 +894,6 @@ class SignalWindow:
 		
 		start_sec = max(self.history) - self.time_range
 		x_rel = 1.0 * graph_width / self.time_range
-		y_rel = 1.0 * graph_height / signal_range
 		start = False
 		sec = 0
 		
