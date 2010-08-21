@@ -246,7 +246,7 @@ class MainWindow(KismonWindows):
 		self.network_list = gtk.TreeView()
 		self.network_list.connect("button-press-event", self.on_network_list_network_popup)
 		num=0
-		columns=("BSSID", "Type", "SSID", "Channel", "Crypt",
+		columns=("BSSID", "Type", "SSID", "Ch", "Crypt",
 			"First Seen", "Last Seen", "Latitude", "Longitude",
 			"Signal dbm")
 		for column in columns:
@@ -257,6 +257,7 @@ class MainWindow(KismonWindows):
 			tvcolumn.add_attribute(cell, 'text', num)
 			#tvcolumn.set_sort_column_id(num)
 			tvcolumn.set_clickable(True)
+			tvcolumn.set_resizable(True)
 			tvcolumn.connect("clicked", self.on_column_clicked)
 			tvcolumn.num = num
 			num+=1
