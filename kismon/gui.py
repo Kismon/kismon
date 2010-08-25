@@ -839,10 +839,10 @@ class SignalWindow:
 			signal_max = max(values) + 1
 		else:
 			signal_min = -100
-			signal_max = -49
+			signal_max = -50
 		
 		signal_min = min(signal_min, -100)
-		signal_max = max(signal_max, -49)
+		signal_max = max(signal_max, -50)
 		
 		signal_range = signal_max - signal_min
 		y_rel = 1.0 * graph_height / signal_range
@@ -864,14 +864,18 @@ class SignalWindow:
 		
 		ctx.move_to(border_left - 55, graph_height + 4)
 		ctx.show_text("%s dbm" % signal_min)
-		ctx.move_to(border_left - 1, graph_height / 2)
-		ctx.line_to(border_left - 5, graph_height / 2)
-		ctx.move_to(border_left - 55, graph_height / 2 + 4)
-		ctx.show_text("%s dbm" % ((signal_min - signal_max) / 2 + signal_max))
-		ctx.move_to(border_left - 1, y_rel)
-		ctx.line_to(border_left - 5, y_rel)
-		ctx.move_to(border_left - 55, y_rel + 4)
-		ctx.show_text("%s dbm" % (signal_max -1))
+		
+		signal = (int((signal_min + 2) / 10)) * 10
+		while True:
+			signal += 10
+			if signal >= signal_max:
+				break
+			
+			y = y_rel * (signal_max - signal)
+			ctx.move_to(border_left - 5, y)
+			ctx.line_to(width, y)
+			ctx.move_to(border_left - 55, y + 4)
+			ctx.show_text("%s dbm" % signal)
 		
 		ctx.move_to(border_left - 15, graph_height + 16)
 		ctx.show_text("-%ss" % self.time_range)
