@@ -45,9 +45,6 @@ class Config:
 				"height": 600,
 				"map_position": "hide",
 				},
-			"core": {
-				"refresh_rate": 1000,
-				},
 			"map": {
 				"marker_style": "image",
 				"follow_gps": True,

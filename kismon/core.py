@@ -116,7 +116,7 @@ Last seen: %s"""
 			self.battery_max = None
 		
 		gobject.threads_init()
-		gobject.timeout_add(1000, self.queue_handler)
+		gobject.timeout_add(500, self.queue_handler)
 		gobject.timeout_add(300, self.queue_handler_networks)
 		
 	def init_map(self):
