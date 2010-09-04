@@ -3,9 +3,6 @@ Kismon
 Kismon is a PyGTK based Kismet Newcore (since 2009-05-RC1) Client that
 can use libchamplain to create a live map of the networks.
 
-To use the map offline you have to browse the area and cache the map tiles,
-they will be stored in ~/.cache/champlain.
-
 Dependencies:
 -------------
 
@@ -28,6 +25,19 @@ Install:
 --------
 
 # make install
+
+Offline usage:
+--------------
+
+If you want to use the map without an internet connection you have two
+possibilities.
+
+You can to browse the area and cache the map tiles,
+they will be stored in ~/.cache/champlain.
+
+Or you can render the map locally, than you need an OSM file.
+Sources for OSM files can be found here:
+http://wiki.openstreetmap.org/wiki/Planet.osm#Extracts
 
 Hotkeys:
 ----------
