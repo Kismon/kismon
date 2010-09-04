@@ -119,7 +119,7 @@ class MainWindow(KismonWindows):
 		right_scrolled = gtk.ScrolledWindow()
 		right_scrolled.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
 		right_scrolled.add_with_viewport(right_table)
-		right_scrolled.set_size_request(150, -1)
+		right_scrolled.set_size_request(160, -1)
 		right_scrolled.get_children()[0].set_shadow_type(gtk.SHADOW_NONE)
 		hbox.pack_end(right_scrolled, expand=False, fill=False, padding=2)
 		
