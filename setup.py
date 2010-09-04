@@ -3,11 +3,11 @@
 from distutils.core import setup
 
 setup(name='kismon',
-	version='0.1',
+	version='0.2',
 	description='PyGTK based kismet client',
 	author='Patrick Salecker',
 	author_email='mail@salecker.org',
-	url='http://gitorious.org/kismon',
+	url='http://www.salecker.org/software/kismon/en',
 	license='BSD',
 	packages=['kismon'],
 	scripts=['bin/kismon'],

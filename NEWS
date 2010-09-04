@@ -1,0 +1,9 @@
+kismon 0.2  (2010-09-03)
+===============================
+
+Changes:
+* Local rendering
+* Signal graphs
+* Config window
+* Battery info
+* Many performance improvements
