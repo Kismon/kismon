@@ -100,6 +100,7 @@ Last seen: %s"""
 		self.sources = {}
 		self.bssids = {}
 		self.ssids = {}
+		self.networks = Networks()
 		self.crypt_cache = {}
 		self.main_window.crypt_cache = self.crypt_cache
 		
@@ -211,8 +212,10 @@ Last seen: %s"""
 		
 		for mac in bssids:
 			data = self.bssids[mac]
+			self.networks.add_bssid_data(data)
 			if mac in self.ssids:
 				ssid_data = self.ssids[mac]
+				self.networks.add_ssid_data(ssid_data)
 				self.main_window.add_to_network_list(self.bssids[mac], ssid_data)
 				
 				if self.map_widget is None:
@@ -276,6 +279,57 @@ Last seen: %s"""
 		if battery is not False:
 			self.main_window.set_battery_bar(battery)
 		return True
+
+class Networks:
+	def __init__(self):
+		self.networks = {}
+		
+	def get_network(self, mac):
+		return self.networks[mac]
+		
+	def save(self, filename):
+		return
+		
+	def load(self, filename):
+		return
+		
+	def add_bssid_data(self, bssid):
+		mac = bssid["bssid"]
+		if mac not in self.networks:
+			network = {
+				"type": decode_network_type(bssid["type"]),
+				"channel": bssid["channel"],
+				"firsttime": bssid["firsttime"],
+				"lasttime": bssid["lasttime"],
+				"lat": bssid["bestlat"],
+				"lon": bssid["bestlon"],
+				"manuf": bssid["manuf"],
+				"ssid": "",
+				"cryptset": 0
+			}
+			self.networks[mac] = network
+		else:
+			network = self.networks[mac]
+			if bssid["lasttime"] > network["lasttime"]:
+				if network["lat"] != 0.0 and network["lon"] != 0.0:
+					network["lat"] = bssid["bestlat"]
+					network["lon"] = bssid["bestlon"]
+				
+				network["channel"] = bssid["channel"]
+				network["lasttime"] = bssid["lasttime"]
+				
+			network["firsttime"] = min(network["firsttime"], bssid["firsttime"])
+			
+		
+	def add_ssid_data(self, ssid):
+		mac = ssid["mac"]
+		if mac not in self.networks:
+			return
+		
+		network = self.networks[mac]
+		if ssid["lasttime"] >= network["lasttime"]:
+			network["cryptset"] = ssid["cryptset"]
+			network["ssid"] = ssid["ssid"]
 
 def main():
 	core = Core()
