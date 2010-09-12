@@ -36,6 +36,7 @@ from map import MapWidget
 import os
 import sys
 import subprocess
+import json
 
 import gtk
 import gobject
@@ -101,6 +102,9 @@ Last seen: %s"""
 		self.bssids = {}
 		self.ssids = {}
 		self.networks = Networks()
+		self.networks_file = "%snetworks.json" % user_dir
+		if os.path.isfile(self.networks_file):
+			self.networks.load(self.networks_file)
 		self.crypt_cache = {}
 		self.main_window.crypt_cache = self.crypt_cache
 		
@@ -261,6 +265,7 @@ Last seen: %s"""
 	def quit(self):
 		self.client_thread.stop()
 		self.config_handler.write()
+		self.networks.save(self.networks_file)
 		
 	def get_battery_capacity(self):
 		filename = "/proc/acpi/battery/BAT0/state"
@@ -288,10 +293,14 @@ class Networks:
 		return self.networks[mac]
 		
 	def save(self, filename):
-		return
+		f = open(filename, "w")
+		json.dump(self.networks, f, sort_keys=True, indent=2)
+		f.close()
 		
 	def load(self, filename):
-		return
+		f = open(filename)
+		self.networks = json.load(f)
+		f.close()
 		
 	def add_bssid_data(self, bssid):
 		mac = bssid["bssid"]
