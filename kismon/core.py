@@ -225,36 +225,7 @@ Last seen: %s"""
 				if self.map_widget is None:
 					continue
 				
-				try:
-					crypt = self.crypt_cache[ssid_data["cryptset"]]
-				except KeyError:
-					crypt = decode_cryptset(ssid_data["cryptset"], True)
-					self.crypt_cache[ssid_data["cryptset"]] = crypt
-				
-				if "WPA" in crypt:
-					color = "red"
-				elif "WEP" in crypt:
-					color = "orange"
-				else:
-					color = "green"
-					
-				ssid = str(ssid_data["ssid"])
-				if ssid == "":
-					ssid = "<no ssid>"
-				evils = (("&", "&amp;"),("<", "&lt;"),(">", "&gt;"))
-				for evil, good in evils:
-					ssid = ssid.replace(evil, good)
-				
-				text = self.marker_text % (crypt, mac, data["manuf"],
-					decode_network_type(data["type"]), data["channel"],
-					show_timestamp(data["firsttime"]),
-					show_timestamp(data["lasttime"])
-					)
-				text = text.replace("&", "&amp;")
-				
-				if decode_network_type(data["type"]) == "infrastructure":
-					self.map.add_marker(mac, ssid, text, color,
-						data["bestlat"], data["bestlon"])
+				self.add_network_to_map(mac)
 			else:
 				self.main_window.add_to_network_list(self.bssids[mac])
 		
@@ -284,6 +255,42 @@ Last seen: %s"""
 		if battery is not False:
 			self.main_window.set_battery_bar(battery)
 		return True
+		
+	def add_network_to_map(self, mac):
+		network = self.networks.get_network(mac)
+		if network["type"] != "infrastructure":
+			return
+		
+		try:
+			crypt = self.crypt_cache[network["cryptset"]]
+		except KeyError:
+			crypt = decode_cryptset(network["cryptset"], True)
+			self.crypt_cache[network["cryptset"]] = crypt
+		
+		if "WPA" in crypt:
+			color = "red"
+		elif "WEP" in crypt:
+			color = "orange"
+		else:
+			color = "green"
+		
+		ssid = network["ssid"]
+		if ssid == "":
+			ssid = "<no ssid>"
+		evils = (("&", "&amp;"),("<", "&lt;"),(">", "&gt;"))
+		for evil, good in evils:
+			ssid = ssid.replace(evil, good)
+		
+		time_format = "%d.%m.%Y %H:%M:%S"
+		
+		text = self.marker_text % (crypt, mac, network["manuf"],
+			network["type"], network["channel"],
+			time.strftime(time_format, time.localtime(network["firsttime"])),
+			time.strftime(time_format, time.localtime(network["lasttime"]))
+			)
+		text = text.replace("&", "&amp;")
+		
+		self.map.add_marker(mac, ssid, text, color, network["lat"], network["lon"])
 
 class Networks:
 	def __init__(self):
@@ -336,9 +343,10 @@ class Networks:
 			return
 		
 		network = self.networks[mac]
-		if ssid["lasttime"] >= network["lasttime"]:
+		if ssid["lasttime"] >= network["lasttime"] or \
+			(network["ssid"] == "" and network["cryptset"] == 0):
 			network["cryptset"] = ssid["cryptset"]
-			network["ssid"] = ssid["ssid"]
+			network["ssid"] = str(ssid["ssid"])
 
 def main():
 	core = Core()
