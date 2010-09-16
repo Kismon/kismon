@@ -131,15 +131,13 @@ def core():
 	core.client_stop()
 
 def gui_main_window():
-	def client_start():
-		return
-	def client_stop():
+	def dummy():
 		return
 	
 	test_config = Config(None).default_config
 	test_map = MapWidget(test_config["map"])
 	
-	main_window = MainWindow(test_config, client_start, client_stop, test_map)
+	main_window = MainWindow(test_config, dummy, dummy, test_map, dummy)
 	main_window.crypt_cache = {}
 	
 	main_window.add_to_log_list("test")

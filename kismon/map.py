@@ -125,6 +125,8 @@ class Map:
 		lat: latitude
 		lon: longitude
 		"""
+		if lat == 0.0 and lon == 0.0:
+			return
 		try:
 			marker = self.markers[key]
 			self.update_marker(marker, name, text, lat, lon)
@@ -166,6 +168,14 @@ class Map:
 			return
 		if marker.get_latitude() != lat or marker.get_longitude() != lon:
 			marker.set_position(lat, lon)
+		
+	def remove_marker(self, key):
+		try:
+			marker = self.markers[key]
+		except KeyError:
+			return
+		self.marker_layer.remove_marker(marker)
+		del self.markers[key]
 	
 	def on_marker_clicked(self, marker, event=None):
 		"""hide all markers and create a new marker with the long text

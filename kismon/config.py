@@ -52,6 +52,7 @@ class Config:
 				"osm_file": "",
 				"memphis_rules": "default",
 				"update_marker_positions": True,
+				"networks": "all"
 				}
 			}
 	

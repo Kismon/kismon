@@ -68,12 +68,13 @@ class KismonWindows:
 					self.map_widget.map.zoom_out()
 
 class MainWindow(KismonWindows):
-	def __init__(self, config, client_start, client_stop, map_widget=None):
+	def __init__(self, config, client_start, client_stop, map_widget, networks_on_map):
 		KismonWindows.__init__(self)
 		self.config = config
 		self.config_window = None
 		self.client_start = client_start
 		self.client_stop = client_stop
+		self.networks_on_map = networks_on_map
 		
 		self.gtkwin.set_title("Kismon")
 		self.gtkwin.connect("window-state-event", self.on_window_state)
@@ -659,6 +660,7 @@ class ConfigWindow:
 		self.gtkwin.set_title("Kismon Preferences")
 		self.main_window = main_window
 		self.config = main_window.config
+		self.networks_on_map = main_window.networks_on_map
 		self.map_widget = main_window.map_widget
 		if self.map_widget is not None:
 			self.map = self.map_widget.map
@@ -771,6 +773,26 @@ class ConfigWindow:
 		perf_marker_positions.connect("clicked", self.on_update_marker_positions)
 		perf_vbox.add(perf_marker_positions)
 		
+		networks_frame = gtk.Frame("Networks")
+		networks_vbox = gtk.VBox()
+		networks_frame.add(networks_vbox)
+		map_page.attach(networks_frame, 0, 1, 5, 6, yoptions=gtk.SHRINK)
+		
+		networks_all = gtk.RadioButton(None, 'Show all networks on the map')
+		
+		if self.config["map"]["networks"] == "all":
+			networks_all.clicked()
+		networks_all.connect("clicked", self.on_map_networks, "all")
+		networks_vbox.add(networks_all)
+		
+		networks_current = gtk.RadioButton(networks_all,
+			'Show only the networks of the current session')
+		
+		if self.config["map"]["networks"] == "current":
+			networks_current.clicked()
+		networks_current.connect("clicked", self.on_map_networks, "current")
+		networks_vbox.add(networks_current)
+		
 	def on_destroy(self, window):
 		self.gtkwin = None
 		
@@ -800,6 +822,9 @@ class ConfigWindow:
 		
 	def on_update_marker_positions(self, widget):
 		self.config["map"]["update_marker_positions"] = widget.get_active()
+		
+	def on_map_networks(self, widget, show):
+		self.networks_on_map(show)
 		
 class SignalWindow:
 	def __init__(self, mac, destroy):

@@ -93,7 +93,8 @@ Last seen: %s"""
 		self.main_window = MainWindow(self.config,
 			self.client_start,
 			self.client_stop,
-			self.map_widget)
+			self.map_widget,
+			self.networks_on_map)
 		self.main_window.add_to_log_list("Kismon started")
 		if self.map_error is not None:
 			self.main_window.add_to_log_list(map_error)
@@ -101,11 +102,14 @@ Last seen: %s"""
 		self.sources = {}
 		self.bssids = {}
 		self.ssids = {}
+		self.crypt_cache = {}
 		self.networks = Networks()
 		self.networks_file = "%snetworks.json" % user_dir
 		if os.path.isfile(self.networks_file):
 			self.networks.load(self.networks_file)
-		self.crypt_cache = {}
+			if self.config["map"]["networks"] == "all":
+				self.networks_on_map("all")
+		
 		self.main_window.crypt_cache = self.crypt_cache
 		
 		if os.path.isdir("/proc/acpi/battery/BAT0"):
@@ -291,6 +295,22 @@ Last seen: %s"""
 		text = text.replace("&", "&amp;")
 		
 		self.map.add_marker(mac, ssid, text, color, network["lat"], network["lon"])
+		
+	def networks_on_map(self, show):
+		if self.map_widget is None:
+			return
+		
+		if show == "all":
+			for mac in self.networks.networks:
+				if mac not in self.bssids:
+					self.add_network_to_map(mac)
+			self.map.marker_layer_add_new_markers()
+		else:
+			if self.map.selected_marker is not None:
+				self.map.on_marker_clicked(self.map.selected_marker)
+			for mac in self.networks.networks:
+				if mac not in self.bssids:
+					self.map.remove_marker(mac)
 
 class Networks:
 	def __init__(self):
