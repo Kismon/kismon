@@ -33,6 +33,7 @@ from config import Config
 from map import *
 from gui import *
 from client import *
+from networks import *
 
 import gobject
 gobject.threads_init()
@@ -241,6 +242,12 @@ def map():
 	test_window.add(test_map_widget.widget)
 	test_window.show_all()
 
+def networks():
+	networks = Networks()
+	filename = "/tmp/networks.json"
+	networks.save(filename)
+	networks.load(filename)
+
 def test():
 	client()
 	core()
@@ -249,6 +256,7 @@ def test():
 	gui_map_window()
 	gui_signal_window()
 	map()
+	networks()
 
 if __name__ == "__main__":
 	test()

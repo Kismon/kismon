@@ -32,11 +32,11 @@ from client import *
 from gui import MainWindow, MapWindow, show_timestamp
 from config import Config
 from map import MapWidget
+from networks import Networks
 
 import os
 import sys
 import subprocess
-import json
 
 import gtk
 import gobject
@@ -311,71 +311,6 @@ Last seen: %s"""
 			for mac in self.networks.networks:
 				if mac not in self.bssids:
 					self.map.remove_marker(mac)
-
-class Networks:
-	def __init__(self):
-		self.networks = {}
-		
-	def get_network(self, mac):
-		return self.networks[mac]
-		
-	def save(self, filename):
-		f = open(filename, "w")
-		json.dump(self.networks, f, sort_keys=True, indent=2)
-		f.close()
-		
-	def load(self, filename):
-		f = open(filename)
-		self.networks = json.load(f)
-		f.close()
-		
-	def add_bssid_data(self, bssid):
-		mac = bssid["bssid"]
-		if mac not in self.networks:
-			network = {
-				"type": decode_network_type(bssid["type"]),
-				"channel": bssid["channel"],
-				"firsttime": bssid["firsttime"],
-				"lasttime": bssid["lasttime"],
-				"lat": bssid["bestlat"],
-				"lon": bssid["bestlon"],
-				"manuf": bssid["manuf"],
-				"ssid": "",
-				"cryptset": 0,
-				"signal_dbm": {
-					"min": bssid["minsignal_dbm"],
-					"max": bssid["maxsignal_dbm"],
-					"last": bssid["maxsignal_dbm"]
-				}
-			}
-			self.networks[mac] = network
-		else:
-			network = self.networks[mac]
-			if bssid["lasttime"] > network["lasttime"]:
-				if bssid["gpsfixed"] == 1 and \
-					network["signal_dbm"]["max"] < bssid["maxsignal_dbm"]:
-						network["lat"] = bssid["bestlat"]
-						network["lon"] = bssid["bestlon"]
-				
-				network["channel"] = bssid["channel"]
-				network["lasttime"] = bssid["lasttime"]
-				network["signal_dbm"]["last"] = bssid["signal_dbm"]
-				
-			network["firsttime"] = min(network["firsttime"], bssid["firsttime"])
-			network["signal_dbm"]["min"] = min(network["signal_dbm"]["min"], bssid["minsignal_dbm"])
-			network["signal_dbm"]["max"] = min(network["signal_dbm"]["max"], bssid["maxsignal_dbm"])
-			
-		
-	def add_ssid_data(self, ssid):
-		mac = ssid["mac"]
-		if mac not in self.networks:
-			return
-		
-		network = self.networks[mac]
-		if ssid["lasttime"] >= network["lasttime"] or \
-			(network["ssid"] == "" and network["cryptset"] == 0):
-			network["cryptset"] = ssid["cryptset"]
-			network["ssid"] = str(ssid["ssid"])
 
 def main():
 	core = Core()
