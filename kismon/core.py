@@ -341,20 +341,29 @@ class Networks:
 				"lon": bssid["bestlon"],
 				"manuf": bssid["manuf"],
 				"ssid": "",
-				"cryptset": 0
+				"cryptset": 0,
+				"signal_dbm": {
+					"min": bssid["minsignal_dbm"],
+					"max": bssid["maxsignal_dbm"],
+					"last": bssid["maxsignal_dbm"]
+				}
 			}
 			self.networks[mac] = network
 		else:
 			network = self.networks[mac]
 			if bssid["lasttime"] > network["lasttime"]:
-				if network["lat"] != 0.0 and network["lon"] != 0.0:
-					network["lat"] = bssid["bestlat"]
-					network["lon"] = bssid["bestlon"]
+				if bssid["gpsfixed"] == 1 and \
+					network["signal_dbm"]["max"] < bssid["maxsignal_dbm"]:
+						network["lat"] = bssid["bestlat"]
+						network["lon"] = bssid["bestlon"]
 				
 				network["channel"] = bssid["channel"]
 				network["lasttime"] = bssid["lasttime"]
+				network["signal_dbm"]["last"] = bssid["signal_dbm"]
 				
 			network["firsttime"] = min(network["firsttime"], bssid["firsttime"])
+			network["signal_dbm"]["min"] = min(network["signal_dbm"]["min"], bssid["minsignal_dbm"])
+			network["signal_dbm"]["max"] = min(network["signal_dbm"]["max"], bssid["maxsignal_dbm"])
 			
 		
 	def add_ssid_data(self, ssid):
