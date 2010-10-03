@@ -29,6 +29,10 @@ POSSIBILITY OF SUCH DAMAGE.
 """
 
 import json
+import xml.parsers.expat
+import time
+import locale
+
 from client import *
 
 class Networks:
@@ -95,6 +99,145 @@ class Networks:
 			(network["ssid"] == "" and network["cryptset"] == 0):
 			network["cryptset"] = ssid["cryptset"]
 			network["ssid"] = str(ssid["ssid"])
+			
+	def add_network_data(self, mac, data):
+		if mac not in self.networks:
+			self.networks[mac] = data
+			return
+			
+		network = self.networks[mac]
+		
+		if data["lasttime"] > network["lasttime"]:
+			newer = True
+			network["channel"] = data["channel"]
+			network["lasttime"] = data["lasttime"]
+			network["cryptset"] = data["cryptset"]
+			network["signal_dbm"]["last"] = bssid["signal_dbm"]
+		else:
+			newer = False
+		if (network["lat"] == 0.0 and network["lon"] == 0.0) or \
+			(network["signal_dbm"]["max"] < data["signal_dbm"]["max"] and \
+			data["lat"] != 0.0 and data["lon"] != 0.0):
+				network["lat"] = data["lon"]
+				network["lon"] = data["lon"]
+		if newer or network["ssid"] == "":
+			network["ssid"] = data["ssid"]
+		
+		network["firsttime"] = min(network["firsttime"], data["firsttime"])
+		network["signal_dbm"]["min"] = min(network["signal_dbm"]["min"], data["signal_dbm"]["min"])
+		network["signal_dbm"]["max"] = min(network["signal_dbm"]["max"], data["signal_dbm"]["max"])
+		
+	def import_networks(self, filetype, filename):
+		if filetype == "networks":
+			parser = Networks()
+			parser.parse = parser.load
+		if filetype == "netxml":
+			parser = Netxml()
+		
+		parser.parse(filename)
+		
+		for mac in parser.networks:
+			self.add_network_data(mac, parser.networks[mac])
+
+class Netxml:
+	def __init__(self):
+		self.networks = {}
+		
+	def parse(self, filename):
+		self.parser={
+			"laststart": "",
+			"parents": [],
+			"network": None,
+			"encryption": {}
+			}
+		locale.setlocale(locale.LC_TIME, 'C');
+		
+		p = xml.parsers.expat.ParserCreate()
+		p.buffer_text = True #avoid chunked data
+		p.returns_unicode = False #disabled Unicode support is much faster
+		p.StartElementHandler = self.parse_start_element
+		p.EndElementHandler = self.parse_end_element
+		p.CharacterDataHandler = self.parse_char_data
+		if os.path.isfile(filename):
+			p.ParseFile(open(filename))
+		else:
+			print "Parser: filename is not a file (%s)" % filename
+		
+		locale.resetlocale()
+	
+	def parse_start_element(self, name, attrs):
+		"""<name attr="">
+		"""
+		if name == "wireless-network":
+			self.parser["network"] = network = {
+				"type": attrs["type"],
+				"firsttime": int(time.mktime(time.strptime(attrs["first-time"]))),
+				"lasttime": int(time.mktime(time.strptime(attrs["last-time"]))),
+				"ssid": "",
+				"signal_dbm": {}
+			}
+		elif name == "SSID":
+			self.parser["encryption"] = {}
+			
+		self.parser["parents"].insert(0, self.parser["laststart"])
+		self.parser["laststart"] = name
+		
+	def parse_end_element(self, name):
+		"""</name>
+		"""
+		if name == "wireless-network":
+			mac = self.parser["network"]["mac"]
+			del self.parser["network"]["mac"]
+			self.networks[mac]=self.parser["network"]
+		elif name == "SSID":
+			if len(self.parser["encryption"]) > 0:
+				if self.parser["parents"][0] =="wireless-network":
+					crypts = []
+					for crypt in self.parser["encryption"]:
+						if crypt.startswith("WPA"):
+							if "wpa" not in crypts:
+								crypts.append("wpa")
+							if crypt.startswith("WPA+"):
+								crypts.append(crypt.split("+")[1].lower().replace("-","_"))
+						else:
+							crypts.append(crypt.lower())
+					cryptset = encode_cryptset(crypts)
+					self.parser["network"]["cryptset"] = cryptset
+			del self.parser["encryption"]
+		
+		self.parser["laststart"] = self.parser["parents"].pop(0)
+		
+	def parse_char_data(self, data):
+		"""<self.parser["laststart"]>data</self.parser["laststart"]>
+		"""
+		if data.strip() == "":
+			return
+		
+		if self.parser["parents"][0] == "SSID":
+			if self.parser["laststart"] == "encryption":
+				self.parser["encryption"][data] = True
+			elif self.parser["laststart"] == "essid":
+				self.parser["network"]["ssid"] = data
+		elif self.parser["parents"][1] == "wireless-network":
+			if self.parser["parents"][0] == "gps-info":
+				if self.parser["laststart"] == "peak-lat":
+					self.parser["network"]["lat"] = float(data)
+				elif self.parser["laststart"] == "peak-lon":
+					self.parser["network"]["lon"] = float(data)
+			elif self.parser["parents"][0]=="snr-info":
+				if self.parser["laststart"] == "min_signal_dbm":
+					self.parser["network"]["signal_dbm"]["min"] = int(data)
+				elif self.parser["laststart"] == "max_signal_dbm":
+					self.parser["network"]["signal_dbm"]["max"] = int(data)
+				elif self.parser["laststart"] == "last_signal_dbm":
+					self.parser["network"]["signal_dbm"]["last"] = int(data)
+		elif self.parser["parents"][0] == "wireless-network":
+			if self.parser["laststart"] == "BSSID":
+				self.parser["network"]["mac"] = data
+			elif self.parser["laststart"] == "channel":
+				self.parser["network"]["channel"] = int(data)
+			elif self.parser["laststart"] == "manuf":
+				self.parser["network"]["manuf"] = data
 
 if __name__ == "__main__":
 	import test
