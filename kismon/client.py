@@ -266,13 +266,30 @@ class ClientThread(threading.Thread):
 				if self.debug is True:
 					print "%s: %s" % (result[0], result[1])
 				self.queue[result[0]].append(result[1])
-			
-def decode_cryptset(cryptset, str=False):
+
+def get_crypt_list():
 	"""see packet_ieee80211.h from kismet-newcore
 	"""
 	cryptsets=["none", "unknown", "wep", "layer3 ", "wep40", "wep104",
 		"tkip", "wpa", "psk", "aes_ocb", "aes_ccm", "leap", "ttls",
 		"peap", "pptp", "fortress", "keyguard"]
+	
+	return cryptsets
+	
+def encode_cryptset(crypts):
+	cryptsets = get_crypt_list()
+	bin_cryptset = []
+	for crypt in cryptsets:
+		if crypt in crypts:
+			bit = "1"
+		else:
+			bit = "0"
+		bin_cryptset.insert(0, bit)
+	cryptset = int("".join(bin_cryptset[:-1]), 2)
+	return cryptset
+	
+def decode_cryptset(cryptset, str=False):
+	cryptsets = get_crypt_list()
 	if cryptset == 0:
 		if str is True:
 			return cryptsets[cryptset]
