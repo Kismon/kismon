@@ -101,31 +101,46 @@ class Networks:
 			network["ssid"] = str(ssid["ssid"])
 			
 	def add_network_data(self, mac, data):
+		if len(mac) != 17 or mac == "00:00:00:00:00:00":
+			return
+		
 		if mac not in self.networks:
 			self.networks[mac] = data
 			return
 			
 		network = self.networks[mac]
+		signal = False
+		data_signal = False
+		for search, result in ((network, signal), (data, data_signal)):
+			if "signal_dbm" in search:
+				result = True
 		
 		if data["lasttime"] > network["lasttime"]:
 			newer = True
 			network["channel"] = data["channel"]
 			network["lasttime"] = data["lasttime"]
 			network["cryptset"] = data["cryptset"]
-			network["signal_dbm"]["last"] = bssid["signal_dbm"]
+			if signal and data_signal:
+				network["signal_dbm"]["last"] = data["signal_dbm"]["last"]
 		else:
 			newer = False
 		if (network["lat"] == 0.0 and network["lon"] == 0.0) or \
-			(network["signal_dbm"]["max"] < data["signal_dbm"]["max"] and \
-			data["lat"] != 0.0 and data["lon"] != 0.0):
+			(((signal and data_signal and network["signal_dbm"]["max"] < data["signal_dbm"]["max"]) or \
+			(not signal and data_signal)) and data["lat"] != 0.0 and data["lon"] != 0.0):
 				network["lat"] = data["lon"]
 				network["lon"] = data["lon"]
 		if newer or network["ssid"] == "":
 			network["ssid"] = data["ssid"]
 		
+		if network["manuf"] == "":
+			network["manuf"] = data["manuf"]
+		
 		network["firsttime"] = min(network["firsttime"], data["firsttime"])
-		network["signal_dbm"]["min"] = min(network["signal_dbm"]["min"], data["signal_dbm"]["min"])
-		network["signal_dbm"]["max"] = min(network["signal_dbm"]["max"], data["signal_dbm"]["max"])
+		if signal and data_signal:
+			network["signal_dbm"]["min"] = min(network["signal_dbm"]["min"], data["signal_dbm"]["min"])
+			network["signal_dbm"]["max"] = min(network["signal_dbm"]["max"], data["signal_dbm"]["max"])
+		elif data_signal:
+			network["signal_dbm"] = data["signal_dbm"]
 		
 	def import_networks(self, filetype, filename):
 		if filetype == "networks":
@@ -133,6 +148,8 @@ class Networks:
 			parser.parse = parser.load
 		if filetype == "netxml":
 			parser = Netxml()
+		elif filetype == "csv":
+			parser = CSV()
 		
 		parser.parse(filename)
 		
@@ -163,7 +180,7 @@ class Netxml:
 		else:
 			print "Parser: filename is not a file (%s)" % filename
 		
-		locale.resetlocale()
+		locale.resetlocale(locale.LC_TIME)
 	
 	def parse_start_element(self, name, attrs):
 		"""<name attr="">
@@ -171,8 +188,8 @@ class Netxml:
 		if name == "wireless-network":
 			self.parser["network"] = network = {
 				"type": attrs["type"],
-				"firsttime": int(time.mktime(time.strptime(attrs["first-time"]))),
-				"lasttime": int(time.mktime(time.strptime(attrs["last-time"]))),
+				"firsttime": timestring2timestamp(attrs["first-time"]),
+				"lasttime": timestring2timestamp(attrs["last-time"]),
 				"ssid": "",
 				"signal_dbm": {}
 			}
@@ -200,7 +217,7 @@ class Netxml:
 							if crypt.startswith("WPA+"):
 								crypts.append(crypt.split("+")[1].lower().replace("-","_"))
 						else:
-							crypts.append(crypt.lower())
+							crypts.append(crypt.lower().replace("-","_"))
 					cryptset = encode_cryptset(crypts)
 					self.parser["network"]["cryptset"] = cryptset
 			del self.parser["encryption"]
@@ -238,6 +255,41 @@ class Netxml:
 				self.parser["network"]["channel"] = int(data)
 			elif self.parser["laststart"] == "manuf":
 				self.parser["network"]["manuf"] = data
+
+class CSV:
+	def __init__(self):
+		self.networks = {}
+		
+	def parse(self, filename):
+		locale.setlocale(locale.LC_TIME, 'C');
+		f = open(filename)
+		head = f.readline().split(";")[:-1]
+		for line in f.readlines():
+			x = 0
+			data = {}
+			for column in line.split(";")[:-1]:
+				data[head[x]] = column
+				x += 1
+			
+			crypts = []
+			for crypt in data["Encryption"].split(","):
+				crypts.append(crypt.lower().replace("-","_"))
+				
+			self.networks[data["BSSID"]] = {
+				"type": data["NetType"],
+				"channel": int(data["Channel"]),
+				"firsttime": timestring2timestamp(data["FirstTime"]),
+				"lasttime": timestring2timestamp(data["LastTime"]),
+				"lat": float(data["GPSBestLat"]),
+				"lon": float(data["GPSBestLon"]),
+				"manuf": "",
+				"ssid": data["ESSID"],
+				"cryptset": encode_cryptset(crypts)
+			}
+		locale.resetlocale(locale.LC_TIME)
+
+def timestring2timestamp(timestring):
+	return int(time.mktime(time.strptime(timestring)))
 
 if __name__ == "__main__":
 	import test
