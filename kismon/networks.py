@@ -155,6 +155,8 @@ class Networks:
 		
 		for mac in parser.networks:
 			self.add_network_data(mac, parser.networks[mac])
+		
+		return len(parser.networks)
 
 class Netxml:
 	def __init__(self):
@@ -191,6 +193,9 @@ class Netxml:
 				"firsttime": timestring2timestamp(attrs["first-time"]),
 				"lasttime": timestring2timestamp(attrs["last-time"]),
 				"ssid": "",
+				"cryptset": 0,
+				"lat": 0.0,
+				"lon": 0.0,
 				"signal_dbm": {}
 			}
 		elif name == "SSID":

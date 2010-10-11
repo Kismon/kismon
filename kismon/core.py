@@ -79,6 +79,12 @@ Channel: %s
 First seen: %s
 Last seen: %s"""
 		
+		self.sources = {}
+		self.bssids = {}
+		self.ssids = {}
+		self.crypt_cache = {}
+		self.networks = Networks()
+		
 		self.init_client_thread()
 		if self.config["kismet"]["connect"] is True:
 			self.client_start()
@@ -94,16 +100,12 @@ Last seen: %s"""
 			self.client_start,
 			self.client_stop,
 			self.map_widget,
-			self.networks_on_map)
+			self.networks_on_map,
+			self.networks)
 		self.main_window.add_to_log_list("Kismon started")
 		if self.map_error is not None:
 			self.main_window.add_to_log_list(map_error)
 		
-		self.sources = {}
-		self.bssids = {}
-		self.ssids = {}
-		self.crypt_cache = {}
-		self.networks = Networks()
 		self.networks_file = "%snetworks.json" % user_dir
 		if os.path.isfile(self.networks_file):
 			self.networks.load(self.networks_file)
