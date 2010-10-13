@@ -38,6 +38,13 @@ from client import *
 class Networks:
 	def __init__(self):
 		self.networks = {}
+		self.filters = {
+			"networks": "current",
+			"type": ["infrastructure"]
+		}
+		self.recent_networks = []
+		self.notify_add_list = []
+		self.notify_remove_list = []
 		
 	def get_network(self, mac):
 		return self.networks[mac]
@@ -51,6 +58,35 @@ class Networks:
 		f = open(filename)
 		self.networks = json.load(f)
 		f.close()
+		
+	def apply_filters(self):
+		for mac in self.networks:
+			if self.check_filters(mac) == True:
+				for function in self.notify_add_list:
+					function(mac)
+			else:
+				for function in self.notify_remove_list:
+					function(mac)
+			
+	def check_filters(self, mac):
+		if self.filters["networks"] == "current" and mac not in self.recent_networks:
+			return False
+		
+		check = False
+		network = self.networks[mac]
+		
+		if network["type"] in self.filters["type"]:
+			check = True
+		
+		return check
+		
+	def notify_add(self, mac):
+		if mac not in self.recent_networks:
+			self.recent_networks.append(mac)
+		
+		if self.check_filters(mac):
+			for function in self.notify_add_list:
+				function(mac)
 		
 	def add_bssid_data(self, bssid):
 		mac = bssid["bssid"]
@@ -74,6 +110,13 @@ class Networks:
 			self.networks[mac] = network
 		else:
 			network = self.networks[mac]
+			if "signal_dbm" not in network:
+				network["signal_dbm"] = {
+					"min": bssid["minsignal_dbm"],
+					"max": bssid["maxsignal_dbm"],
+					"last": bssid["signal_dbm"]
+					}
+			
 			if bssid["lasttime"] > network["lasttime"]:
 				if bssid["gpsfixed"] == 1 and \
 					network["signal_dbm"]["max"] < bssid["maxsignal_dbm"]:
@@ -87,7 +130,8 @@ class Networks:
 			network["firsttime"] = min(network["firsttime"], bssid["firsttime"])
 			network["signal_dbm"]["min"] = min(network["signal_dbm"]["min"], bssid["minsignal_dbm"])
 			network["signal_dbm"]["max"] = min(network["signal_dbm"]["max"], bssid["maxsignal_dbm"])
-			
+		
+		self.notify_add(mac)
 		
 	def add_ssid_data(self, ssid):
 		mac = ssid["mac"]
@@ -99,13 +143,14 @@ class Networks:
 			(network["ssid"] == "" and network["cryptset"] == 0):
 			network["cryptset"] = ssid["cryptset"]
 			network["ssid"] = str(ssid["ssid"])
-			
+		
 	def add_network_data(self, mac, data):
 		if len(mac) != 17 or mac == "00:00:00:00:00:00":
 			return
 		
 		if mac not in self.networks:
 			self.networks[mac] = data
+			self.notify_add(mac)
 			return
 			
 		network = self.networks[mac]
@@ -141,6 +186,8 @@ class Networks:
 			network["signal_dbm"]["max"] = min(network["signal_dbm"]["max"], data["signal_dbm"]["max"])
 		elif data_signal:
 			network["signal_dbm"] = data["signal_dbm"]
+			
+		self.notify_add(mac)
 		
 	def import_networks(self, filetype, filename):
 		if filetype == "networks":

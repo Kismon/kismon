@@ -80,8 +80,6 @@ First seen: %s
 Last seen: %s"""
 		
 		self.sources = {}
-		self.bssids = {}
-		self.ssids = {}
 		self.crypt_cache = {}
 		self.networks = Networks()
 		
@@ -100,7 +98,6 @@ Last seen: %s"""
 			self.client_start,
 			self.client_stop,
 			self.map_widget,
-			self.networks_on_map,
 			self.networks)
 		self.main_window.add_to_log_list("Kismon started")
 		if self.map_error is not None:
@@ -109,8 +106,6 @@ Last seen: %s"""
 		self.networks_file = "%snetworks.json" % user_dir
 		if os.path.isfile(self.networks_file):
 			self.networks.load(self.networks_file)
-			if self.config["map"]["networks"] == "all":
-				self.networks_on_map("all")
 		
 		self.main_window.crypt_cache = self.crypt_cache
 		
@@ -210,30 +205,21 @@ Last seen: %s"""
 	def queue_handler_networks(self):
 		#ssid
 		for data in self.client_thread.get_queue("ssid"):
-			mac = data["mac"]
-			self.ssids[mac] = data
+			self.networks.add_ssid_data(data)
 		
 		#bssid
 		bssids = {}
 		for data in self.client_thread.get_queue("bssid"):
 			mac = data["bssid"]
-			self.bssids[mac] = data
+			self.networks.add_bssid_data(data)
+			if mac in self.main_window.signal_graphs:
+				self.main_window.signal_graphs[mac].add_value(data["signal_dbm"])
+			
 			bssids[mac] = True
 		
 		for mac in bssids:
-			data = self.bssids[mac]
-			self.networks.add_bssid_data(data)
-			if mac in self.ssids:
-				ssid_data = self.ssids[mac]
-				self.networks.add_ssid_data(ssid_data)
-				self.main_window.add_to_network_list(self.bssids[mac], ssid_data)
-				
-				if self.map_widget is None:
-					continue
-				
+			if self.map_widget is not None:
 				self.add_network_to_map(mac)
-			else:
-				self.main_window.add_to_network_list(self.bssids[mac])
 		
 		if self.map_widget is not None:
 			self.map.marker_layer_add_new_markers()
@@ -298,22 +284,6 @@ Last seen: %s"""
 		
 		self.map.add_marker(mac, ssid, text, color, network["lat"], network["lon"])
 		
-	def networks_on_map(self, show):
-		if self.map_widget is None:
-			return
-		
-		if show == "all":
-			for mac in self.networks.networks:
-				if mac not in self.bssids:
-					self.add_network_to_map(mac)
-			self.map.marker_layer_add_new_markers()
-		else:
-			if self.map.selected_marker is not None:
-				self.map.on_marker_clicked(self.map.selected_marker)
-			for mac in self.networks.networks:
-				if mac not in self.bssids:
-					self.map.remove_marker(mac)
-
 def main():
 	core = Core()
 	try:

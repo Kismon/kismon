@@ -137,18 +137,12 @@ def gui_main_window():
 	
 	test_config = Config(None).default_config
 	test_map = MapWidget(test_config["map"])
+	test_networks = Networks()
 	
-	main_window = MainWindow(test_config, dummy, dummy, test_map, dummy)
+	main_window = MainWindow(test_config, dummy, dummy, test_map, test_networks)
 	main_window.crypt_cache = {}
 	
 	main_window.add_to_log_list("test")
-	now = int(time.time())
-	bssid = {"bssid": "11:22:33:44:55:66", "type": 0, "channel": 11,
-		"firsttime": now, "lasttime": now, "bestlat": 52.0, "bestlon": 13.0,
-		"signal_dbm": -70}
-	ssid = {"cryptset": 706, "ssid": "test"}
-	main_window.add_to_network_list(bssid, ssid)
-	main_window.add_to_network_list(bssid, ssid)
 	main_window.network_list_network_selected = "11:22:33:44:55:66"
 	main_window.update_info_table({"networks":100, "packets":200})
 	main_window.update_gps_table({"fix": 3, "lat": 52.0, "lon": 13.0})
@@ -247,6 +241,8 @@ def networks():
 	filename = "/tmp/networks.json"
 	networks.save(filename)
 	networks.load(filename)
+	networks.apply_filters()
+	networks.save(filename)
 
 def test():
 	client()

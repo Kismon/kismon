@@ -69,14 +69,15 @@ class KismonWindows:
 					self.map_widget.map.zoom_out()
 
 class MainWindow(KismonWindows):
-	def __init__(self, config, client_start, client_stop, map_widget, networks_on_map, networks):
+	def __init__(self, config, client_start, client_stop, map_widget, networks):
 		KismonWindows.__init__(self)
 		self.config = config
 		self.config_window = None
 		self.client_start = client_start
 		self.client_stop = client_stop
-		self.networks_on_map = networks_on_map
 		self.networks = networks
+		self.networks.notify_add_list.append(self.network_list_add_network)
+		self.networks.notify_remove_list.append(self.network_list_remove_network)
 		
 		self.gtkwin.set_title("Kismon")
 		self.gtkwin.connect("window-state-event", self.on_window_state)
@@ -91,7 +92,7 @@ class MainWindow(KismonWindows):
 		self.map_widget = map_widget
 		if self.map_widget is not None:
 			self.map = map_widget.map
-		self.network_list_types = []
+		self.network_filter = {}
 		self.network_lines = {}
 		self.network_iter = {}
 		self.network_list_network_selected = None
@@ -213,27 +214,44 @@ class MainWindow(KismonWindows):
 		view_menuitem.set_submenu(view_menu)
 		menubar.append(view_menuitem)
 		
-		network_menu = gtk.Menu()
-		network_menuitem = gtk.MenuItem("Network List")
-		network_menuitem.set_submenu(network_menu)
+		network_type_menu = gtk.Menu()
+		network_menuitem = gtk.MenuItem("Network Type")
+		network_menuitem.set_submenu(network_type_menu)
 		view_menu.append(network_menuitem)
 		
-		show_infrastructure = gtk.CheckMenuItem('Show Infrastructure Networks')
-		show_infrastructure.connect("activate", self.on_network_list_filter_type)
+		show_infrastructure = gtk.CheckMenuItem('Infrastructure Networks')
 		show_infrastructure.set_active(True)
-		network_menu.append(show_infrastructure)
+		show_infrastructure.connect("activate", self.on_network_filter_type)
+		network_type_menu.append(show_infrastructure)
 		
-		show_probes = gtk.CheckMenuItem('Show Probe Networks')
-		show_probes.connect("activate", self.on_network_list_filter_type)
-		network_menu.append(show_probes)
+		show_probes = gtk.CheckMenuItem('Probe Networks')
+		show_probes.connect("activate", self.on_network_filter_type)
+		network_type_menu.append(show_probes)
 		
-		show_adhoc = gtk.CheckMenuItem('Show Ad-Hoc Networks')
-		show_adhoc.connect("activate", self.on_network_list_filter_type)
-		network_menu.append(show_adhoc)
+		show_adhoc = gtk.CheckMenuItem('Ad-Hoc Networks')
+		show_adhoc.connect("activate", self.on_network_filter_type)
+		network_type_menu.append(show_adhoc)
 		
-		show_data = gtk.CheckMenuItem('Show Data Networks')
-		show_data.connect("activate", self.on_network_list_filter_type)
-		network_menu.append(show_data)
+		show_data = gtk.CheckMenuItem('Data Networks')
+		show_data.connect("activate", self.on_network_filter_type)
+		network_type_menu.append(show_data)
+		
+		networks_menu = gtk.Menu()
+		networks_menuitem = gtk.MenuItem("Networks")
+		networks_menuitem.set_submenu(networks_menu)
+		view_menu.append(networks_menuitem)
+		
+		show_current = gtk.RadioMenuItem(None, 'Networks from the current session')
+		show_current.set_active(True)
+		show_current.connect("activate", self.on_network_filter_networks, "current")
+		networks_menu.append(show_current)
+		
+		show_all = gtk.RadioMenuItem(show_current, 'All Networks')
+		show_all.connect("activate", self.on_network_filter_networks, "all")
+		networks_menu.append(show_all)
+		
+		sep = gtk.SeparatorMenuItem()
+		view_menu.append(sep)
 		
 		config_menuitem = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)
 		config_menuitem.connect("activate", self.on_config_window)
@@ -301,33 +319,34 @@ class MainWindow(KismonWindows):
 		network_menu.show_all()
 		self.network_list_network_menu = network_menu
 	
-	def add_to_network_list(self, bssid, ssid=None):
-		mac = bssid["bssid"]
-		network_type = client.decode_network_type(bssid["type"])
-		if ssid is None:
-			crypt = None
-		else:
-			try:
-				crypt = self.crypt_cache[ssid["cryptset"]]
-			except KeyError:
-				crypt = client.decode_cryptset(ssid["cryptset"], True)
-				self.crypt_cache[ssid["cryptset"]] = crypt
-		if ssid is None:
-			ssid_str = ""
-		elif ssid["ssid"] == "":
+	def network_list_add_network(self, mac):
+		network = self.networks.get_network(mac)
+		try:
+			crypt = self.crypt_cache[network["cryptset"]]
+		except KeyError:
+			crypt = client.decode_cryptset(network["cryptset"], True)
+			self.crypt_cache[network["cryptset"]] = crypt
+		
+		if network["ssid"] == "":
 			ssid_str = "<no ssid>"
 		else:
-			ssid_str = ssid["ssid"]
+			ssid_str = network["ssid"]
+			
+		if "signal_dbm" in network:
+			signal = network["signal_dbm"]["last"]
+		else:
+			signal = 0
+		
 		line = [mac,
-				network_type,
+				network["type"],
 				ssid_str,
-				bssid["channel"],
+				network["channel"],
 				crypt,
-				show_timestamp(bssid["firsttime"]),
-				show_timestamp(bssid["lasttime"]),
-				bssid["bestlat"],
-				bssid["bestlon"],
-				bssid["signal_dbm"]
+				show_timestamp(network["firsttime"]),
+				show_timestamp(network["lasttime"]),
+				network["lat"],
+				network["lon"],
+				signal
 				]
 		try:
 			old_line = self.network_lines[mac]
@@ -345,38 +364,36 @@ class MainWindow(KismonWindows):
 					continue
 				storage.set_value(network_iter, num, value)
 				num += 1
-		elif network_type in self.network_list_types:
+		else:
 			self.network_iter[mac] = storage.prepend(line)
 		
-		if mac in self.signal_graphs:
-			self.signal_graphs[mac].add_value(bssid["signal_dbm"])
-			
-	def on_network_list_filter_type(self, widget):
+	def network_list_remove_network(self, mac):
+		try:
+			network_iter = self.network_iter[mac]
+		except KeyError:
+			return
+		
+		self.network_list_treestore.remove(network_iter)
+		del(self.network_iter[mac])
+		
+	def on_network_filter_type(self, widget):
 		types = ("infrastructure", "ad-hoc", "probe", "data")
 		label = widget.get_label().lower()
+		
 		for network_type in types:
 			if network_type in label:
 				if widget.get_active() is True:
-					self.network_list_types.append(network_type)
+					self.networks.filters["type"].append(network_type)
 				else:
-					self.network_list_types.remove(network_type)
+					self.networks.filters["type"].remove(network_type)
 				break
 		
-		for mac in self.network_lines:
-			line = self.network_lines[mac]
-			network_type = line[1]
-			if mac in self.network_iter:
-				network_iter = self.network_iter[mac]
-			else:
-				network_iter = None
-			
-			if network_type not in self.network_list_types:
-				if network_iter is not None:
-					self.network_list_treestore.remove(network_iter)
-					del(self.network_iter[mac])
-			elif network_iter is None:
-				self.network_iter[mac] = self.network_list_treestore.prepend(line)
-				
+		self.networks.apply_filters()
+		
+	def on_network_filter_networks(self, widget, value):
+		self.networks.filters["networks"] = value
+		self.networks.apply_filters()
+		
 	def on_network_list_network_popup(self, treeview, event):
 		if event.button != 3: # right click
 			return
@@ -675,7 +692,6 @@ class ConfigWindow:
 		self.gtkwin.set_title("Kismon Preferences")
 		self.main_window = main_window
 		self.config = main_window.config
-		self.networks_on_map = main_window.networks_on_map
 		self.map_widget = main_window.map_widget
 		if self.map_widget is not None:
 			self.map = self.map_widget.map
@@ -788,26 +804,6 @@ class ConfigWindow:
 		perf_marker_positions.connect("clicked", self.on_update_marker_positions)
 		perf_vbox.add(perf_marker_positions)
 		
-		networks_frame = gtk.Frame("Networks")
-		networks_vbox = gtk.VBox()
-		networks_frame.add(networks_vbox)
-		map_page.attach(networks_frame, 0, 1, 5, 6, yoptions=gtk.SHRINK)
-		
-		networks_all = gtk.RadioButton(None, 'Show all networks on the map')
-		
-		if self.config["map"]["networks"] == "all":
-			networks_all.clicked()
-		networks_all.connect("clicked", self.on_map_networks, "all")
-		networks_vbox.add(networks_all)
-		
-		networks_current = gtk.RadioButton(networks_all,
-			'Show only the networks of the current session')
-		
-		if self.config["map"]["networks"] == "current":
-			networks_current.clicked()
-		networks_current.connect("clicked", self.on_map_networks, "current")
-		networks_vbox.add(networks_current)
-		
 	def on_destroy(self, window):
 		self.gtkwin = None
 		
@@ -837,9 +833,6 @@ class ConfigWindow:
 		
 	def on_update_marker_positions(self, widget):
 		self.config["map"]["update_marker_positions"] = widget.get_active()
-		
-	def on_map_networks(self, widget, show):
-		self.networks_on_map(show)
 		
 class SignalWindow:
 	def __init__(self, mac, destroy):
