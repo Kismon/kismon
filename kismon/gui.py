@@ -970,11 +970,11 @@ class FileImportWindow:
 		
 		self.main_box = gtk.VBox()
 		
+		self.file_list = gtk.VBox()
 		file_list_scroll = gtk.ScrolledWindow()
+		file_list_scroll.add_with_viewport(self.file_list)
 		file_list_scroll.get_children()[0].set_shadow_type(gtk.SHADOW_NONE)
 		file_list_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-		self.file_list = gtk.VBox()
-		file_list_scroll.add_with_viewport(self.file_list)
 		self.main_box.add(file_list_scroll)
 		
 		button_box = gtk.HBox()
