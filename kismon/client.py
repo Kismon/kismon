@@ -263,6 +263,7 @@ class ClientThread(threading.Thread):
 					continue
 				elif result[0] == "stop":
 					self.stop()
+					continue
 				if self.debug is True:
 					print "%s: %s" % (result[0], result[1])
 				self.queue[result[0]].append(result[1])
