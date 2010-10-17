@@ -123,11 +123,14 @@ def core():
 	core = Core()
 	core.queue_handler()
 	core.queue_handler_networks()
+	core.client_stop()
 	
-	core.map_error = "test"
-	core.init_map()
+	arg = "--disable-map"
+	sys.argv.append(arg)
+	core = Core()
 	core.queue_handler()
 	core.queue_handler_networks()
+	sys.argv.remove(arg)
 	
 	core.client_stop()
 

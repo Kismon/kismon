@@ -87,10 +87,13 @@ Last seen: %s"""
 		if self.config["kismet"]["connect"] is True:
 			self.client_start()
 		
-		self.map_error = check_map_dependencies()
+		if "--disable-map" in sys.argv:
+			self.map_error = "--disable-map used"
+		else:
+			self.map_error = check_map_dependencies()
 		if self.map_error is not None:
-			self.map_error += "\nMap disabled"
-			print self.map_error
+			self.map_error =  "%s\nMap disabled" % self.map_error
+			print self.map_error, "\n"
 		
 		self.init_map()
 		
@@ -101,7 +104,7 @@ Last seen: %s"""
 			self.networks)
 		self.main_window.add_to_log_list("Kismon started")
 		if self.map_error is not None:
-			self.main_window.add_to_log_list(map_error)
+			self.main_window.add_to_log_list(self.map_error)
 		
 		self.networks_file = "%snetworks.json" % user_dir
 		if os.path.isfile(self.networks_file):
