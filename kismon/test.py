@@ -41,27 +41,23 @@ import time
 import gtk
 import sys
 
-def client():
-	class TestClient(Client):
-		def send(self, msg):
-			return
-			
+def get_client_test_data():
 	test_lines = [
-	'*KISMET: 0.0.0 1276329809 \x01Kismet_2009\x01 \x01netxml\x01 0 ',
-	'*PROTOCOLS: KISMET,ERROR,ACK,PROTOCOLS,CAPABILITY,TERMINATE,TIME,PACKET,STATUS,PLUGIN,SOURCE,ALERT,WEPKEY,STRING,GPS,BSSID,SSID,CLIENT,BSSIDSRC,CLISRC,NETTAG,CLITAG,REMOVE,CHANNEL,INFO,BATTERY',
-	'*CAPABILITY: INFO networks,packets,crypt,noise,dropped,rate,filtered,clients,llcpackets,datapackets,numsources,numerrorsources',
-	'*CAPABILITY: STATUS text,flags',
-	'*CAPABILITY: SSID mac,checksum,type,ssid,beaconinfo,cryptset,cloaked,firsttime,lasttime,maxrate,beaconrate,packets,beacons,dot11d',
-	'*CAPABILITY: BSSID bssid,type,llcpackets,datapackets,cryptpackets,manuf,channel,firsttime,lasttime,atype,rangeip,netmaskip,gatewayip,gpsfixed,minlat,minlon,minalt,minspd,maxlat,maxlon,maxalt,maxspd,signal_dbm,noise_dbm,minsignal_dbm,minnoise_dbm,maxsignal_dbm,maxnoise_dbm,signal_rssi,noise_rssi,minsignal_rssi,minnoise_rssi,maxsignal_rssi,maxnoise_rssi,bestlat,bestlon,bestalt,agglat,agglon,aggalt,aggpoints,datasize,turbocellnid,turbocellmode,turbocellsat,carrierset,maxseenrate,encodingset,decrypted,dupeivpackets,bsstimestamp,cdpdevice,cdpport,fragments,retries,newpackets,freqmhz,datacryptset',
-	'*CAPABILITY: SOURCE interface,type,username,channel,uuid,packets,hop,velocity,dwell,hop_time_sec,hop_time_usec,channellist,error,warning',
-	'*CAPABILITY: GPS lat,lon,alt,spd,heading,fix,satinfo,hdop,vdop,connected',
-	'*SSID: 00:09:5B:D5:50:10 3604535 0 \x01\x01 \x01 \x01 226 1 1276329814 1276329814 54 10 3 0  ',
-	'*SSID: 00:12:2A:03:B9:12 566756343 0 \x01bla 123\x01 \x01 \x01 706 0 1276329811 1276329811 54 10 1 0  ',
-	'*SSID: 00:23:08:B4:AF:1C 399639338 0 \x01WLAN-123\x01 \x01 \x01 738 0 1276329819 1276329819 54 10 4 0 \x01DE :2-13-20:\x01 ',
-	'*BSSID: 00:12:2A:03:B9:12 0 1 0 0 \x01VtechTelec\x01 6 1276329811 1276329811 0 0.0.0.0 0.0.0.0 0.0.0.0 1 52.1234 13.1232 25.578 0 52.1234 13.1232 25.578 0 -75 0 -75 0 -75 -256 0 0 1024 1024 0 0 52.1234 13.1232 25.578 52.1234 13.1232 25.578 1 0 0 0 0 1 10 0 0 0 5750318387682 \x01 \x01 \x01 \x01 0 0 0 2437:1* 0 ',
-	'*BSSID: 00:23:08:23:F6:19 0 2 0 0 \x01ArcadyanTe\x01 1 1276329809 1276329809 0 0.0.0.0 0.0.0.0 0.0.0.0 1 52.1232 13.1231 25.905 0 52.1232 13.1231 25.905 0 -74 0 -76 0 -74 -256 0 0 1024 1024 0 0 52.1232 13.1231 25.905 105.086 26.3162 51.81 2 0 0 0 0 1 10 0 0 0 1084647629116 \x01 \x01 \x01 \x01 0 0 0 2412:2* 0 ',
-	'*STATUS: \x01Detected new managed network "test", BSSID 00:26:4D:4A:1C:11, encryption yes, channel 1, 54.00 mbit\x01 2 ',
-	'*INFO: 13 58 2 0 0 0 0 0 56 2 1 0 ',
+		'*KISMET: 0.0.0 1276329809 \x01Kismet_2009\x01 \x01netxml\x01 0 ',
+		'*PROTOCOLS: KISMET,ERROR,ACK,PROTOCOLS,CAPABILITY,TERMINATE,TIME,PACKET,STATUS,PLUGIN,SOURCE,ALERT,WEPKEY,STRING,GPS,BSSID,SSID,CLIENT,BSSIDSRC,CLISRC,NETTAG,CLITAG,REMOVE,CHANNEL,INFO,BATTERY',
+		'*CAPABILITY: INFO networks,packets,crypt,noise,dropped,rate,filtered,clients,llcpackets,datapackets,numsources,numerrorsources',
+		'*CAPABILITY: STATUS text,flags',
+		'*CAPABILITY: SSID mac,checksum,type,ssid,beaconinfo,cryptset,cloaked,firsttime,lasttime,maxrate,beaconrate,packets,beacons,dot11d',
+		'*CAPABILITY: BSSID bssid,type,llcpackets,datapackets,cryptpackets,manuf,channel,firsttime,lasttime,atype,rangeip,netmaskip,gatewayip,gpsfixed,minlat,minlon,minalt,minspd,maxlat,maxlon,maxalt,maxspd,signal_dbm,noise_dbm,minsignal_dbm,minnoise_dbm,maxsignal_dbm,maxnoise_dbm,signal_rssi,noise_rssi,minsignal_rssi,minnoise_rssi,maxsignal_rssi,maxnoise_rssi,bestlat,bestlon,bestalt,agglat,agglon,aggalt,aggpoints,datasize,turbocellnid,turbocellmode,turbocellsat,carrierset,maxseenrate,encodingset,decrypted,dupeivpackets,bsstimestamp,cdpdevice,cdpport,fragments,retries,newpackets,freqmhz,datacryptset',
+		'*CAPABILITY: SOURCE interface,type,username,channel,uuid,packets,hop,velocity,dwell,hop_time_sec,hop_time_usec,channellist,error,warning',
+		'*CAPABILITY: GPS lat,lon,alt,spd,heading,fix,satinfo,hdop,vdop,connected',
+		'*SSID: 00:09:5B:D5:50:10 3604535 0 \x01\x01 \x01 \x01 226 1 1276329814 1276329814 54 10 3 0  ',
+		'*SSID: 00:12:2A:03:B9:12 566756343 0 \x01bla 123\x01 \x01 \x01 706 0 1276329811 1276329811 54 10 1 0  ',
+		'*SSID: 00:23:08:B4:AF:1C 399639338 0 \x01WLAN-123\x01 \x01 \x01 738 0 1276329819 1276329819 54 10 4 0 \x01DE :2-13-20:\x01 ',
+		'*BSSID: 00:12:2A:03:B9:12 0 1 0 0 \x01VtechTelec\x01 6 1276329811 1276329811 0 0.0.0.0 0.0.0.0 0.0.0.0 1 52.1234 13.1232 25.578 0 52.1234 13.1232 25.578 0 -75 0 -75 0 -75 -256 0 0 1024 1024 0 0 52.1234 13.1232 25.578 52.1234 13.1232 25.578 1 0 0 0 0 1 10 0 0 0 5750318387682 \x01 \x01 \x01 \x01 0 0 0 2437:1* 0 ',
+		'*BSSID: 00:23:08:23:F6:19 0 2 0 0 \x01ArcadyanTe\x01 1 1276329809 1276329809 0 0.0.0.0 0.0.0.0 0.0.0.0 1 52.1232 13.1231 25.905 0 52.1232 13.1231 25.905 0 -74 0 -76 0 -74 -256 0 0 1024 1024 0 0 52.1232 13.1231 25.905 105.086 26.3162 51.81 2 0 0 0 0 1 10 0 0 0 1084647629116 \x01 \x01 \x01 \x01 0 0 0 2412:2* 0 ',
+		'*STATUS: \x01Detected new managed network "test", BSSID 00:26:4D:4A:1C:11, encryption yes, channel 1, 54.00 mbit\x01 2 ',
+		'*INFO: 13 58 2 0 0 0 0 0 56 2 1 0 ',
 	]
 	result_split_line = [
 		['0.0.0', '1276329809', 'Kismet_2009', 'netxml', '0'],
@@ -90,6 +86,14 @@ def client():
 		('status', {'text': 'Detected new managed network "test", BSSID 00:26:4D:4A:1C:11, encryption yes, channel 1, 54.00 mbit', 'flags': 2}),
 		('info', {'noise': 0, 'datapackets': 2, 'crypt': 2, 'clients': 0, 'packets': 58, 'rate': 0, 'llcpackets': 56, 'dropped': 0, 'numerrorsources': 0, 'numsources': 1, 'filtered': 0, 'networks': 13}),
 	]
+	return (test_lines, result_split_line, result_parse_line)
+
+def client():
+	class TestClient(Client):
+		def send(self, msg):
+			return
+			
+	test_lines, result_split_line, result_parse_line = get_client_test_data()
 	
 	client = TestClient()
 	client.set_capabilities(["bssid", "ssid"])
@@ -108,6 +112,22 @@ def client():
 			print "%s\n!=\n%s" % (result, result_parse_line[pos])
 			errors += 1
 		pos += 1
+		
+	crypt_test = [
+		(0, "none"),
+		(2, "WEP"),
+		(226, "WEP,TKIP,WPA,PSK"),
+		(706, "WEP,WPA,PSK,AES_CCM"),
+		(738, "WEP,TKIP,WPA,PSK,AES_CCM"),
+	]
+	for cryptset, result in crypt_test:
+		crypt_str = decode_cryptset(cryptset, True)
+		if crypt_str != result:
+			print "decode_cryptset error: %s\n%s!=%s" % (cryptset, crypt_str, result)
+		
+		test_cryptset = encode_cryptset(crypt_str.lower().split(","))
+		if test_cryptset != cryptset:
+			print "encode_cryptset error: %s\n%s!=%s" % (crypt_str, test_cryptset, cryptset)
 	
 	if errors != 0:
 		sys.exit("client test failed, %s errors" % errors)
@@ -140,13 +160,16 @@ def gui_main_window():
 	
 	test_config = Config(None).default_config
 	test_map = MapWidget(test_config["map"])
-	test_networks = Networks()
+	test_networks =  networks()
 	
 	main_window = MainWindow(test_config, dummy, dummy, test_map, test_networks)
 	main_window.crypt_cache = {}
 	
 	main_window.add_to_log_list("test")
 	main_window.network_list_network_selected = "11:22:33:44:55:66"
+	main_window.network_list_add_network('00:12:2A:03:B9:12')
+	main_window.network_list_add_network('00:12:2A:03:B9:12')
+	main_window.network_list_remove_network('00:12:2A:03:B9:12')
 	main_window.update_info_table({"networks":100, "packets":200})
 	main_window.update_gps_table({"fix": 3, "lat": 52.0, "lon": 13.0})
 	sources = {"1": {"uuid": "1", "username": "test", "type": "bla",
@@ -163,19 +186,37 @@ def gui_main_window():
 	main_window.on_map_window(None, False)
 	main_window.on_map_widget(None, True)
 	main_window.on_map_widget(None, False)
+	main_window.on_client_disconnect(None)
 	
 	class TestWidget:
 		def __init__(self):
 			self.active = True
+			self.text = ""
 		
 		def get_active(self):
 			return self.active
+			
+		def get_active_text(self):
+			return self.text
 	
 	test_widget = TestWidget()
 	config_window = main_window.config_window
 	config_window.on_map_source_mapnik(test_widget)
 	config_window.on_map_source_memphis(test_widget)
 	config_window.on_memphis_rules(test_widget, "default")
+	
+	file_import_window = FileImportWindow(test_networks)
+	filename = "/tmp/test-networks.json"
+	test_networks.save(filename)
+	file_import_window.add_file(filename)
+	test_widget.text = "networks"
+	file_import_window.on_filetype_changed(test_widget, filename)
+	file_import_window.on_remove_file(None, filename)
+	file_import_window.add_file(filename)
+	file_import_window.on_start(None)
+	file_import_window.parse_file()
+	
+	main_window.on_file_import(None)
 
 def gui_map_window():
 	test_config = Config(None).default_config["map"]
@@ -240,12 +281,35 @@ def map():
 	test_window.show_all()
 
 def networks():
+	test_data = get_client_test_data()[2]
+	
 	networks = Networks()
-	filename = "/tmp/networks.json"
-	networks.save(filename)
-	networks.load(filename)
+	for x in range(2):
+		for data in test_data:
+			if data is not None and data[0] == "bssid":
+				networks.add_bssid_data(data[1])
+				data[1]["lasttime"] = data[1]["lasttime"] + 1
+		for data in test_data:
+			if data is not None and data[0] == "ssid":
+				networks.add_ssid_data(data[1])
+				data[1]["lasttime"] = data[1]["lasttime"] + 1
+	
+	tmp_csv_file = "/tmp/test-%s.csv" % int(time.time())
+	tmp_csv = open(tmp_csv_file, "w")
+	tmp_csv.write("""Network;NetType;ESSID;BSSID;Info;Channel;Cloaked;Encryption;Decrypted;MaxRate;MaxSeenRate;Beacon;LLC;Data;Crypt;Weak;Total;Carrier;Encoding;FirstTime;LastTime;BestQuality;BestSignal;BestNoise;GPSMinLat;GPSMinLon;GPSMinAlt;GPSMinSpd;GPSMaxLat;GPSMaxLon;GPSMaxAlt;GPSMaxSpd;GPSBestLat;GPSBestLon;GPSBestAlt;DataSize;IPType;IP;
+1;infrastructure;WsF;00:18:84:15:18:A5;;3;No;WEP,WPA,PSK,AES-CCM;No;18.0;1000;25600;148;0;0;0;148;IEEE 802.11g;;Thu Jan 22 05:48:23 2009;Thu Jan 22 05:51:46 2009;0;65;-98;52.549381;13.141430;120.120003;0.000000;52.549652;13.141682;120.120003;2.934490;0.000000;0.000000;0.000000;0;None;0.0.0.0;""")
+	tmp_csv.close()
+	for x in range(2):
+		networks.import_networks("csv", tmp_csv_file)
+	
+	networks_file = "/tmp/networks.json"
+	networks.save(networks_file)
+	networks.load(networks_file)
+	networks.import_networks("networks",networks_file)
 	networks.apply_filters()
-	networks.save(filename)
+	networks.save(networks_file)
+	
+	return networks
 
 def test():
 	client()
@@ -255,7 +319,6 @@ def test():
 	gui_map_window()
 	gui_signal_window()
 	map()
-	networks()
 
 if __name__ == "__main__":
 	test()
