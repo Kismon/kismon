@@ -45,6 +45,7 @@ class Networks:
 		self.recent_networks = []
 		self.notify_add_list = []
 		self.notify_remove_list = []
+		self.temp_ssid_data = {}
 		
 	def get_network(self, mac):
 		return self.networks[mac]
@@ -108,6 +109,10 @@ class Networks:
 				}
 			}
 			self.networks[mac] = network
+			if mac in self.temp_ssid_data:
+				data = self.temp_ssid_data[mac]
+				self.add_ssid_data(data)
+				del self.temp_ssid_data[mac]
 		else:
 			network = self.networks[mac]
 			if "signal_dbm" not in network:
@@ -136,6 +141,7 @@ class Networks:
 	def add_ssid_data(self, ssid):
 		mac = ssid["mac"]
 		if mac not in self.networks:
+			self.temp_ssid_data[mac] = ssid
 			return
 		
 		network = self.networks[mac]
