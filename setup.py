@@ -14,7 +14,7 @@ setup(name='kismon',
 	platforms='UNIX',
 	data_files = [('/usr/share/applications', ['files/kismon.desktop']),
 		('/usr/share/kismon',
-			['files/open.png', 'files/wep.png', 'files/wpa.png', 'files/position.png',
+			['files/position.png',
 			'files/minimal-rules.xml', 'files/night-rules.xml']),
 		],
 )

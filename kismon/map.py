@@ -60,12 +60,11 @@ class Map:
 			dir = os.path.realpath(__file__).rsplit("/", 2)[0]
 			self.share_folder = "%s%sfiles%s" % (dir, os.sep, os.sep)
 		self.images = {
-			"green": "%sopen.png" % self.share_folder,
-			"orange": "%swep.png" % self.share_folder,
-			"red": "%swpa.png" % self.share_folder,
 			"position": "%sposition.png" % self.share_folder
 			}
+		self.textures = {}
 		self.load_images()
+		self.create_dots()
 		
 		self.marker_layer = champlain.Layer()
 		self.marker_layer_queue = []
@@ -91,12 +90,22 @@ class Map:
 		self.position_layer.add_marker(self.position_marker)
 		
 	def load_images(self):
-		self.textures = {}
 		for name in self.images:
 			filename = self.images[name]
 			texture = clutter.Texture()
 			texture.set_from_file(self.images[name])
 			self.textures[name] = texture.get_cogl_texture()
+			
+	def create_dots(self):
+		for color in ("red", "orange", "green"):
+			texture = clutter.CairoTexture(width=16, height=16)
+			context = texture.cairo_create()
+			context.set_source_color(self.colors[color])
+			context.arc(8, 8, 7, 0, 3.14*2)
+			context.fill()
+			context.stroke()
+			del(context)
+			self.textures[color] = texture.get_cogl_texture()
 		
 	def set_zoom(self, zoom):
 		self.view.set_property("zoom-level", zoom)
