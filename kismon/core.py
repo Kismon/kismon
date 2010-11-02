@@ -112,17 +112,19 @@ Last seen: %s"""
 		
 		self.main_window.crypt_cache = self.crypt_cache
 		
-		if os.path.isdir("/proc/acpi/battery/BAT0"):
-			f = open("/proc/acpi/battery/BAT0/info")
+		self.battery_max = None
+		self.battery = None
+		for name in os.listdir("/proc/acpi/battery/"):
+			self.battery = name
+			f = open("/proc/acpi/battery/%s/info" % name)
 			for line in f.readlines():
 				if line.startswith("last full capacity:"):
 					max = line.split(":")[1].strip()
 					self.battery_max = int(max.split()[0])
 					break
-			self.update_battery_bar()
 			gobject.timeout_add(30000, self.update_battery_bar)
-		else:
-			self.battery_max = None
+			break
+		self.update_battery_bar()
 		
 		gobject.threads_init()
 		gobject.timeout_add(500, self.queue_handler)
@@ -234,7 +236,7 @@ Last seen: %s"""
 		self.networks.save(self.networks_file)
 		
 	def get_battery_capacity(self):
-		filename = "/proc/acpi/battery/BAT0/state"
+		filename = "/proc/acpi/battery/%s/state" % self.battery
 		if not os.path.isfile(filename):
 			return False
 		f = open(filename)
@@ -247,8 +249,7 @@ Last seen: %s"""
 		
 	def update_battery_bar(self):
 		battery = self.get_battery_capacity()
-		if battery is not False:
-			self.main_window.set_battery_bar(battery)
+		self.main_window.set_battery_bar(battery)
 		return True
 		
 	def add_network_to_map(self, mac):

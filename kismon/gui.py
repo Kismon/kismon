@@ -655,8 +655,12 @@ class MainWindow(KismonWindows):
 		del self.signal_graphs[mac]
 		
 	def set_battery_bar(self, percent):
-		self.battery_bar.set_text("%s%%" % percent)
-		self.battery_bar.set_fraction(percent / 100)
+		if percent is not False:
+			self.battery_bar.set_text("%s%%" % percent)
+			self.battery_bar.set_fraction(percent / 100)
+		else:
+			self.battery_bar.set_text("-")
+			self.battery_bar.set_fraction(0)
 	
 	def on_file_import(self, widget):
 		file_import_window = FileImportWindow(self.networks)
