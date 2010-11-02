@@ -105,7 +105,7 @@ class Networks:
 				"signal_dbm": {
 					"min": bssid["minsignal_dbm"],
 					"max": bssid["maxsignal_dbm"],
-					"last": bssid["maxsignal_dbm"]
+					"last": bssid["signal_dbm"]
 				}
 			}
 			self.networks[mac] = network
