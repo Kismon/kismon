@@ -271,6 +271,7 @@ def map():
 	tmp_osm.close()
 	test_config["osm_file"] = tmp_osm_file
 	test_map.set_source("memphis-local")
+	test_map.set_source("osm-mapnik")
 	
 	test_window = gtk.Window()
 	test_window.set_title("Kismon Test Map")

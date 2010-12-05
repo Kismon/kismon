@@ -66,11 +66,13 @@ class Map:
 		self.load_images()
 		self.create_dots()
 		
-		self.marker_layer = champlain.Layer()
+		self.marker_layer = {}
+		for color in ("red", "orange", "green"):
+			self.marker_layer[color] = champlain.Layer()
+			self.view.add_layer(self.marker_layer[color])
 		self.marker_layer_queue = []
-		self.init_position_marker()
 		
-		self.view.add_layer(self.marker_layer)
+		self.init_position_marker()
 		self.view.add_layer(self.position_layer)
 		
 		self.map_source_factory = champlain.map_source_factory_dup_default()
@@ -183,7 +185,7 @@ class Map:
 			marker = self.markers[key]
 		except KeyError:
 			return
-		self.marker_layer.remove_marker(marker)
+		self.marker_layer[marker.color_name].remove_marker(marker)
 		del self.markers[key]
 	
 	def on_marker_clicked(self, marker, event=None):
@@ -200,13 +202,16 @@ class Map:
 			self.selected_marker.set_position(lat, lon)
 			self.selected_marker.set_use_markup(True)
 			self.selected_marker.set_reactive(True)
-			self.marker_layer.hide_all_markers()
-			self.marker_layer.add_marker(self.selected_marker)
+			self.selected_marker.color_name = marker.color_name
+			for color in self.marker_layer:
+				self.marker_layer[color].hide_all_markers()
+			self.marker_layer[marker.color_name].add_marker(self.selected_marker)
 			
 		else:
-			self.marker_layer.remove_marker(marker)
+			self.marker_layer[marker.color_name].remove_marker(marker)
 			self.selected_marker = None
-			self.marker_layer.show_all_markers()
+			for color in self.marker_layer:
+				self.marker_layer[color].show_all_markers()
 			
 	def set_marker_style(self, style):
 		self.config["marker_style"] = style
@@ -241,7 +246,8 @@ class Map:
 		
 	def marker_layer_add_new_markers(self):
 		if len(self.marker_layer_queue) > 0:
-			self.marker_layer.add(*self.marker_layer_queue)
+			for marker in self.marker_layer_queue:
+				self.marker_layer[marker.color_name].add_marker(marker)
 			self.marker_layer_queue = []
 		
 	def stop_moving(self):
