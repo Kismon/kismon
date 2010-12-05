@@ -226,8 +226,11 @@ Last seen: %s"""
 			if self.map_widget is not None:
 				self.add_network_to_map(mac)
 		
-		if self.map_widget is not None:
-			self.map.marker_layer_add_new_markers()
+		if self.map_widget is not None and not self.map.generator_is_running \
+			and len(self.map.marker_layer_queue)>0:
+				task = self.map.marker_layer_add_new_markers()
+				gobject.idle_add(task.next)
+		
 		return True
 		
 	def quit(self):

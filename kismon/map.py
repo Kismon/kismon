@@ -42,6 +42,7 @@ class Map:
 	def __init__(self, config, view):
 		self.config = config
 		self.view = view
+		self.generator_is_running = False
 		self.toggle_moving_button = None
 		self.markers = {}
 		self.marker_text = "%s\n<span size=\"small\">%s</span>"
@@ -245,10 +246,21 @@ class Map:
 			marker.set_text(" ")
 		
 	def marker_layer_add_new_markers(self):
-		if len(self.marker_layer_queue) > 0:
-			for marker in self.marker_layer_queue:
-				self.marker_layer[marker.color_name].add_marker(marker)
-			self.marker_layer_queue = []
+		if len(self.marker_layer_queue) == 0:
+			yield False
+		
+		self.generator_is_running = True
+		while True:
+			try:
+				marker = self.marker_layer_queue.pop()
+			except IndexError:
+				break
+			
+			self.marker_layer[marker.color_name].add_marker(marker)
+			yield True
+		
+		self.generator_is_running = False
+		yield False
 		
 	def stop_moving(self):
 		self.config["follow_gps"] = False
