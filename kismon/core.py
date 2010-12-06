@@ -110,6 +110,10 @@ Last seen: %s"""
 		if os.path.isfile(self.networks_file):
 			self.networks.load(self.networks_file)
 		
+		if self.map_widget is not None:
+			self.networks.notify_add_list.append(self.add_network_to_map)
+			self.networks.notify_remove_list.append(self.map.remove_marker)
+		
 		self.main_window.crypt_cache = self.crypt_cache
 		
 		self.battery_max = None
@@ -222,14 +226,9 @@ Last seen: %s"""
 			
 			bssids[mac] = True
 		
-		for mac in bssids:
-			if self.map_widget is not None:
-				self.add_network_to_map(mac)
-		
 		if self.map_widget is not None and not self.map.generator_is_running \
 			and len(self.map.marker_layer_queue)>0:
-				task = self.map.marker_layer_add_new_markers()
-				gobject.idle_add(task.next)
+				self.map.start_queue()
 		
 		self.main_window.update_statusbar()
 		return True
@@ -258,8 +257,6 @@ Last seen: %s"""
 		
 	def add_network_to_map(self, mac):
 		network = self.networks.get_network(mac)
-		if network["type"] != "infrastructure":
-			return
 		
 		try:
 			crypt = self.crypt_cache[network["cryptset"]]

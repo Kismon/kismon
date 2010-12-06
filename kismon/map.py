@@ -250,7 +250,7 @@ class Map:
 			yield False
 		
 		self.generator_is_running = True
-		while True:
+		while self.generator_is_running:
 			try:
 				marker = self.marker_layer_queue.pop()
 			except IndexError:
@@ -261,6 +261,14 @@ class Map:
 		
 		self.generator_is_running = False
 		yield False
+		
+	def start_queue(self):
+		task = self.marker_layer_add_new_markers()
+		gobject.idle_add(task.next)
+		
+	def stop_queue(self):
+		self.generator_is_running = False
+		self.marker_layer_queue = []
 		
 	def stop_moving(self):
 		self.config["follow_gps"] = False
