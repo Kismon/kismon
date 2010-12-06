@@ -284,7 +284,7 @@ class MainWindow(KismonWindows):
 			cell = gtk.CellRendererText()
 			tvcolumn.pack_start(cell, True)
 			tvcolumn.add_attribute(cell, 'text', num)
-			#tvcolumn.set_sort_column_id(num)
+			tvcolumn.set_sort_column_id(num)
 			tvcolumn.set_clickable(True)
 			tvcolumn.set_resizable(True)
 			tvcolumn.connect("clicked", self.on_column_clicked)
@@ -306,6 +306,7 @@ class MainWindow(KismonWindows):
 			)
 		self.network_list.set_model(self.network_list_treestore)
 		self.network_scrolled.add(self.network_list)
+		self.network_list_treestore.set_sort_column_id(6, gtk.SORT_DESCENDING)
 		
 		network_menu = gtk.Menu()
 		locate_item = gtk.MenuItem('Locate on map')
@@ -356,7 +357,6 @@ class MainWindow(KismonWindows):
 		storage = self.network_list_treestore
 		if mac in self.network_iter:
 			network_iter = self.network_iter[mac]
-			storage.move_after(network_iter, None)
 			num = 0
 			for value in line:
 				if old_line is not None and old_line.pop(0) == value:
@@ -1164,7 +1164,7 @@ class FileImportWindow:
 		self.gtkwin.destroy()
 
 def show_timestamp(timestamp):
-	time_format = "%H:%M:%S"
+	time_format = "%Y/%m/%d %H:%M:%S"
 	return time.strftime(time_format, time.localtime(timestamp))
 	
 if __name__ == "__main__":
