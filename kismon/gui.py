@@ -159,6 +159,10 @@ class MainWindow(KismonWindows):
 		self.notebook.append_page(log_scrolled)
 		self.notebook.set_tab_label_text(log_scrolled, "Log")
 		
+		self.statusbar = gtk.Statusbar()
+		self.statusbar_context = self.statusbar.get_context_id("Starting...")
+		vbox.pack_end(self.statusbar, expand=False, fill=False, padding=0)
+		
 		self.gtkwin.show_all()
 		self.apply_config()
 		
@@ -666,6 +670,11 @@ class MainWindow(KismonWindows):
 		file_import_window = FileImportWindow(self.networks)
 		file_import_window.gtkwin.set_transient_for(self.gtkwin)
 		file_import_window.gtkwin.set_modal(True)
+		
+	def update_statusbar(self):
+		text = "Networks: %s in the current session, %s total" % \
+			(len(self.networks.recent_networks), len(self.networks.networks))
+		self.statusbar.push(self.statusbar_context, text)
 		
 class MapWindow(KismonWindows):
 	def __init__(self, map_widget):

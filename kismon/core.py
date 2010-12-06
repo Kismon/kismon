@@ -231,6 +231,7 @@ Last seen: %s"""
 				task = self.map.marker_layer_add_new_markers()
 				gobject.idle_add(task.next)
 		
+		self.main_window.update_statusbar()
 		return True
 		
 	def quit(self):
