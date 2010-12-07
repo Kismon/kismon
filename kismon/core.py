@@ -49,10 +49,11 @@ def check_map_dependencies():
 	except:
 		return sys.exc_info()[1]
 	
-	try:
-		champlain.Marker().set_image(None)
-	except TypeError:
-		return "libchamplain older than 0.6.1"
+	pipe = subprocess.Popen("pkg-config --exists --print-errors 'champlain-0.6 >= 0.6.1'",
+		shell=True, stderr=subprocess.PIPE)
+	champlain_check = pipe.stderr.read().strip()
+	if champlain_check != '':
+		return champlain_check
 	
 	pipe = subprocess.Popen("pkg-config --exists --print-errors 'memphis-0.2 >= 0.2.3'",
 		shell=True, stderr=subprocess.PIPE)
