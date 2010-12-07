@@ -227,9 +227,8 @@ Last seen: %s"""
 			
 			bssids[mac] = True
 		
-		if self.map_widget is not None and not self.map.generator_is_running \
-			and len(self.map.marker_layer_queue)>0:
-				self.map.start_queue()
+		if len(self.networks.notify_add_queue) > 0:
+			self.networks.start_queue()
 		
 		self.main_window.update_statusbar()
 		return True

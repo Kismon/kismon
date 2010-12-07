@@ -391,16 +391,11 @@ class MainWindow(KismonWindows):
 				else:
 					self.networks.filters["type"].remove(network_type)
 				break
-		
-		self.map.stop_queue()
 		self.networks.apply_filters()
-		self.map.start_queue()
 		
 	def on_network_filter_networks(self, widget, value):
 		self.networks.filters["networks"] = value
-		self.map.stop_queue()
 		self.networks.apply_filters()
-		self.map.start_queue()
 		
 	def on_network_list_network_popup(self, treeview, event):
 		if event.button != 3: # right click

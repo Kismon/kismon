@@ -167,7 +167,7 @@ class Map:
 		else:
 			self.marker_style_name(marker)
 		
-		self.marker_layer_queue.append(marker)
+		self.marker_layer[marker.color_name].add_marker(marker)
 		self.markers[key] = marker
 		
 	def update_marker(self, marker, name, text, lat, lon):
@@ -244,31 +244,6 @@ class Map:
 		marker.set_image(texture)
 		if marker.get_text() is not None:
 			marker.set_text(" ")
-		
-	def marker_layer_add_new_markers(self):
-		if len(self.marker_layer_queue) == 0:
-			yield False
-		
-		self.generator_is_running = True
-		while self.generator_is_running:
-			try:
-				marker = self.marker_layer_queue.pop()
-			except IndexError:
-				break
-			
-			self.marker_layer[marker.color_name].add_marker(marker)
-			yield True
-		
-		self.generator_is_running = False
-		yield False
-		
-	def start_queue(self):
-		task = self.marker_layer_add_new_markers()
-		gobject.idle_add(task.next)
-		
-	def stop_queue(self):
-		self.generator_is_running = False
-		self.marker_layer_queue = []
 		
 	def stop_moving(self):
 		self.config["follow_gps"] = False

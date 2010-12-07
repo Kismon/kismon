@@ -32,6 +32,7 @@ import simplejson as json
 import xml.parsers.expat
 import time
 import locale
+import gobject
 
 from client import *
 
@@ -44,6 +45,8 @@ class Networks:
 		}
 		self.recent_networks = []
 		self.notify_add_list = []
+		self.notify_add_queue = []
+		self.queue_running = False
 		self.notify_remove_list = []
 		self.temp_ssid_data = {}
 		
@@ -61,14 +64,15 @@ class Networks:
 		f.close()
 		
 	def apply_filters(self):
+		self.stop_queue()
 		for mac in self.networks:
 			if self.check_filters(mac) == True:
-				for function in self.notify_add_list:
-					function(mac)
+				self.notify_add_queue.append(mac)
 			else:
 				for function in self.notify_remove_list:
 					function(mac)
-			
+		self.start_queue()
+		
 	def check_filters(self, mac):
 		if self.filters["networks"] == "current" and mac not in self.recent_networks:
 			return False
@@ -86,8 +90,40 @@ class Networks:
 			self.recent_networks.append(mac)
 		
 		if self.check_filters(mac):
+			self.notify_add_queue.append(mac)
+			
+	def notify_add_queue_process(self):
+		self.queue_running = True
+		start_time = time.time()
+		counter = 0
+		while self.queue_running:
+			try:
+				mac = self.notify_add_queue.pop()
+			except IndexError:
+				break
+			
 			for function in self.notify_add_list:
 				function(mac)
+			
+			counter += 1
+			if time.time()-start_time > 0.9:
+				print "%s in %ssec, %s left" % (counter, round(time.time()-start_time,3), len(self.notify_add_queue))
+				yield True
+				start_time = time.time()
+				counter = 0
+		self.queue_running = False
+		yield False
+		
+	def start_queue(self):
+		if self.queue_running:
+			return
+		task = self.notify_add_queue_process()
+		self.queue_task = gobject.idle_add(task.next)
+		
+	def stop_queue(self):
+		self.queue_running = False
+		gobject.source_remove(self.queue_task)
+		self.notify_add_queue = []
 		
 	def add_bssid_data(self, bssid):
 		mac = bssid["bssid"]
