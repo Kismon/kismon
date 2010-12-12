@@ -158,19 +158,29 @@ def config():
 	conf.show()
 
 def core():
-	core = Core()
-	core.queue_handler()
-	core.queue_handler_networks()
-	core.client_stop()
+	test_core = Core()
+	core_tests(test_core)
+	test_core.client_stop()
 	
 	arg = "--disable-map"
 	sys.argv.append(arg)
-	core = Core()
-	core.queue_handler()
-	core.queue_handler_networks()
+	test_core = Core()
+	core_tests(test_core)
 	sys.argv.remove(arg)
 	
-	core.client_stop()
+	test_core.client_stop()
+	
+def core_tests(test_core):
+	test_data = get_client_test_data()[2]
+	for line in test_data:
+		if line is None:
+			continue
+		test_core.client_thread.queue[line[0]].append(line[1])
+	test_core.queue_handler()
+	test_core.queue_handler_networks()
+	task = test_core.networks.notify_add_queue_process()
+	while task.next():
+		continue
 
 def gui_main_window():
 	def dummy():
