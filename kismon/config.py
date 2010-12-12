@@ -53,6 +53,9 @@ class Config:
 				"memphis_rules": "default",
 				"update_marker_positions": True,
 				"last_position": "0/0"
+				},
+			"networks": {
+				"autosave": 5,
 				}
 			}
 	

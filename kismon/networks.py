@@ -51,11 +51,17 @@ class Networks:
 		self.temp_ssid_data = {}
 		self.queue_task = None
 		self.num_backups = 5
+		self.autosave_task = None
 		
 	def get_network(self, mac):
 		return self.networks[mac]
 		
-	def save(self, filename):
+	def save(self, filename, notify=None):
+		msg = "saving %s networks to %s" % (len(self.networks), filename)
+		print msg
+		if notify is not None:
+			notify(msg)
+		
 		tmpfilename = filename + ".new"
 		f = open(tmpfilename, "w")
 		json.dump(self.networks, f, sort_keys=True, indent=2)
@@ -69,6 +75,15 @@ class Networks:
 		if os.path.isfile(filename):
 			os.rename(filename, filename + ".0")
 		os.rename(tmpfilename, filename)
+		
+		return True
+		
+	def set_autosave(self, minutes, filename, notify):
+		if self.autosave_task is not None:
+			gobject.source_remove(self.autosave_task)
+		
+		if minutes > 0:
+			self.autosave_task = gobject.timeout_add(minutes * 60 * 1000, self.save, filename, notify)
 		
 	def load(self, filename):
 		f = open(filename)

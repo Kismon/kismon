@@ -126,6 +126,7 @@ Last seen: %s"""
 					self.client_thread.stop()
 					self.main_window.gtkwin = None
 					return
+		self.networks.set_autosave(self.config["networks"]["autosave"], self.networks_file, self.main_window.add_to_log_list)
 		
 		if self.map_widget is not None:
 			self.networks.notify_add_list.append(self.add_network_to_map)
