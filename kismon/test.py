@@ -96,6 +96,13 @@ def client():
 	test_lines, result_split_line, result_parse_line = get_client_test_data()
 	
 	client = TestClient()
+	client.server = "invalid:xyz"
+	client.start()
+	
+	test_dump_name = "/tmp/kismet_dump_test.dump"
+	test_dump = open(test_dump_name, "w")
+	
+	client = TestClient()
 	client.set_capabilities(["bssid", "ssid"])
 	pos = 0
 	errors = 0
@@ -112,6 +119,7 @@ def client():
 			print "%s\n!=\n%s" % (result, result_parse_line[pos])
 			errors += 1
 		pos += 1
+		test_dump.write(line)
 		
 	crypt_test = [
 		(0, "none"),
@@ -131,6 +139,16 @@ def client():
 	
 	if errors != 0:
 		sys.exit("client test failed, %s errors" % errors)
+		
+	test_dump.close()
+	
+	client.load_dump(test_dump_name)
+	client.loop()
+	
+	client_thread = ClientThread()
+	client_thread.client = client
+	client.load_dump(test_dump_name)
+	client_thread.run()
 
 def config():
 	conf=Config("/tmp/testconfig.conf")
