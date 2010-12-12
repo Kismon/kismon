@@ -109,7 +109,23 @@ Last seen: %s"""
 		
 		self.networks_file = "%snetworks.json" % user_dir
 		if os.path.isfile(self.networks_file):
-			self.networks.load(self.networks_file)
+			try:
+				self.networks.load(self.networks_file)
+			except:
+				error = sys.exc_info()[1]
+				print error
+				dialog_message = "Could not read the networks file '%s':\n%s\n\nDo you want to continue?" % (self.networks_file, error)
+				dialog = gtk.MessageDialog(self.main_window.gtkwin, gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_ERROR, gtk.BUTTONS_YES_NO, dialog_message)
+				def dialog_response(dialog, response_id):
+					self.dialog_response = response_id
+				dialog.connect("response", dialog_response)
+				dialog.run()
+				dialog.destroy()
+				if self.dialog_response == -9:
+					print "exit"
+					self.client_thread.stop()
+					self.main_window.gtkwin = None
+					return
 		
 		if self.map_widget is not None:
 			self.networks.notify_add_list.append(self.add_network_to_map)
@@ -291,6 +307,8 @@ Last seen: %s"""
 		
 def main():
 	core = Core()
+	if core.main_window.gtkwin == None:
+		sys.exit()
 	try:
 		gtk.main()
 	except KeyboardInterrupt:
