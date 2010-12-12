@@ -49,14 +49,26 @@ class Networks:
 		self.queue_running = False
 		self.notify_remove_list = []
 		self.temp_ssid_data = {}
+		self.queue_task = None
+		self.num_backups = 5
 		
 	def get_network(self, mac):
 		return self.networks[mac]
 		
 	def save(self, filename):
-		f = open(filename, "w")
+		tmpfilename = filename + ".new"
+		f = open(tmpfilename, "w")
 		json.dump(self.networks, f, sort_keys=True, indent=2)
 		f.close()
+		
+		for num in range(self.num_backups - 2, -1 , -1):
+			backup_filename = "%s.%s" % (filename, num)
+			if os.path.isfile(backup_filename):
+				os.rename(backup_filename, "%s.%s" % (filename, num + 1))
+		
+		if os.path.isfile(filename):
+			os.rename(filename, filename + ".0")
+		os.rename(tmpfilename, filename)
 		
 	def load(self, filename):
 		f = open(filename)
@@ -122,7 +134,9 @@ class Networks:
 		
 	def stop_queue(self):
 		self.queue_running = False
-		gobject.source_remove(self.queue_task)
+		if self.queue_task is not None:
+			gobject.source_remove(self.queue_task)
+			self.queue_task = None
 		self.notify_add_queue = []
 		
 	def add_bssid_data(self, bssid):

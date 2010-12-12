@@ -180,7 +180,7 @@ Last seen: %s"""
 		
 	def queue_handler(self):
 		if self.main_window.gtkwin is None:
-			self.quit()
+			return False
 			
 		if len(self.client_thread.client.error) > 0:
 			for error in self.client_thread.client.error:
