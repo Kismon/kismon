@@ -226,6 +226,9 @@ def gui_main_window():
 			
 		def get_active_text(self):
 			return self.text
+			
+		def get_label(self):
+			return self.text
 	
 	test_widget = TestWidget()
 	config_window = main_window.config_window
@@ -245,6 +248,10 @@ def gui_main_window():
 	file_import_window.parse_file()
 	
 	main_window.on_file_import(None)
+	
+	test_widget.text = "Infrastructure"
+	main_window.on_network_filter_type(test_widget)
+	main_window.on_network_filter_networks(None, "all")
 
 def gui_map_window():
 	test_config = Config(None).default_config["map"]
