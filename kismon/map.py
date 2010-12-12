@@ -126,6 +126,7 @@ class Map:
 			self.next_position = (lat, lon)
 		
 		self.position_marker.set_position(lat, lon)
+		self.config["last_position"] = "%s/%s" % (lat, lon)
 		
 	def add_marker(self, key, name, text, color, lat, lon):
 		"""add a new marker to the marker_layer

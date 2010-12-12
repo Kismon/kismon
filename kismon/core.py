@@ -159,6 +159,8 @@ Last seen: %s"""
 			self.map_widget = MapWidget(self.config["map"])
 			self.map = self.map_widget.map
 			self.map.set_zoom(16)
+			pos = self.config["map"]["last_position"].split("/")
+			self.map.set_position(float(pos[0]), float(pos[1]))
 		
 	def init_client_thread(self):
 		self.client_thread = ClientThread(self.config["kismet"]["server"])
