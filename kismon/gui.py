@@ -1164,10 +1164,10 @@ class FileImportWindow:
 		file_scrolled.add(self.file_list)
 		main_box.add(file_scrolled)
 		
-		self.battery_bar = gtk.ProgressBar()
-		self.battery_bar.set_text("0 of %s Files" % len(self.files))
-		self.battery_bar.set_fraction(0)
-		main_box.pack_start(self.battery_bar, expand=False, fill=True, padding=0)
+		self.progress_bar = gtk.ProgressBar()
+		self.progress_bar.set_text("0 of %s Files" % len(self.files))
+		self.progress_bar.set_fraction(0)
+		main_box.pack_start(self.progress_bar, expand=False, fill=True, padding=0)
 		
 		button_box = gtk.VButtonBox()
 		self.close_button = gtk.Button("Close")
@@ -1203,8 +1203,8 @@ class FileImportWindow:
 		num_files = len(self.files)
 		pos = num_files - len(self.parser_queue)
 		
-		self.battery_bar.set_text("%s of %s Files" % (pos, num_files))
-		self.battery_bar.set_fraction(1.0 / num_files * pos)
+		self.progress_bar.set_text("%s of %s Files" % (pos, num_files))
+		self.progress_bar.set_fraction(1.0 / num_files * pos)
 		
 		if len(self.parser_queue) == 0:
 			self.close_button.set_sensitive(True)
