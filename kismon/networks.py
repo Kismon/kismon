@@ -46,6 +46,8 @@ class Networks:
 		self.recent_networks = []
 		self.notify_add_list = []
 		self.notify_add_queue = []
+		self.notify_start = []
+		self.notify_stop = []
 		self.queue_running = False
 		self.notify_remove_list = []
 		self.temp_ssid_data = {}
@@ -123,6 +125,10 @@ class Networks:
 		self.queue_running = True
 		start_time = time.time()
 		counter = 0
+		
+		for function in self.notify_start:
+			function()
+		
 		while self.queue_running:
 			try:
 				mac = self.notify_add_queue.pop()
@@ -139,10 +145,13 @@ class Networks:
 				start_time = time.time()
 				counter = 0
 		self.queue_running = False
+		self.queue_task = None
+		for function in self.notify_stop:
+			function()
 		yield False
 		
 	def start_queue(self):
-		if self.queue_running:
+		if self.queue_task is not None:
 			return
 		task = self.notify_add_queue_process()
 		self.queue_task = gobject.idle_add(task.next)

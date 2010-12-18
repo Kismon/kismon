@@ -78,6 +78,8 @@ class MainWindow(KismonWindows):
 		self.networks = networks
 		self.networks.notify_add_list.append(self.network_list_add_network)
 		self.networks.notify_remove_list.append(self.network_list_remove_network)
+		self.networks.notify_start.append(self.network_list_pause)
+		self.networks.notify_stop.append(self.network_list_resume)
 		
 		self.gtkwin.set_title("Kismon")
 		self.gtkwin.connect("window-state-event", self.on_window_state)
@@ -369,7 +371,7 @@ class MainWindow(KismonWindows):
 				storage.set_value(network_iter, num, value)
 				num += 1
 		else:
-			self.network_iter[mac] = storage.prepend(line)
+			self.network_iter[mac] = storage.append(line)
 		
 	def network_list_remove_network(self, mac):
 		try:
@@ -379,6 +381,14 @@ class MainWindow(KismonWindows):
 		
 		self.network_list_treestore.remove(network_iter)
 		del(self.network_iter[mac])
+		
+	def network_list_pause(self):
+		self.network_list.freeze_child_notify()
+		self.network_list.set_model(None)
+		
+	def network_list_resume(self):
+		self.network_list.set_model(self.network_list_treestore)
+		self.network_list.thaw_child_notify()
 		
 	def on_network_filter_type(self, widget):
 		types = ("infrastructure", "ad-hoc", "probe", "data")
@@ -391,11 +401,44 @@ class MainWindow(KismonWindows):
 				else:
 					self.networks.filters["type"].remove(network_type)
 				break
-		self.networks.apply_filters()
+		self.networks_apply_filters()
 		
 	def on_network_filter_networks(self, widget, value):
+		if not widget.get_active():
+			return
 		self.networks.filters["networks"] = value
+		self.networks_apply_filters()
+		
+	def networks_apply_filters(self):
 		self.networks.apply_filters()
+		self.progress_bar_max = float(len(self.networks.notify_add_queue))
+		if self.networks.queue_task:
+			self.progress_bar = gtk.ProgressBar()
+			self.progress_bar.set_text("0.0%%, %s networks left" % len(self.networks.notify_add_queue))
+			self.progress_bar.set_fraction(0)
+			
+			self.progress_bar_win = gtk.Window()
+			self.progress_bar_win.set_title("Applying filter")
+			self.progress_bar_win.set_position(gtk.WIN_POS_CENTER)
+			self.progress_bar_win.set_default_size(300, 30)
+			self.progress_bar_win.set_modal(True)
+			self.progress_bar_win.set_transient_for(self.gtkwin)
+			self.progress_bar_win.add(self.progress_bar)
+			self.progress_bar_win.show_all()
+			def on_delete_event(widget, event):
+				return True
+			self.progress_bar_win.connect("delete-event",on_delete_event)
+			
+			gobject.idle_add(self.networks_apply_filters_progress)
+			
+	def networks_apply_filters_progress(self):
+		if self.networks.queue_task is None:
+			self.progress_bar_win.destroy()
+			return False
+		progress = 100 / self.progress_bar_max * (self.progress_bar_max - len(self.networks.notify_add_queue))
+		self.progress_bar.set_text("%s%%, %s networks left" % (round(progress, 1), len(self.networks.notify_add_queue)))
+		self.progress_bar.set_fraction(progress/100)
+		return True
 		
 	def on_network_list_network_popup(self, treeview, event):
 		if event.button != 3: # right click
