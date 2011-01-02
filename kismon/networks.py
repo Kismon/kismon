@@ -41,7 +41,8 @@ class Networks:
 		self.networks = {}
 		self.filters = {
 			"networks": "current",
-			"type": ["infrastructure"]
+			"type": ["infrastructure"],
+			"crypt": ["none", "wep", "wpa", "other"],
 		}
 		self.recent_networks = []
 		self.notify_add_list = []
@@ -95,7 +96,7 @@ class Networks:
 	def apply_filters(self):
 		self.stop_queue()
 		for mac in self.networks:
-			if self.check_filters(mac) == True:
+			if self.check_filters(mac) is True:
 				self.notify_add_queue.append(mac)
 			else:
 				for function in self.notify_remove_list:
@@ -106,13 +107,24 @@ class Networks:
 		if self.filters["networks"] == "current" and mac not in self.recent_networks:
 			return False
 		
-		check = False
 		network = self.networks[mac]
 		
-		if network["type"] in self.filters["type"]:
-			check = True
+		if network["type"] not in self.filters["type"]:
+			return False
 		
-		return check
+		crypts = decode_cryptset(network["cryptset"])
+		if crypts == ["none"]:
+			crypt = "none"
+		elif "wpa" in crypts:
+			crypt = "wpa"
+		elif "wep" in crypts:
+			crypt = "wep"
+		else:
+			crypt = "other"
+		if crypt not in self.filters["crypt"]:
+			return False
+		
+		return True
 		
 	def notify_add(self, mac):
 		if mac not in self.recent_networks:

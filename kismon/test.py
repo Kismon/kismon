@@ -251,7 +251,7 @@ def gui_main_window():
 	
 	test_widget.text = "Infrastructure"
 	main_window.on_network_filter_type(test_widget)
-	main_window.on_network_filter_networks(None, "all")
+	main_window.on_network_filter_networks(test_widget, "all")
 
 def gui_map_window():
 	test_config = Config(None).default_config["map"]

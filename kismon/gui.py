@@ -256,6 +256,17 @@ class MainWindow(KismonWindows):
 		show_all.connect("activate", self.on_network_filter_networks, "all")
 		networks_menu.append(show_all)
 		
+		crypt_menu = gtk.Menu()
+		crypt_menuitem = gtk.MenuItem("Encryption")
+		crypt_menuitem.set_submenu(crypt_menu)
+		view_menu.append(crypt_menuitem)
+		
+		for crypt in ("None", "WEP", "WPA", "Other"):
+			crypt_item = gtk.CheckMenuItem(crypt)
+			crypt_item.set_active(True)
+			crypt_item.connect("activate", self.on_network_filter_crypt)
+			crypt_menu.append(crypt_item)
+		
 		sep = gtk.SeparatorMenuItem()
 		view_menu.append(sep)
 		
@@ -407,6 +418,16 @@ class MainWindow(KismonWindows):
 		if not widget.get_active():
 			return
 		self.networks.filters["networks"] = value
+		self.networks_apply_filters()
+		
+	def on_network_filter_crypt(self, widget):
+		crypt = widget.get_label().lower()
+		
+		if widget.get_active() is True:
+			self.networks.filters["crypt"].append(crypt)
+		else:
+			self.networks.filters["crypt"].remove(crypt)
+		
 		self.networks_apply_filters()
 		
 	def networks_apply_filters(self):
