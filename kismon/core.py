@@ -173,6 +173,7 @@ Last seen: %s"""
 	def client_start(self):
 		if self.client_thread.is_running is True:
 			self.client_stop()
+		self.sources = {}
 		self.init_client_thread()
 		if "--load-kismet-dump" in sys.argv:
 			self.client_thread.client.load_dump(sys.argv[2])
