@@ -914,12 +914,13 @@ class SignalWindow:
 	def __init__(self, mac, destroy):
 		self.mac = mac
 		self.history = {}
+		self.sources = {}
 		self.time_range = 60 * 2
 		
 		self.gtkwin = gtk.Window()
 		self.gtkwin.set_position(gtk.WIN_POS_CENTER)
 		self.gtkwin.connect("destroy", destroy, mac)
-		self.gtkwin.set_default_size(480, 240)
+		self.gtkwin.set_default_size(620, 240)
 		self.gtkwin.set_title("Signal Graph: %s" % self.mac)
 		
 		self.graph = gtk.DrawingArea()
@@ -937,22 +938,30 @@ class SignalWindow:
 		ctx=self.graph.window.cairo_create()
 		
 		border_left = 60
+		border_right = 100
 		border_bottom = 30
 		
-		graph_width = width - border_left
+		graph_width = width - border_left - border_right
 		graph_height = height - border_bottom
 		
-		values = self.history.values()
-		if len(values) > 1:
-			signal_min = min(values)
-			signal_max = max(values) + 1
+		signal_min = -100
+		signal_max = -50
+		
+		if len(self.history) > 0:
+			start_sec = max(self.history) - self.time_range
 		else:
-			signal_min = -100
-			signal_max = -50
+			start_sec = 0
+		x_rel = 1.0 * graph_width / self.time_range
 		
-		signal_min = min(signal_min, -100)
-		signal_max = max(signal_max, -50)
-		
+		for sec in self.history:
+			if sec < start_sec:
+				continue
+			
+			for uuid in self.history[sec]:
+				signal_min = min(signal_min, self.history[sec][uuid])
+				signal_max = max(signal_max, self.history[sec][uuid])
+			
+		signal_max = signal_max + 1
 		signal_range = signal_max - signal_min
 		y_rel = 1.0 * graph_height / signal_range
 		
@@ -969,7 +978,8 @@ class SignalWindow:
 		ctx.move_to(border_left, 0)
 		ctx.line_to(border_left, graph_height + 5)
 		ctx.move_to(border_left - 5, graph_height)
-		ctx.line_to(width, height - border_bottom)
+		ctx.line_to(width - border_right, height - border_bottom)
+		ctx.line_to(width - border_right, 0)
 		
 		ctx.move_to(border_left - 55, graph_height + 4)
 		ctx.show_text("%s dbm" % signal_min)
@@ -982,7 +992,7 @@ class SignalWindow:
 			
 			y = y_rel * (signal_max - signal)
 			ctx.move_to(border_left - 5, y)
-			ctx.line_to(width, y)
+			ctx.line_to(width - border_right, y)
 			ctx.move_to(border_left - 55, y + 4)
 			ctx.show_text("%s dbm" % signal)
 		
@@ -1005,32 +1015,56 @@ class SignalWindow:
 			ctx.stroke()
 			return False
 		
-		start_sec = max(self.history) - self.time_range
-		x_rel = 1.0 * graph_width / self.time_range
-		start = False
-		sec = 0
 		
-		while True:
-			if start_sec + sec in self.history:
-				signal = self.history[start_sec + sec]
-				x = x_rel * sec + border_left
-				y = y_rel * (signal_max - signal)
-				if not start:
-					ctx.move_to(x, y)
-					start = True
-					sec += 1
-				else:
-					ctx.line_to(x, y)
+		counter = 0
+		for uuid in self.sources:
+			start = False
+			sec = 0
+			if counter == 0:
+				ctx.set_source_rgb(0, 1, 0)
+			elif counter == 1:
+				ctx.set_source_rgb(1, 0, 0)
+			elif counter == 1:
+				ctx.set_source_rgb(0, 0, 1)
+			elif counter == 1:
+				ctx.set_source_rgb(1, 1, 0)
+			else:
+				ctx.set_source_rgb(0, 1, 1)
 			
-			sec += 1
-			if sec > self.time_range:
-				break
-		ctx.stroke()
+			ctx.move_to(width - border_right + 5, 15 * (counter + 1))
+			ctx.show_text(self.sources[uuid])
+			
+			while True:
+				if start_sec + sec in self.history and uuid in self.history[start_sec + sec]:
+					signal = self.history[start_sec + sec][uuid]
+					x = x_rel * sec + border_left
+					y = y_rel * (signal_max - signal)
+					if not start:
+						ctx.move_to(x, y)
+						start = True
+						sec += 1
+					else:
+						ctx.line_to(x, y)
+				
+				sec += 1
+				if sec > self.time_range:
+					break
+			
+			counter += 1
+			ctx.stroke()
 		
 		return False
 		
-	def add_value(self, value):
-		self.history[int(time.time())] = value
+	def add_value(self, source, value):
+		if source is None:
+			source = {"username": "signal", "type": "all", "uuid": "all"}
+		
+		source_str = "%s (%s)" % (source["username"], source["type"])
+		self.sources[source["uuid"]] = source_str
+		sec = int(time.time())
+		if sec not in self.history:
+			self.history[sec] = {}
+		self.history[sec][source["uuid"]] = value
 		self.graph.queue_draw()
 
 class FileImportWindow:
