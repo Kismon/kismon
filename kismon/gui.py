@@ -937,6 +937,17 @@ class SignalWindow:
 		self.graph = gtk.DrawingArea()
 		self.graph.connect("expose_event", self.on_expose_event)
 		
+		button_box = gtk.HButtonBox()
+		
+		signal_button = gtk.RadioButton(None, 'Signal strength')
+		signal_button.connect("clicked", self.on_graph_type, "signal")
+		signal_button.clicked()
+		button_box.add(signal_button)
+		
+		packets_button = gtk.RadioButton(signal_button, 'Packets per second')
+		packets_button.connect("clicked", self.on_graph_type, "packets")
+		button_box.add(packets_button)
+		
 		self.sources_list = gtk.TreeView()
 		
 		tvcolumn = gtk.TreeViewColumn("Color")
@@ -971,11 +982,19 @@ class SignalWindow:
 		expander.add(self.sources_list)
 		
 		vbox = gtk.VBox()
+		vbox.pack_start(button_box, expand=False, fill=False, padding=0)
 		vbox.add(self.graph)
 		vbox.pack_end(expander, expand=False, fill=False, padding=0)
 		self.gtkwin.add(vbox)
 		
 		self.gtkwin.show_all()
+		
+	def on_graph_type(self, widget, graph_type):
+		if not widget.get_active():
+			return
+			
+		self.graph_type = graph_type
+		self.graph.queue_draw()
 		
 	def on_expose_event(self, widget, event):
 		width = event.area.width
@@ -987,7 +1006,7 @@ class SignalWindow:
 			
 			line = [source["username"], source["type"],
 				source["signal"], source["signal_min"], source["signal_max"],
-				source["packets"] - source["packets_last"], source["packets"]]
+				source["pps"], source["packets"]]
 			if "iter" in source:
 				source_iter = source["iter"]
 				num = 1
@@ -1021,8 +1040,16 @@ class SignalWindow:
 		graph_width = width - border_left - border_right
 		graph_height = height - border_bottom
 		
-		signal_min = -100
-		signal_max = -50
+		if self.graph_type == "signal":
+			index = 0
+			data_min = -100
+			data_max = -50
+			text = "%s dbm"
+		else:
+			index = 1
+			data_min = 0
+			data_max = 20
+			text = "%s p/s"
 		
 		if len(self.history) > 0:
 			start_sec = max(self.history) - self.time_range
@@ -1035,12 +1062,12 @@ class SignalWindow:
 				continue
 			
 			for uuid in self.history[sec]:
-				signal_min = min(signal_min, self.history[sec][uuid])
-				signal_max = max(signal_max, self.history[sec][uuid])
+				data_min = min(data_min, self.history[sec][uuid][index])
+				data_max = max(data_max, self.history[sec][uuid][index])
 			
-		signal_max = signal_max + 1
-		signal_range = signal_max - signal_min
-		y_rel = 1.0 * graph_height / signal_range
+		data_max += 1
+		data_range = data_max - data_min
+		y_rel = 1.0 * graph_height / data_range
 		
 		#background
 		ctx.set_source_rgb(0, 0, 0)
@@ -1059,19 +1086,19 @@ class SignalWindow:
 		ctx.line_to(width - border_right, 0)
 		
 		ctx.move_to(border_left - 55, graph_height + 4)
-		ctx.show_text("%s dbm" % signal_min)
+		ctx.show_text(text % data_min)
 		
-		signal = (int((signal_min + 2) / 10)) * 10
+		value = (int((data_min + 2) / 10)) * 10
 		while True:
-			signal += 10
-			if signal >= signal_max:
+			value += int(float(data_range) / 6)
+			if value >= data_max:
 				break
 			
-			y = y_rel * (signal_max - signal)
+			y = y_rel * (data_max - value)
 			ctx.move_to(border_left - 5, y)
 			ctx.line_to(width - border_right, y)
 			ctx.move_to(border_left - 55, y + 4)
-			ctx.show_text("%s dbm" % signal)
+			ctx.show_text(text % value)
 		
 		ctx.move_to(border_left - 15, graph_height + 16)
 		ctx.show_text("-%ss" % self.time_range)
@@ -1101,9 +1128,9 @@ class SignalWindow:
 			
 			while True:
 				if start_sec + sec in self.history and uuid in self.history[start_sec + sec]:
-					signal = self.history[start_sec + sec][uuid]
+					value = self.history[start_sec + sec][uuid][index]
 					x = x_rel * sec + border_left
-					y = y_rel * (signal_max - signal)
+					y = y_rel * (data_max - value)
 					if not start:
 						ctx.move_to(x, y)
 						start = True
@@ -1137,23 +1164,24 @@ class SignalWindow:
 			source["signal_min"] = value
 			source["signal_max"] = value
 			if bssidsrc is None:
-				source["packets"] = "0"
-				source["packets_last"] = "0"
+				source["packets"] = 0
+				source["pps"] = 0
 			else:
 				source["packets"] = bssidsrc["numpackets"]
-				source["packets_last"] = bssidsrc["numpackets"]
+				source["pps"] = 0
 		else:
 			source = self.sources[source_data["uuid"]]
 			source["signal"] = value
 			source["signal_min"] = min(value, source["signal_min"])
 			source["signal_max"] = max(value, source["signal_max"])
 			if bssidsrc is not None:
-				source["packets_last"] = source["packets"]
+				source["pps"] = bssidsrc["numpackets"] - source["packets"]
 				source["packets"] = bssidsrc["numpackets"]
+				
 		sec = int(time.time())
 		if sec not in self.history:
 			self.history[sec] = {}
-		self.history[sec][source["uuid"]] = value
+		self.history[sec][source["uuid"]] = (value, source["pps"])
 		self.graph.queue_draw()
 
 class FileImportWindow:
