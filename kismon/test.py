@@ -264,12 +264,13 @@ def gui_signal_window():
 	def destroy(obj, window):
 		return
 	signal_window = SignalWindow("11:22:33:44:55:66", destroy)
-	signal_window.add_value(-30)
+	signal_window.add_value(None, None, -30)
 	signal_window.draw_graph(600, 400)
 	now = int(time.time())
 	for signal in (-50, -60, -70, -80, -50):
 		now -= 1
-		signal_window.history[now] = signal
+		signal_window.history[now] = {}
+		signal_window.history[now]["test"] = (signal, signal * -1)
 	signal_window.draw_graph(600, 400)
 
 def map():

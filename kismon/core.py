@@ -243,7 +243,7 @@ Last seen: %s"""
 			mac = data["bssid"]
 			self.networks.add_bssid_data(data)
 			if mac in self.main_window.signal_graphs and "signal_dbm" not in self.client_thread.client.capabilities["bssidsrc"]:
-				self.main_window.signal_graphs[mac].add_value(None, data["signal_dbm"])
+				self.main_window.signal_graphs[mac].add_value(None, None, data["signal_dbm"])
 			
 			bssids[mac] = True
 			
@@ -254,7 +254,7 @@ Last seen: %s"""
 			
 			mac = data["bssid"]
 			if mac in self.main_window.signal_graphs:
-				self.main_window.signal_graphs[mac].add_value(self.sources[data["uuid"]], data["signal_dbm"])
+				self.main_window.signal_graphs[mac].add_value(self.sources[data["uuid"]], data, data["signal_dbm"])
 		
 		if len(self.networks.notify_add_queue) > 0:
 			self.networks.start_queue()
