@@ -917,15 +917,63 @@ class SignalWindow:
 		self.sources = {}
 		self.time_range = 60 * 2
 		
+		self.colors = [
+			(0, 1, 0),
+			(1, 0, 0),
+			(0, 0, 1),
+			(1, 1, 0),
+			(0, 1, 1),
+			(0, 0.5, 0),
+			(0.5, 0, 0),
+			(0, 0, 0.5),
+		]
+		
 		self.gtkwin = gtk.Window()
 		self.gtkwin.set_position(gtk.WIN_POS_CENTER)
 		self.gtkwin.connect("destroy", destroy, mac)
-		self.gtkwin.set_default_size(620, 240)
+		self.gtkwin.set_default_size(620, 320)
 		self.gtkwin.set_title("Signal Graph: %s" % self.mac)
 		
 		self.graph = gtk.DrawingArea()
 		self.graph.connect("expose_event", self.on_expose_event)
-		self.gtkwin.add(self.graph)
+		
+		self.sources_list = gtk.TreeView()
+		
+		tvcolumn = gtk.TreeViewColumn("Color")
+		pixbuf = gtk.CellRendererPixbuf()
+		tvcolumn.pack_start(pixbuf)
+		tvcolumn.add_attribute(pixbuf, "pixbuf", 0)
+		self.sources_list.append_column(tvcolumn)
+		
+		num=1
+		for column in ("Name", "Type", "Signal (dbm)", "Min", "Max", "Packets/sec", "Packets"):
+			tvcolumn = gtk.TreeViewColumn(column)
+			self.sources_list.append_column(tvcolumn)
+			cell = gtk.CellRendererText()
+			tvcolumn.pack_start(cell, True)
+			tvcolumn.add_attribute(cell, 'text', num)
+			num += 1
+		
+		self.sources_list_store = gtk.ListStore(
+			gtk.gdk.Pixbuf,
+			gobject.TYPE_STRING,
+			gobject.TYPE_STRING,
+			gobject.TYPE_INT,
+			gobject.TYPE_INT,
+			gobject.TYPE_INT,
+			gobject.TYPE_INT,
+			gobject.TYPE_INT,
+			)
+		self.sources_list.set_model(self.sources_list_store)
+		
+		expander = gtk.Expander("Sources")
+		expander.set_expanded(True)
+		expander.add(self.sources_list)
+		
+		vbox = gtk.VBox()
+		vbox.add(self.graph)
+		vbox.pack_end(expander, expand=False, fill=False, padding=0)
+		self.gtkwin.add(vbox)
 		
 		self.gtkwin.show_all()
 		
@@ -934,11 +982,40 @@ class SignalWindow:
 		height = event.area.height
 		self.draw_graph(width, height)
 		
+		for uuid in self.sources:
+			source = self.sources[uuid]
+			
+			line = [source["username"], source["type"],
+				source["signal"], source["signal_min"], source["signal_max"],
+				source["packets"] - source["packets_last"], source["packets"]]
+			if "iter" in source:
+				source_iter = source["iter"]
+				num = 1
+				for value in line:
+					self.sources_list_store.set_value(source_iter, num, value)
+					num += 1
+			else:
+				width = 36
+				height = 12
+				
+				pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8, width, height)
+				drawable = gtk.gdk.Pixmap(None, width, height, 24)
+				ctx = drawable.cairo_create()
+				color = self.get_color(uuid)
+				ctx.set_source_rgb(*color)
+				ctx.rectangle(0, 0, width, height)
+				ctx.fill()
+				ctx.stroke()
+				cmap = gtk.gdk.colormap_get_system()
+				pixbuf.get_from_drawable(drawable, cmap, 0, 0, 0, 0, width, height)
+				line.insert(0, pixbuf)
+				source["iter"] = self.sources_list_store.append(line)
+		
 	def draw_graph(self, width, height):
 		ctx=self.graph.window.cairo_create()
 		
 		border_left = 60
-		border_right = 100
+		border_right = 0
 		border_bottom = 30
 		
 		graph_width = width - border_left - border_right
@@ -1015,24 +1092,12 @@ class SignalWindow:
 			ctx.stroke()
 			return False
 		
-		
-		counter = 0
 		for uuid in self.sources:
 			start = False
 			sec = 0
-			if counter == 0:
-				ctx.set_source_rgb(0, 1, 0)
-			elif counter == 1:
-				ctx.set_source_rgb(1, 0, 0)
-			elif counter == 1:
-				ctx.set_source_rgb(0, 0, 1)
-			elif counter == 1:
-				ctx.set_source_rgb(1, 1, 0)
-			else:
-				ctx.set_source_rgb(0, 1, 1)
 			
-			ctx.move_to(width - border_right + 5, 15 * (counter + 1))
-			ctx.show_text(self.sources[uuid])
+			color = self.get_color(uuid)
+			ctx.set_source_rgb(*color)
 			
 			while True:
 				if start_sec + sec in self.history and uuid in self.history[start_sec + sec]:
@@ -1050,17 +1115,41 @@ class SignalWindow:
 				if sec > self.time_range:
 					break
 			
-			counter += 1
 			ctx.stroke()
 		
 		return False
 		
-	def add_value(self, source, value):
-		if source is None:
-			source = {"username": "signal", "type": "all", "uuid": "all"}
+	def get_color(self, uuid):
+		try:
+			color = self.colors[self.sources[uuid]["number"]]
+		except ValueError:
+			color = (1, 1, 1)
+		return color
 		
-		source_str = "%s (%s)" % (source["username"], source["type"])
-		self.sources[source["uuid"]] = source_str
+	def add_value(self, source_data, bssidsrc, value):
+		if source_data is None:
+			source_data = {"username": "signal", "type": "all", "uuid": "all"}
+		if source_data["uuid"] not in self.sources:
+			self.sources[source_data["uuid"]] = source_data
+			source = source_data
+			source["number"] = len(self.sources) - 1
+			source["signal"] = value
+			source["signal_min"] = value
+			source["signal_max"] = value
+			if bssidsrc is None:
+				source["packets"] = "0"
+				source["packets_last"] = "0"
+			else:
+				source["packets"] = bssidsrc["numpackets"]
+				source["packets_last"] = bssidsrc["numpackets"]
+		else:
+			source = self.sources[source_data["uuid"]]
+			source["signal"] = value
+			source["signal_min"] = min(value, source["signal_min"])
+			source["signal_max"] = max(value, source["signal_max"])
+			if bssidsrc is not None:
+				source["packets_last"] = source["packets"]
+				source["packets"] = bssidsrc["numpackets"]
 		sec = int(time.time())
 		if sec not in self.history:
 			self.history[sec] = {}
