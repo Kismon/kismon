@@ -102,7 +102,9 @@ Last seen: %s"""
 			self.client_start,
 			self.client_stop,
 			self.map_widget,
-			self.networks)
+			self.networks,
+			self.sources,
+			self.client_thread.client)
 		self.main_window.add_to_log_list("Kismon started")
 		if self.map_error is not None:
 			self.main_window.add_to_log_list(self.map_error)
@@ -225,7 +227,11 @@ Last seen: %s"""
 		#source
 		update = False
 		for data in self.client_thread.get_queue("source"):
-			self.sources[data["uuid"]] = data
+			uuid = data["uuid"]
+			if uuid == "00000000-0000-0000-0000-000000000000":
+				continue
+			self.sources[uuid] = data
+			
 			update = True
 		if update is True:
 			self.main_window.update_sources_table(self.sources)

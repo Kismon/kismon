@@ -111,6 +111,10 @@ class Client:
 		self.s.send(msg)
 		if self.debug is True:
 			print "Send: %s" % msg
+		
+	def set_channel(self, uuid, mode, value):
+		self.send("!%s HOPSOURCE %s %s %s\n" % (self.response_id, uuid, mode.upper(), value))
+		self.response_id += 1
 	
 	def loop(self):
 		while self.connected is True or self.replay_dump is not None:

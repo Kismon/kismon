@@ -71,7 +71,7 @@ class KismonWindows:
 					self.map_widget.map.zoom_out()
 
 class MainWindow(KismonWindows):
-	def __init__(self, config, client_start, client_stop, map_widget, networks):
+	def __init__(self, config, client_start, client_stop, map_widget, networks, sources, client):
 		KismonWindows.__init__(self)
 		self.config = config
 		self.config_window = None
@@ -101,6 +101,8 @@ class MainWindow(KismonWindows):
 		self.network_iter = {}
 		self.network_list_network_selected = None
 		self.signal_graphs = {}
+		self.sources = sources
+		self.client = client
 		
 		self.network_scrolled = gtk.ScrolledWindow()
 		self.network_scrolled.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -199,6 +201,11 @@ class MainWindow(KismonWindows):
 		disconnect = gtk.ImageMenuItem(gtk.STOCK_DISCONNECT)
 		disconnect.connect("activate", self.on_client_disconnect)
 		file_menu.append(disconnect)
+		
+		channel_config = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)
+		channel_config.set_label("Configure Channels")
+		channel_config.connect("activate", self.on_channel_config)
+		file_menu.append(channel_config)
 		
 		sep = gtk.SeparatorMenuItem()
 		file_menu.append(sep)
@@ -740,6 +747,9 @@ class MainWindow(KismonWindows):
 		text = "Networks: %s in the current session, %s total" % \
 			(len(self.networks.recent_networks), len(self.networks.networks))
 		self.statusbar.push(self.statusbar_context, text)
+		
+	def on_channel_config(self, widget):
+		win = ChannelWindow(self.sources, self.client)
 		
 class MapWindow(KismonWindows):
 	def __init__(self, map_widget):
