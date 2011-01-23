@@ -169,7 +169,10 @@ class FileImportWindow:
 		main_box.pack_end(button_box, expand=False, fill=True, padding=0)
 		self.gtkwin.show_all()
 		self.parser_queue = self.files.keys()
-		gobject.timeout_add(20, self.parse_file)
+		if len(self.parser_queue) == 0:
+			self.close_button.set_sensitive(True)
+		else:
+			gobject.timeout_add(20, self.parse_file)
 		
 	def parse_file(self):
 		filename = self.parser_queue.pop()
