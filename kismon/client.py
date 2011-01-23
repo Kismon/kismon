@@ -85,7 +85,8 @@ class Client:
 			self.connected = True
 			return True
 		except socket.error:
-			self.error.append("Open connection to %s failed: %s" % \
+			error_message = "Open connection to %s failed: %s\nkismet_server must be running to get live data"
+			self.error.append(error_message % \
 				(self.server, sys.exc_info()[1]))
 			print "Client: %s" % self.error[-1]
 			self.stop()
