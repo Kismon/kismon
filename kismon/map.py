@@ -39,9 +39,10 @@ import os
 import hashlib
 
 class Map:
-	def __init__(self, config, view):
+	def __init__(self, config, view, memphis):
 		self.config = config
 		self.view = view
+		self.memphis = memphis
 		self.generator_is_running = False
 		self.toggle_moving_button = None
 		self.markers = {}
@@ -277,6 +278,9 @@ class Map:
 			self.toggle_moving_button.set_active(False)
 		
 	def set_source(self, id):
+		if id == "memphis-local" and not self.memphis:
+			return
+		
 		self.config["source"] = id
 		
 		if id == "memphis-local":
@@ -289,6 +293,8 @@ class Map:
 		self.view.set_map_source(self.source)
 		
 	def load_osm_file(self):
+		if not self.memphis:
+			return
 		if not os.path.isfile(self.config["osm_file"]):
 			print "no valid OSM file"
 			return
@@ -318,7 +324,7 @@ class Map:
 		return False
 		
 	def load_memphis_rules(self):
-		if self.config["source"] != "memphis-local":
+		if self.config["source"] != "memphis-local" or not self.memphis:
 			return
 			
 		self.source = self.map_source_factory.create("memphis-local")
@@ -359,7 +365,7 @@ class Map:
 		self.view.set_map_source(source_chain)
 
 class MapWidget:
-	def __init__(self, config):
+	def __init__(self, config, memphis=True):
 		self.config = config
 		
 		self.embed = champlaingtk.ChamplainEmbed()
@@ -367,7 +373,7 @@ class MapWidget:
 		self.embed.connect("button-release-event", self.on_map_released)
 		
 		self.view = self.embed.get_view()
-		self.map = Map(self.config, self.view)
+		self.map = Map(self.config, self.view, memphis)
 		
 		self.vbox = gtk.VBox()
 		self.init_menu()

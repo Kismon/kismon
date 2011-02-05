@@ -59,18 +59,23 @@ class ConfigWindow:
 		source_frame.add(source_vbox)
 		map_page.attach(source_frame, 0, 1, 1, 2, yoptions=gtk.SHRINK)
 		
+		memphis = self.main_window.map.memphis
+		
 		map_source_mapnik = gtk.RadioButton(None, 'OSM Mapnik (default)')
 		
-		if self.config["map"]["source"] == "osm-mapnik":
+		if self.config["map"]["source"] == "osm-mapnik" or not memphis:
 			map_source_mapnik.clicked()
 		map_source_mapnik.connect("clicked", self.on_map_source_mapnik)
 		source_vbox.add(map_source_mapnik)
 		
 		map_source_memphis = gtk.RadioButton(map_source_mapnik,
 			'Memphis (local rendering)')
-		
-		if self.config["map"]["source"] == "memphis-local":
+			
+		if not memphis:
+			map_source_memphis.set_sensitive(False)
+		elif self.config["map"]["source"] == "memphis-local":
 			map_source_memphis.clicked()
+		
 		map_source_memphis.connect("clicked", self.on_map_source_memphis)
 		source_vbox.add(map_source_memphis)
 		
@@ -118,7 +123,7 @@ class ConfigWindow:
 		map_page.attach(perf_frame, 0, 1, 4, 5, yoptions=gtk.SHRINK)
 		
 		perf_marker_positions = gtk.CheckButton("Update marker positions")
-		if self.config["map"]["update_marker_positions"] == True:
+		if self.config["map"]["update_marker_positions"] is True:
 			perf_marker_positions.clicked()
 		perf_marker_positions.connect("clicked", self.on_update_marker_positions)
 		perf_vbox.add(perf_marker_positions)

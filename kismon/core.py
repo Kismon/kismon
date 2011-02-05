@@ -41,11 +41,10 @@ import subprocess
 import gtk
 import gobject
 
-def check_map_dependencies():
+def check_champlain():
 	try:
 		import champlaingtk
 		import champlain
-		import champlainmemphis
 	except:
 		return sys.exc_info()[1]
 	
@@ -54,6 +53,12 @@ def check_map_dependencies():
 	champlain_check = pipe.stderr.read().strip()
 	if champlain_check != '':
 		return champlain_check
+
+def check_memphis():
+	try:
+		import champlainmemphis
+	except:
+		return sys.exc_info()[1]
 	
 	pipe = subprocess.Popen("pkg-config --exists --print-errors 'memphis-0.2 >= 0.2.3'",
 		shell=True, stderr=subprocess.PIPE)
@@ -91,12 +96,19 @@ Last seen: %s"""
 		if "--disable-map" in sys.argv:
 			self.map_error = "--disable-map used"
 		else:
-			self.map_error = check_map_dependencies()
+			self.map_error = check_champlain()
+
 		if self.map_error is not None:
 			self.map_error =  "%s\nMap disabled" % self.map_error
 			print self.map_error, "\n"
-		
-		self.init_map()
+			
+		memphis_error = check_memphis()
+		if memphis_error is not None:
+			self.init_map(memphis=False)
+			memphis_error =  "%s\nLocal rendering disabled" % memphis_error
+			print memphis_error, "\n"
+		else:
+			self.init_map()
 		
 		self.main_window = MainWindow(self.config,
 			self.client_start,
@@ -108,6 +120,8 @@ Last seen: %s"""
 		self.main_window.add_to_log_list("Kismon started")
 		if self.map_error is not None:
 			self.main_window.add_to_log_list(self.map_error)
+		if memphis_error is not None:
+			self.main_window.add_to_log_list(memphis_error)
 		
 		self.networks_file = "%snetworks.json" % user_dir
 		if os.path.isfile(self.networks_file):
@@ -154,12 +168,12 @@ Last seen: %s"""
 		gobject.timeout_add(500, self.queue_handler)
 		gobject.timeout_add(300, self.queue_handler_networks)
 		
-	def init_map(self):
+	def init_map(self, memphis=True):
 		if self.map_error is not None:
 			self.map_widget = None
 			self.map = None
 		else:
-			self.map_widget = MapWidget(self.config["map"])
+			self.map_widget = MapWidget(self.config["map"], memphis)
 			self.map = self.map_widget.map
 			self.map.set_zoom(16)
 			pos = self.config["map"]["last_position"].split("/")

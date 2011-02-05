@@ -190,7 +190,7 @@ def gui_main_window():
 	test_map = MapWidget(test_config["map"])
 	test_networks =  networks()
 	
-	main_window = MainWindow(test_config, dummy, dummy, test_map, test_networks)
+	main_window = MainWindow(test_config, dummy, dummy, test_map, test_networks, None, None)
 	main_window.crypt_cache = {}
 	
 	main_window.add_to_log_list("test")
@@ -275,6 +275,7 @@ def gui_signal_window():
 
 def map():
 	test_config = Config(None).default_config["map"]
+	test_map_widget = MapWidget(test_config, memphis=False)
 	test_map_widget = MapWidget(test_config)
 	test_map = test_map_widget.map
 	
