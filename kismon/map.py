@@ -51,9 +51,9 @@ class Map:
 		self.selected_marker = None
 		self.next_position = None
 		self.colors = {
-			"red": clutter.Color(255, 0, 0, 187),
-			"green": clutter.Color(0, 255, 0, 187),
-			"orange":clutter.Color(243, 148, 7, 187),
+			"red": clutter.Color(255, 0, 0, 220),
+			"green": clutter.Color(0, 255, 0, 220),
+			"orange":clutter.Color(243, 148, 7, 220),
 			"black": clutter.Color(0, 0, 0, 255)
 			}
 		if os.path.isdir("/usr/share/kismon"):
