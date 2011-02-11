@@ -50,6 +50,7 @@ class Map:
 		self.marker_font = "Serif 10"
 		self.selected_marker = None
 		self.next_position = None
+		self.networks_label_count = 0
 		self.colors = {
 			"red": clutter.Color(255, 0, 0, 220),
 			"green": clutter.Color(0, 255, 0, 220),
@@ -76,6 +77,28 @@ class Map:
 		
 		self.init_position_marker()
 		self.view.add_layer(self.position_layer)
+		
+		margin = 5
+		padding = 20
+		
+		label = clutter.Group()
+		label_bg = clutter.Rectangle()
+		label_bg.set_color(clutter.color_from_string('white'))
+		label_bg.set_opacity(180)
+		label.add(label_bg)
+
+		label_text = clutter.Text('Sans 10', "Networks shown: 0", \
+			clutter.color_from_string('black'))
+		label.add(label_text)
+		self.networks_label = label_text
+
+		width, height = label_text.get_size()
+		label_bg.set_size(width + padding + 50, height + padding )
+		label_bg.set_position(margin, margin)
+		label_text.set_position(padding / 2 + margin, padding / 2 + margin)
+		label.show()
+		
+		self.view.add(label)
 		
 		self.map_source_factory = champlain.map_source_factory_dup_default()
 		self.map_data_source = None
@@ -363,6 +386,12 @@ class Map:
 		source_chain.push(self.source)
 		source_chain.push(file_cache)
 		self.view.set_map_source(source_chain)
+		
+	def update_networks_label(self):
+		networks = len(self.markers)
+		if networks != self.networks_label_count:
+			self.networks_label.set_text("Networks shown: %s" % networks)
+			self.networks_label_count = networks
 
 class MapWidget:
 	def __init__(self, config, memphis=True):

@@ -280,6 +280,9 @@ Last seen: %s"""
 			self.networks.start_queue()
 		
 		self.main_window.update_statusbar()
+		if self.map_widget is not None:
+			self.map.update_networks_label()
+		
 		return True
 		
 	def quit(self):
