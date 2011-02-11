@@ -295,9 +295,6 @@ class MainWindow(KismonWindows):
 		return menubar
 	
 	def init_network_list(self):
-		if len(self.network_scrolled.get_children()) > 0:
-			self.network_scrolled.remove(self.network_list)
-		
 		self.network_list = gtk.TreeView()
 		self.network_list.connect("button-press-event", self.on_network_list_network_popup)
 		num=0
@@ -501,16 +498,20 @@ class MainWindow(KismonWindows):
 			cell = gtk.CellRendererText()
 			tvcolumn.pack_start(cell, True)
 			tvcolumn.add_attribute(cell, 'text', num)
+			tvcolumn.set_sort_column_id(num)
+			tvcolumn.set_clickable(True)
 			num += 1
 		
-		self.log_list_treestore = gtk.TreeStore(
-			gobject.TYPE_STRING,gobject.TYPE_STRING
+		self.log_list_treestore = gtk.ListStore(
+			gobject.TYPE_STRING, #time
+			gobject.TYPE_STRING, #message
 			)
 		self.log_list.set_model(self.log_list_treestore)
 		
 	def add_to_log_list(self, message):
-		self.log_list_treestore.prepend(None, 
-			[time.strftime("%H:%M:%S"), message])
+		row = self.log_list_treestore.append([show_timestamp(time.time()), message])
+		path = self.log_list_treestore.get_path(row)
+		self.log_list.scroll_to_cell(path)
 	
 	def init_info_table(self):
 		table = gtk.Table(2, 2)
