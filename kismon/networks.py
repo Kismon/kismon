@@ -56,6 +56,8 @@ class Networks:
 		self.queue_task = None
 		self.num_backups = 5
 		self.autosave_task = None
+		self.autosave_filename = None
+		self.autosave_notify = None
 		
 	def get_network(self, mac):
 		return self.networks[mac]
@@ -79,15 +81,19 @@ class Networks:
 		if os.path.isfile(filename):
 			os.rename(filename, filename + ".0")
 		os.rename(tmpfilename, filename)
-		
 		return True
 		
-	def set_autosave(self, minutes, filename, notify):
+	def set_autosave(self, minutes, filename=None, notify=None):
+		if filename is not None:
+			self.autosave_filename = filename
+		if notify is not None:
+			self.autosave_notify = notify
+		
 		if self.autosave_task is not None:
 			gobject.source_remove(self.autosave_task)
 		
 		if minutes > 0:
-			self.autosave_task = gobject.timeout_add(minutes * 60 * 1000, self.save, filename, notify)
+			self.autosave_task = gobject.timeout_add(minutes * 60 * 1000, self.save, self.autosave_filename, self.autosave_notify)
 		
 	def load(self, filename):
 		f = open(filename)

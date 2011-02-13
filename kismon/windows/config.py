@@ -18,6 +18,11 @@ class ConfigWindow:
 		self.notebook = gtk.Notebook()
 		self.gtkwin.add(self.notebook)
 		
+		general_page = gtk.Table(rows=2, columns=1)
+		self.notebook.append_page(general_page)
+		self.notebook.set_tab_label_text(general_page, "General")
+		self.init_general_page(general_page)
+		
 		map_page = gtk.Table(rows=2, columns=1)
 		self.notebook.append_page(map_page)
 		self.notebook.set_tab_label_text(map_page, "Map")
@@ -29,7 +34,70 @@ class ConfigWindow:
 			self.init_map_page(map_page)
 		
 		self.gtkwin.show_all()
-	
+		
+	def init_general_page(self, page):
+		table = gtk.Table()
+		page.attach(table, 0, 1, 0, 1, yoptions=gtk.SHRINK)
+		
+		label = gtk.Label("<b>Log List</b>")
+		label.set_use_markup(True)
+		label.set_alignment(xalign=0, yalign=0)
+		table.attach(label, 0, 1, 0, 1)
+		
+		label = gtk.Label("Max rows in the log list: ")
+		label.set_alignment(xalign=0, yalign=0.5)
+		label.set_justify(gtk.JUSTIFY_RIGHT)
+		table.attach(label, 0, 1, 1, 2, xoptions=gtk.FILL)
+		
+		field = gtk.SpinButton()
+		field.set_numeric(True)
+		field.set_max_length(5)
+		field.set_increments(1,100)
+		field.set_range(-1,99999)
+		field.set_value(self.config["window"]["log_list_max"])
+		field.connect("output", self.on_change_log_list_max)
+		table.attach(field, 1, 2, 1, 2, xoptions=gtk.SHRINK)
+		
+		label = gtk.Label("-1 = unlimited 0 = disable")
+		label.set_alignment(xalign=0, yalign=0.5)
+		table.attach(label, 0, 1, 2, 3)
+		
+		table.set_row_spacing(2,10)
+		
+		label = gtk.Label("<b>Autosave</b>")
+		label.set_use_markup(True)
+		label.set_alignment(xalign=0, yalign=0.5)
+		table.attach(label, 0, 1, 3, 4)
+		
+		label = gtk.Label("Save the networks every (in minutes):")
+		label.set_alignment(xalign=0, yalign=0.5)
+		table.attach(label, 0, 1, 4, 5, xoptions=gtk.FILL)
+		
+		field = gtk.SpinButton()
+		field.set_numeric(True)
+		field.set_max_length(5)
+		field.set_increments(1,100)
+		field.set_range(0,99999)
+		field.set_value(self.config["networks"]["autosave"])
+		field.connect("output", self.on_change_autosave)
+		table.attach(field, 1, 2, 4, 5, xoptions=gtk.SHRINK)
+		
+		label = gtk.Label("0 = disable")
+		label.set_alignment(xalign=0, yalign=0.5)
+		table.attach(label, 0, 1, 5, 6)
+		
+	def on_change_log_list_max(self, widget):
+		if self.config["window"]["log_list_max"] == int(widget.get_value()):
+			return
+		self.config["window"]["log_list_max"] = int(widget.get_value())
+		self.main_window.log_list.cleanup(0)
+		
+	def on_change_autosave(self, widget):
+		if self.config["networks"]["autosave"] == int(widget.get_value()):
+			return
+		self.config["networks"]["autosave"] = int(widget.get_value())
+		self.main_window.networks.set_autosave(self.config["networks"]["autosave"])
+		
 	def init_map_page(self, map_page):
 		position_frame = gtk.Frame("Position")
 		map_page.attach(position_frame, 0, 1, 0, 1, yoptions=gtk.SHRINK)
