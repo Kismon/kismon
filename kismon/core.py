@@ -278,6 +278,8 @@ Last seen: %s"""
 		
 		if len(self.networks.notify_add_queue) > 0:
 			self.networks.start_queue()
+			if len(self.networks.notify_add_queue) > 500:
+				self.main_window.networks_queue_progress()
 		
 		self.main_window.update_statusbar()
 		if self.map_widget is not None:

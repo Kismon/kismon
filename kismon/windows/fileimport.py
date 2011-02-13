@@ -5,8 +5,9 @@ import gtk
 import gobject
 
 class FileImportWindow:
-	def __init__(self, networks):
+	def __init__(self, networks, networks_queue_progress):
 		self.networks = networks
+		self.networks_queue_progress = networks_queue_progress
 		self.files = {}
 		self.parser_queue = ()
 		self.gtkwin = gtk.Window()
@@ -31,7 +32,7 @@ class FileImportWindow:
 		add_dir_button = gtk.Button("Add directories")
 		add_dir_button.connect("clicked", self.on_add, "dir")
 		button_box.pack_start(add_dir_button, expand=False, fill=False, padding=0)
-		self.start_button = gtk.Button("Start Import")
+		self.start_button = gtk.Button("Start")
 		self.start_button.connect("clicked", self.on_start)
 		button_box.pack_end(self.start_button, expand=False, fill=False, padding=0)
 		
@@ -162,7 +163,7 @@ class FileImportWindow:
 		main_box.pack_start(self.progress_bar, expand=False, fill=True, padding=0)
 		
 		button_box = gtk.VButtonBox()
-		self.close_button = gtk.Button("Close")
+		self.close_button = gtk.Button("Finish")
 		self.close_button.connect("clicked", self.on_close)
 		self.close_button.set_sensitive(False)
 		button_box.add(self.close_button)
@@ -173,11 +174,13 @@ class FileImportWindow:
 		if len(self.parser_queue) == 0:
 			self.close_button.set_sensitive(True)
 		else:
-			gobject.timeout_add(20, self.parse_file)
+			self.networks.block_queue_start = True
+			gobject.idle_add(self.parse_file)
 		
 	def parse_file(self):
 		filename = self.parser_queue.pop()
 		filetype = self.files[filename]["filetype"]
+		print "Reading %s" % filename
 		num_new = 0 - len(self.networks.networks)
 		if filetype != "unknown":
 			try:
@@ -201,6 +204,7 @@ class FileImportWindow:
 		self.progress_bar.set_text("%s of %s Files" % (pos, num_files))
 		self.progress_bar.set_fraction(1.0 / num_files * pos)
 		
+		print "Parsing done"
 		if len(self.parser_queue) == 0:
 			self.close_button.set_sensitive(True)
 		else:
@@ -208,3 +212,6 @@ class FileImportWindow:
 		
 	def on_close(self, widget):
 		self.gtkwin.destroy()
+		self.networks.block_queue_start = False
+		self.networks.start_queue()
+		self.networks_queue_progress()

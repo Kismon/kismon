@@ -50,6 +50,7 @@ class Networks:
 		self.notify_start = []
 		self.notify_stop = []
 		self.queue_running = False
+		self.block_queue_start = False
 		self.notify_remove_list = []
 		self.temp_ssid_data = {}
 		self.queue_task = None
@@ -163,7 +164,7 @@ class Networks:
 		yield False
 		
 	def start_queue(self):
-		if self.queue_task is not None:
+		if self.queue_task is not None or self.block_queue_start:
 			return
 		task = self.notify_add_queue_process()
 		self.queue_task = gobject.idle_add(task.next)

@@ -75,6 +75,7 @@ class MainWindow(KismonWindows):
 		KismonWindows.__init__(self)
 		self.config = config
 		self.config_window = None
+		self.progress_bar_win = None
 		self.client_start = client_start
 		self.client_stop = client_stop
 		self.networks = networks
@@ -296,13 +297,15 @@ class MainWindow(KismonWindows):
 				else:
 					self.networks.filters["type"].remove(network_type)
 				break
-		self.networks_apply_filters()
+		self.networks.apply_filters()
+		self.networks_queue_progress()
 		
 	def on_network_filter_networks(self, widget, value):
 		if not widget.get_active():
 			return
 		self.networks.filters["networks"] = value
-		self.networks_apply_filters()
+		self.networks.apply_filters()
+		self.networks_queue_progress()
 		
 	def on_network_filter_crypt(self, widget):
 		crypt = widget.get_label().lower()
@@ -312,10 +315,13 @@ class MainWindow(KismonWindows):
 		else:
 			self.networks.filters["crypt"].remove(crypt)
 		
-		self.networks_apply_filters()
-		
-	def networks_apply_filters(self):
 		self.networks.apply_filters()
+		self.networks_queue_progress()
+		
+	def networks_queue_progress(self):
+		if self.progress_bar_win is not None:
+			return
+		
 		self.progress_bar_max = float(len(self.networks.notify_add_queue))
 		if self.networks.queue_task:
 			self.progress_bar = gtk.ProgressBar()
@@ -323,7 +329,7 @@ class MainWindow(KismonWindows):
 			self.progress_bar.set_fraction(0)
 			
 			self.progress_bar_win = gtk.Window()
-			self.progress_bar_win.set_title("Applying filter")
+			self.progress_bar_win.set_title("Adding networks")
 			self.progress_bar_win.set_position(gtk.WIN_POS_CENTER)
 			self.progress_bar_win.set_default_size(300, 30)
 			self.progress_bar_win.set_modal(True)
@@ -333,10 +339,11 @@ class MainWindow(KismonWindows):
 			def on_delete_event(widget, event):
 				return True
 			self.progress_bar_win.connect("delete-event",on_delete_event)
+			self.progress_bar_win.connect("destroy", self.on_destroy_progress_bar_win)
 			
-			gobject.idle_add(self.networks_apply_filters_progress)
+			gobject.idle_add(self.networks_queue_progress_update)
 			
-	def networks_apply_filters_progress(self):
+	def networks_queue_progress_update(self):
 		if self.networks.queue_task is None:
 			self.progress_bar_win.destroy()
 			return False
@@ -344,6 +351,9 @@ class MainWindow(KismonWindows):
 		self.progress_bar.set_text("%s%%, %s networks left" % (round(progress, 1), len(self.networks.notify_add_queue)))
 		self.progress_bar.set_fraction(progress/100)
 		return True
+		
+	def on_destroy_progress_bar_win(self, window):
+		self.progress_bar_win = None
 		
 	def init_info_table(self):
 		table = gtk.Table(2, 2)
@@ -568,7 +578,7 @@ class MainWindow(KismonWindows):
 			self.battery_bar.set_fraction(0)
 	
 	def on_file_import(self, widget):
-		file_import_window = FileImportWindow(self.networks)
+		file_import_window = FileImportWindow(self.networks, self.networks_queue_progress)
 		file_import_window.gtkwin.set_transient_for(self.gtkwin)
 		file_import_window.gtkwin.set_modal(True)
 		
