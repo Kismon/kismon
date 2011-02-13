@@ -44,6 +44,7 @@ class Config:
 				"width": 800,
 				"height": 600,
 				"map_position": "hide",
+				"log_list_max": 50,
 				},
 			"map": {
 				"marker_style": "image",

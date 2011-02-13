@@ -152,7 +152,7 @@ class MainWindow(KismonWindows):
 		battery_expander.add(self.battery_bar)
 		self.set_battery_bar(100.0)
 		
-		self.log_list = LogList()
+		self.log_list = LogList(self.config["window"])
 		vpaned_main.add2(self.notebook)
 		self.notebook.append_page(self.log_list.widget)
 		self.notebook.set_tab_label_text(self.log_list.widget, "Log")
@@ -591,7 +591,9 @@ class MainWindow(KismonWindows):
 		win = ChannelWindow(self.sources, self.client)
 		
 class LogList:
-	def __init__(self):
+	def __init__(self, config):
+		self.rows = []
+		self.config = config
 		self.treeview = gtk.TreeView()
 		num=0
 		for column in ("Time", "Message"):
@@ -618,9 +620,37 @@ class LogList:
 		self.widget = log_scrolled
 		
 	def add(self, message):
+		if not self.cleanup():
+			return
+		
 		row = self.store.append([show_timestamp(time.time()), message])
 		path = self.store.get_path(row)
 		self.treeview.scroll_to_cell(path)
+		self.rows.append(row)
+		
+	def cleanup(self, new=1):
+		max_rows = self.config["log_list_max"]
+		num_rows = len(self.rows)
+		
+		if max_rows == -1:
+			return True
+		if num_rows == 0 and max_rows == 0:
+			return False
+		
+		if max_rows - new < 0:
+			stop = 0
+		else:
+			stop = max_rows - new
+		
+		while num_rows > stop:
+			row = self.rows.pop(0)
+			self.store.remove(row)
+			num_rows -= 1
+		
+		if max_rows == 0:
+			return False
+		
+		return True
 		
 class NetworkList:
 	def __init__(self, networks, locate_network_on_map, on_signal_graph):
