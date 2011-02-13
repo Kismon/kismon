@@ -78,10 +78,20 @@ class MainWindow(KismonWindows):
 		self.client_start = client_start
 		self.client_stop = client_stop
 		self.networks = networks
-		self.networks.notify_add_list.append(self.network_list_add_network)
-		self.networks.notify_remove_list.append(self.network_list_remove_network)
-		self.networks.notify_start.append(self.network_list_pause)
-		self.networks.notify_stop.append(self.network_list_resume)
+		self.map_widget = map_widget
+		if self.map_widget is not None:
+			self.map = map_widget.map
+		
+		if map_widget is not None:
+			locate_marker = self.map.locate_marker
+		else:
+			locate_marker = None
+		
+		self.network_list = NetworkList(self.networks, locate_marker, self.on_signal_graph)
+		self.networks.notify_add_list.append(self.network_list.add_network)
+		self.networks.notify_remove_list.append(self.network_list.remove_network)
+		self.networks.notify_start.append(self.network_list.pause)
+		self.networks.notify_stop.append(self.network_list.resume)
 		
 		self.gtkwin.set_title("Kismon")
 		self.gtkwin.connect("window-state-event", self.on_window_state)
@@ -93,25 +103,15 @@ class MainWindow(KismonWindows):
 		if self.config["window"]["maximized"] is True:
 			self.gtkwin.maximize()
 		
-		self.map_widget = map_widget
-		if self.map_widget is not None:
-			self.map = map_widget.map
 		self.network_filter = {}
-		self.network_lines = {}
-		self.network_iter = {}
-		self.network_list_network_selected = None
 		self.signal_graphs = {}
 		self.sources = sources
 		self.client = client
-		
-		self.network_scrolled = gtk.ScrolledWindow()
-		self.network_scrolled.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
 		
 		self.notebook = gtk.Notebook()
 		
 		vbox = gtk.VBox()
 		self.gtkwin.add(vbox)
-		
 		vbox.pack_start(self.init_menu(), expand=False, fill=False, padding=0)
 		
 		vpaned_main = gtk.VPaned()
@@ -119,11 +119,7 @@ class MainWindow(KismonWindows):
 		vbox.add(vpaned_main)
 		hbox = gtk.HBox()
 		vpaned_main.add1(hbox)
-		
-		network_frame = gtk.Frame("Networks")
-		network_frame.add(self.network_scrolled)
-		hbox.pack_start(network_frame, expand=True, fill=True, padding=0)
-		self.init_network_list()
+		hbox.pack_start(self.network_list.widget, expand=True, fill=True, padding=0)
 		
 		right_table = gtk.Table(rows=3, columns=1)
 		right_scrolled = gtk.ScrolledWindow()
@@ -289,119 +285,6 @@ class MainWindow(KismonWindows):
 		
 		return menubar
 	
-	def init_network_list(self):
-		self.network_list = gtk.TreeView()
-		self.network_list.connect("button-press-event", self.on_network_list_network_popup)
-		num=0
-		columns=("BSSID", "Type", "SSID", "Ch", "Crypt",
-			"First Seen", "Last Seen", "Latitude", "Longitude",
-			"Signal dbm")
-		for column in columns:
-			tvcolumn = gtk.TreeViewColumn(column)
-			self.network_list.append_column(tvcolumn)
-			cell = gtk.CellRendererText()
-			tvcolumn.pack_start(cell, True)
-			tvcolumn.add_attribute(cell, 'text', num)
-			tvcolumn.set_sort_column_id(num)
-			tvcolumn.set_clickable(True)
-			tvcolumn.set_resizable(True)
-			tvcolumn.connect("clicked", self.on_column_clicked)
-			tvcolumn.num = num
-			num+=1
-		self.network_list.show()
-		
-		self.network_list_treestore = gtk.ListStore(
-			gobject.TYPE_STRING, #mac
-			gobject.TYPE_STRING, #type
-			gobject.TYPE_STRING, #ssid
-			gobject.TYPE_INT, #channel
-			gobject.TYPE_STRING, #cryptset
-			gobject.TYPE_STRING, #firsttime
-			gobject.TYPE_STRING, #lasttime
-			gobject.TYPE_FLOAT, #lat
-			gobject.TYPE_FLOAT, #lon
-			gobject.TYPE_INT, #signal dbm
-			)
-		self.network_list.set_model(self.network_list_treestore)
-		self.network_scrolled.add(self.network_list)
-		self.network_list_treestore.set_sort_column_id(6, gtk.SORT_DESCENDING)
-		
-		network_menu = gtk.Menu()
-		locate_item = gtk.MenuItem('Locate on map')
-		network_menu.append(locate_item)
-		locate_item.connect("activate", self.on_map_locate_marker)
-		
-		signal_item = gtk.MenuItem('Signal graph')
-		network_menu.append(signal_item)
-		signal_item.connect("activate", self.on_signal_graph)
-		
-		network_menu.show_all()
-		self.network_list_network_menu = network_menu
-	
-	def network_list_add_network(self, mac):
-		network = self.networks.get_network(mac)
-		try:
-			crypt = self.crypt_cache[network["cryptset"]]
-		except KeyError:
-			crypt = client.decode_cryptset(network["cryptset"], True)
-			self.crypt_cache[network["cryptset"]] = crypt
-		
-		if network["ssid"] == "":
-			ssid_str = "<no ssid>"
-		else:
-			ssid_str = network["ssid"]
-			
-		if "signal_dbm" in network:
-			signal = network["signal_dbm"]["last"]
-		else:
-			signal = 0
-		
-		line = [mac,
-				network["type"],
-				ssid_str,
-				network["channel"],
-				crypt,
-				show_timestamp(network["firsttime"]),
-				show_timestamp(network["lasttime"]),
-				network["lat"],
-				network["lon"],
-				signal
-				]
-		try:
-			old_line = self.network_lines[mac]
-		except:
-			old_line = None
-		self.network_lines[mac] = line
-		storage = self.network_list_treestore
-		if mac in self.network_iter:
-			network_iter = self.network_iter[mac]
-			num = 0
-			for value in line:
-				if old_line is not None and old_line.pop(0) == value:
-					num += 1
-					continue
-				storage.set_value(network_iter, num, value)
-				num += 1
-		else:
-			self.network_iter[mac] = storage.append(line)
-		
-	def network_list_remove_network(self, mac):
-		try:
-			network_iter = self.network_iter[mac]
-		except KeyError:
-			return
-		
-		self.network_list_treestore.remove(network_iter)
-		del(self.network_iter[mac])
-		
-	def network_list_pause(self):
-		self.network_list.freeze_child_notify()
-		self.network_list.set_model(None)
-		
-	def network_list_resume(self):
-		self.network_list.set_model(self.network_list_treestore)
-		self.network_list.thaw_child_notify()
-		
 	def on_network_filter_type(self, widget):
 		types = ("infrastructure", "ad-hoc", "probe", "data")
 		label = widget.get_label().lower()
@@ -461,28 +344,6 @@ class MainWindow(KismonWindows):
 		self.progress_bar.set_text("%s%%, %s networks left" % (round(progress, 1), len(self.networks.notify_add_queue)))
 		self.progress_bar.set_fraction(progress/100)
 		return True
-		
-	def on_network_list_network_popup(self, treeview, event):
-		if event.button != 3: # right click
-			return
-		
-		storage = self.network_list_treestore
-		x = int(event.x)
-		y = int(event.y)
-		pthinfo = treeview.get_path_at_pos(x, y)
-		if pthinfo is None:
-			return
-		
-		path, col, cellx, celly = pthinfo
-		treeview.grab_focus()
-		treeview.set_cursor(path, col, 0)
-		network_iter = storage.get_iter(path)
-		mac = storage.get_value(network_iter, 0)
-		self.network_list_network_selected = mac
-		self.network_list_network_menu.popup(None, None, None, event.button, event.time)
-		
-	def on_column_clicked(self, widget):
-		self.network_list.set_search_column(widget.num)
 		
 	def init_info_table(self):
 		table = gtk.Table(2, 2)
@@ -658,10 +519,6 @@ class MainWindow(KismonWindows):
 			if page >= 0:
 				self.notebook.remove_page(page)
 			
-	def on_map_locate_marker(self, widget):
-		if self.map_widget is not None:
-			self.map.locate_marker(self.network_list_network_selected)
-		
 	def on_about_dialog(self, widget):
 		dialog = gtk.AboutDialog()
 		dialog.set_name("Kismon")
@@ -695,7 +552,7 @@ class MainWindow(KismonWindows):
 		self.config_window = ConfigWindow(self)
 		
 	def on_signal_graph(self, widget):
-		mac = self.network_list_network_selected
+		mac = self.network_list.network_selected
 		signal_window = SignalWindow(mac, self.on_signal_graph_destroy)
 		self.signal_graphs[mac] = signal_window
 		
@@ -754,6 +611,162 @@ class LogList:
 		row = self.store.append([show_timestamp(time.time()), message])
 		path = self.store.get_path(row)
 		self.treeview.scroll_to_cell(path)
+		
+class NetworkList:
+	def __init__(self, networks, locate_network_on_map, on_signal_graph):
+		self.network_lines = {}
+		self.network_iter = {}
+		self.network_selected = None
+		self.locate_network_on_map = locate_network_on_map
+		self.on_signal_graph = on_signal_graph
+		self.networks = networks
+		
+		self.treeview = gtk.TreeView()
+		self.treeview.connect("button-press-event", self.on_popup)
+		num=0
+		columns=("BSSID", "Type", "SSID", "Ch", "Crypt",
+			"First Seen", "Last Seen", "Latitude", "Longitude",
+			"Signal dbm")
+		for column in columns:
+			tvcolumn = gtk.TreeViewColumn(column)
+			self.treeview.append_column(tvcolumn)
+			cell = gtk.CellRendererText()
+			tvcolumn.pack_start(cell, True)
+			tvcolumn.add_attribute(cell, 'text', num)
+			tvcolumn.set_sort_column_id(num)
+			tvcolumn.set_clickable(True)
+			tvcolumn.set_resizable(True)
+			tvcolumn.connect("clicked", self.on_column_clicked)
+			tvcolumn.num = num
+			num+=1
+		self.treeview.show()
+		
+		self.store = gtk.ListStore(
+			gobject.TYPE_STRING, #mac
+			gobject.TYPE_STRING, #type
+			gobject.TYPE_STRING, #ssid
+			gobject.TYPE_INT, #channel
+			gobject.TYPE_STRING, #cryptset
+			gobject.TYPE_STRING, #firsttime
+			gobject.TYPE_STRING, #lasttime
+			gobject.TYPE_FLOAT, #lat
+			gobject.TYPE_FLOAT, #lon
+			gobject.TYPE_INT, #signal dbm
+			)
+		self.treeview.set_model(self.store)
+		
+		scrolled = gtk.ScrolledWindow()
+		scrolled.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+		scrolled.add(self.treeview)
+		
+		frame = gtk.Frame("Networks")
+		frame.add(scrolled)
+		
+		self.widget = frame
+		
+		self.store.set_sort_column_id(6, gtk.SORT_DESCENDING)
+		
+		network_popup = gtk.Menu()
+		locate_item = gtk.MenuItem('Locate on map')
+		network_popup.append(locate_item)
+		locate_item.connect("activate", self.on_locate_marker)
+		
+		signal_item = gtk.MenuItem('Signal graph')
+		network_popup.append(signal_item)
+		signal_item.connect("activate", self.on_signal_graph)
+		
+		network_popup.show_all()
+		self.network_popup = network_popup
+	
+	def on_column_clicked(self, widget):
+		self.network_list.set_search_column(widget.num)
+	
+	def add_network(self, mac):
+		network = self.networks.get_network(mac)
+		try:
+			crypt = self.crypt_cache[network["cryptset"]]
+		except KeyError:
+			crypt = client.decode_cryptset(network["cryptset"], True)
+			self.crypt_cache[network["cryptset"]] = crypt
+		
+		if network["ssid"] == "":
+			ssid_str = "<no ssid>"
+		else:
+			ssid_str = network["ssid"]
+			
+		if "signal_dbm" in network:
+			signal = network["signal_dbm"]["last"]
+		else:
+			signal = 0
+		
+		line = [mac,
+				network["type"],
+				ssid_str,
+				network["channel"],
+				crypt,
+				show_timestamp(network["firsttime"]),
+				show_timestamp(network["lasttime"]),
+				network["lat"],
+				network["lon"],
+				signal
+				]
+		try:
+			old_line = self.network_lines[mac]
+		except:
+			old_line = None
+		self.network_lines[mac] = line
+		
+		if mac in self.network_iter:
+			network_iter = self.network_iter[mac]
+			num = 0
+			for value in line:
+				if old_line is not None and old_line.pop(0) == value:
+					num += 1
+					continue
+				self.store.set_value(network_iter, num, value)
+				num += 1
+		else:
+			self.network_iter[mac] = self.store.append(line)
+		
+	def remove_network(self, mac):
+		try:
+			network_iter = self.network_iter[mac]
+		except KeyError:
+			return
+		
+		self.store.remove(network_iter)
+		del(self.network_iter[mac])
+		
+	def pause(self):
+		self.treeview.freeze_child_notify()
+		self.treeview.set_model(None)
+		
+	def resume(self):
+		self.treeview.set_model(self.store)
+		self.treeview.thaw_child_notify()
+		
+	def on_popup(self, treeview, event):
+		if event.button != 3: # right click
+			return
+		
+		x = int(event.x)
+		y = int(event.y)
+		pthinfo = treeview.get_path_at_pos(x, y)
+		if pthinfo is None:
+			return
+		
+		path, col, cellx, celly = pthinfo
+		treeview.grab_focus()
+		treeview.set_cursor(path, col, 0)
+		network_iter = self.store.get_iter(path)
+		mac = self.store.get_value(network_iter, 0)
+		self.network_selected = mac
+		self.network_popup.popup(None, None, None, event.button, event.time)
+		
+	def on_locate_marker(self, widget):
+		if self.locate_network_on_map is not None:
+			self.locate_network_on_map(self.network_selected)
+		
 		
 class MapWindow(KismonWindows):
 	def __init__(self, map_widget):

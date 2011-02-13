@@ -191,13 +191,13 @@ def gui_main_window():
 	test_networks =  networks()
 	
 	main_window = MainWindow(test_config, dummy, dummy, test_map, test_networks, None, None)
-	main_window.crypt_cache = {}
+	main_window.network_list.crypt_cache = {}
 	
 	main_window.log_list.add("test")
-	main_window.network_list_network_selected = "11:22:33:44:55:66"
-	main_window.network_list_add_network('00:12:2A:03:B9:12')
-	main_window.network_list_add_network('00:12:2A:03:B9:12')
-	main_window.network_list_remove_network('00:12:2A:03:B9:12')
+	main_window.network_list.network_selected = "11:22:33:44:55:66"
+	main_window.network_list.add_network('00:12:2A:03:B9:12')
+	main_window.network_list.add_network('00:12:2A:03:B9:12')
+	main_window.network_list.remove_network('00:12:2A:03:B9:12')
 	main_window.update_info_table({"networks":100, "packets":200})
 	main_window.update_gps_table({"fix": 3, "lat": 52.0, "lon": 13.0})
 	sources = {"1": {"uuid": "1", "username": "test", "type": "bla",

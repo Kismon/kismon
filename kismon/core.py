@@ -148,7 +148,7 @@ Last seen: %s"""
 			self.networks.notify_add_list.append(self.add_network_to_map)
 			self.networks.notify_remove_list.append(self.map.remove_marker)
 		
-		self.main_window.crypt_cache = self.crypt_cache
+		self.main_window.network_list.crypt_cache = self.crypt_cache
 		
 		self.battery_max = None
 		self.battery = None
