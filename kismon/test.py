@@ -193,7 +193,7 @@ def gui_main_window():
 	main_window = MainWindow(test_config, dummy, dummy, test_map, test_networks, None, None)
 	main_window.crypt_cache = {}
 	
-	main_window.add_to_log_list("test")
+	main_window.log_list.add("test")
 	main_window.network_list_network_selected = "11:22:33:44:55:66"
 	main_window.network_list_add_network('00:12:2A:03:B9:12')
 	main_window.network_list_add_network('00:12:2A:03:B9:12')

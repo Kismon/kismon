@@ -117,11 +117,11 @@ Last seen: %s"""
 			self.networks,
 			self.sources,
 			self.client_thread.client)
-		self.main_window.add_to_log_list("Kismon started")
+		self.main_window.log_list.add("Kismon started")
 		if self.map_error is not None:
-			self.main_window.add_to_log_list(self.map_error)
+			self.main_window.log_list.add(self.map_error)
 		if memphis_error is not None:
-			self.main_window.add_to_log_list(memphis_error)
+			self.main_window.log_list.add(memphis_error)
 		
 		self.networks_file = "%snetworks.json" % user_dir
 		if os.path.isfile(self.networks_file):
@@ -142,7 +142,7 @@ Last seen: %s"""
 					self.client_thread.stop()
 					self.main_window.gtkwin = None
 					return
-		self.networks.set_autosave(self.config["networks"]["autosave"], self.networks_file, self.main_window.add_to_log_list)
+		self.networks.set_autosave(self.config["networks"]["autosave"], self.networks_file, self.main_window.log_list.add)
 		
 		if self.map_widget is not None:
 			self.networks.notify_add_list.append(self.add_network_to_map)
@@ -204,7 +204,7 @@ Last seen: %s"""
 			
 		if len(self.client_thread.client.error) > 0:
 			for error in self.client_thread.client.error:
-				self.main_window.add_to_log_list(error)
+				self.main_window.log_list.add(error)
 			self.client_thread.client.error = []
 		
 		#gps
@@ -228,7 +228,7 @@ Last seen: %s"""
 		
 		#status
 		for data in self.client_thread.get_queue("status"):
-			self.main_window.add_to_log_list(data["text"])
+			self.main_window.log_list.add(data["text"])
 		
 		#info
 		info_queue = self.client_thread.get_queue("info")

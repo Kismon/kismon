@@ -155,15 +155,10 @@ class MainWindow(KismonWindows):
 		battery_expander.add(self.battery_bar)
 		self.set_battery_bar(100.0)
 		
-		self.create_log_list()
-		log_scrolled = gtk.ScrolledWindow()
-		log_scrolled.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-		log_scrolled.set_shadow_type(gtk.SHADOW_NONE)
-		log_scrolled.add(self.log_list)
-		
+		self.log_list = LogList()
 		vpaned_main.add2(self.notebook)
-		self.notebook.append_page(log_scrolled)
-		self.notebook.set_tab_label_text(log_scrolled, "Log")
+		self.notebook.append_page(self.log_list.widget)
+		self.notebook.set_tab_label_text(self.log_list.widget, "Log")
 		
 		self.statusbar = gtk.Statusbar()
 		self.statusbar_context = self.statusbar.get_context_id("Starting...")
@@ -489,30 +484,6 @@ class MainWindow(KismonWindows):
 	def on_column_clicked(self, widget):
 		self.network_list.set_search_column(widget.num)
 		
-	def create_log_list(self):
-		self.log_list = gtk.TreeView()
-		num=0
-		for column in ("Time", "Message"):
-			tvcolumn = gtk.TreeViewColumn(column)
-			self.log_list.append_column(tvcolumn)
-			cell = gtk.CellRendererText()
-			tvcolumn.pack_start(cell, True)
-			tvcolumn.add_attribute(cell, 'text', num)
-			tvcolumn.set_sort_column_id(num)
-			tvcolumn.set_clickable(True)
-			num += 1
-		
-		self.log_list_treestore = gtk.ListStore(
-			gobject.TYPE_STRING, #time
-			gobject.TYPE_STRING, #message
-			)
-		self.log_list.set_model(self.log_list_treestore)
-		
-	def add_to_log_list(self, message):
-		row = self.log_list_treestore.append([show_timestamp(time.time()), message])
-		path = self.log_list_treestore.get_path(row)
-		self.log_list.scroll_to_cell(path)
-	
 	def init_info_table(self):
 		table = gtk.Table(2, 2)
 		
@@ -751,6 +722,38 @@ class MainWindow(KismonWindows):
 		
 	def on_channel_config(self, widget):
 		win = ChannelWindow(self.sources, self.client)
+		
+class LogList:
+	def __init__(self):
+		self.treeview = gtk.TreeView()
+		num=0
+		for column in ("Time", "Message"):
+			tvcolumn = gtk.TreeViewColumn(column)
+			self.treeview.append_column(tvcolumn)
+			cell = gtk.CellRendererText()
+			tvcolumn.pack_start(cell, True)
+			tvcolumn.add_attribute(cell, 'text', num)
+			tvcolumn.set_sort_column_id(num)
+			tvcolumn.set_clickable(True)
+			num += 1
+		
+		self.store = gtk.ListStore(
+			gobject.TYPE_STRING, #time
+			gobject.TYPE_STRING, #message
+			)
+		self.treeview.set_model(self.store)
+		
+		log_scrolled = gtk.ScrolledWindow()
+		log_scrolled.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+		log_scrolled.set_shadow_type(gtk.SHADOW_NONE)
+		log_scrolled.add(self.treeview)
+		
+		self.widget = log_scrolled
+		
+	def add(self, message):
+		row = self.store.append([show_timestamp(time.time()), message])
+		path = self.store.get_path(row)
+		self.treeview.scroll_to_cell(path)
 		
 class MapWindow(KismonWindows):
 	def __init__(self, map_widget):
