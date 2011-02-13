@@ -236,7 +236,7 @@ def gui_main_window():
 	config_window.on_map_source_memphis(test_widget)
 	config_window.on_memphis_rules(test_widget, "default")
 	
-	file_import_window = FileImportWindow(test_networks)
+	file_import_window = FileImportWindow(test_networks, None)
 	filename = "/tmp/test-networks.json"
 	test_networks.save(filename)
 	file_import_window.add_file(filename)
