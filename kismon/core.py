@@ -87,7 +87,7 @@ Last seen: %s"""
 		
 		self.sources = {}
 		self.crypt_cache = {}
-		self.networks = Networks()
+		self.networks = Networks(self.config)
 		
 		self.init_client_thread()
 		if self.config["kismet"]["connect"] is True:
@@ -145,8 +145,8 @@ Last seen: %s"""
 		self.networks.set_autosave(self.config["networks"]["autosave"], self.networks_file, self.main_window.log_list.add)
 		
 		if self.map_widget is not None:
-			self.networks.notify_add_list.append(self.add_network_to_map)
-			self.networks.notify_remove_list.append(self.map.remove_marker)
+			self.networks.notify_add_list["map"] = self.add_network_to_map
+			self.networks.notify_remove_list["map"] = self.map.remove_marker
 		
 		self.main_window.network_list.crypt_cache = self.crypt_cache
 		

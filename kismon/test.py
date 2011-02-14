@@ -171,6 +171,8 @@ def core():
 	test_core.client_stop()
 	
 def core_tests(test_core):
+	test_networks = networks()
+	test_core.networks = test_networks
 	test_data = get_client_test_data()[2]
 	for line in test_data:
 		if line is None:
@@ -251,7 +253,7 @@ def gui_main_window():
 	
 	test_widget.text = "Infrastructure"
 	main_window.on_network_filter_type(test_widget)
-	main_window.on_network_filter_networks(test_widget, "all")
+	main_window.on_network_filter_networks(test_widget, "map", "all")
 
 def gui_map_window():
 	test_config = Config(None).default_config["map"]
@@ -319,9 +321,16 @@ def map():
 	test_window.show_all()
 
 def networks():
+	def dummy(bla):
+		return
 	test_data = get_client_test_data()[2]
+	test_config = Config(None).default_config
 	
-	networks = Networks()
+	networks = Networks(test_config)
+	networks.notify_add_list["map"] = dummy
+	networks.notify_add_list["network_list"] = dummy
+	networks.notify_remove_list["map"] = dummy
+	networks.notify_remove_list["network_list"] = dummy
 	for x in range(2):
 		for data in test_data:
 			if data is not None and data[0] == "bssid":

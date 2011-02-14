@@ -37,21 +37,17 @@ import gobject
 from client import *
 
 class Networks:
-	def __init__(self):
+	def __init__(self, config):
 		self.networks = {}
-		self.filters = {
-			"networks": "current",
-			"type": ["infrastructure"],
-			"crypt": ["none", "wep", "wpa", "other"],
-		}
+		self.config = config
 		self.recent_networks = []
-		self.notify_add_list = []
+		self.notify_add_list = {}
 		self.notify_add_queue = []
+		self.notify_remove_list = {}
 		self.notify_start = []
 		self.notify_stop = []
 		self.queue_running = False
 		self.block_queue_start = False
-		self.notify_remove_list = []
 		self.temp_ssid_data = {}
 		self.queue_task = None
 		self.num_backups = 5
@@ -102,21 +98,11 @@ class Networks:
 		
 	def apply_filters(self):
 		self.stop_queue()
-		for mac in self.networks:
-			if self.check_filters(mac) is True:
-				self.notify_add_queue.append(mac)
-			else:
-				for function in self.notify_remove_list:
-					function(mac)
+		self.apply_filters_on_networks()
 		self.start_queue()
 		
-	def check_filters(self, mac):
-		if self.filters["networks"] == "current" and mac not in self.recent_networks:
-			return False
-		
-		network = self.networks[mac]
-		
-		if network["type"] not in self.filters["type"]:
+	def check_filter(self, network):
+		if self.config["filter_type"][network["type"]] == False:
 			return False
 		
 		crypts = decode_cryptset(network["cryptset"])
@@ -128,18 +114,39 @@ class Networks:
 			crypt = "wep"
 		else:
 			crypt = "other"
-		if crypt not in self.filters["crypt"]:
+		if self.config["filter_crypt"][crypt] == False:
 			return False
 		
 		return True
+		
+	def apply_filters_on_networks(self, networks=None):
+		if networks is None:
+			networks = self.networks
+		
+		targets = self.config["filter_networks"]
+		
+		for mac in networks:
+			network = self.networks[mac]
+			if self.check_filter(network):
+				for target in targets:
+					show = targets[target]
+					if show == "all":
+						self.notify_add_list[target](mac)
+					elif show == "current" and mac in self.recent_networks:
+						self.notify_add_list[target](mac)
+					else:
+						self.notify_remove_list[target](mac)
+			else:
+				for target in self.notify_remove_list:
+					self.notify_remove_list[target](mac)
+		
 		
 	def notify_add(self, mac):
 		if mac not in self.recent_networks:
 			self.recent_networks.append(mac)
 		
-		if self.check_filters(mac):
-			self.notify_add_queue.append(mac)
-			
+		self.apply_filters_on_networks((mac,))
+		
 	def notify_add_queue_process(self):
 		self.queue_running = True
 		start_time = time.time()
@@ -290,7 +297,7 @@ class Networks:
 		
 	def import_networks(self, filetype, filename):
 		if filetype == "networks":
-			parser = Networks()
+			parser = Networks(None)
 			parser.parse = parser.load
 		if filetype == "netxml":
 			parser = Netxml()

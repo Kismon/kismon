@@ -89,10 +89,6 @@ class MainWindow(KismonWindows):
 			locate_marker = None
 		
 		self.network_list = NetworkList(self.networks, locate_marker, self.on_signal_graph)
-		self.networks.notify_add_list.append(self.network_list.add_network)
-		self.networks.notify_remove_list.append(self.network_list.remove_network)
-		self.networks.notify_start.append(self.network_list.pause)
-		self.networks.notify_stop.append(self.network_list.resume)
 		
 		self.gtkwin.set_title("Kismon")
 		self.gtkwin.connect("window-state-event", self.on_window_state)
@@ -221,41 +217,46 @@ class MainWindow(KismonWindows):
 		view_menuitem.set_submenu(view_menu)
 		menubar.append(view_menuitem)
 		
-		network_type_menu = gtk.Menu()
-		network_menuitem = gtk.MenuItem("Network Type")
-		network_menuitem.set_submenu(network_type_menu)
-		view_menu.append(network_menuitem)
-		
-		show_infrastructure = gtk.CheckMenuItem('Infrastructure Networks')
-		show_infrastructure.set_active(True)
-		show_infrastructure.connect("activate", self.on_network_filter_type)
-		network_type_menu.append(show_infrastructure)
-		
-		show_probes = gtk.CheckMenuItem('Probe Networks')
-		show_probes.connect("activate", self.on_network_filter_type)
-		network_type_menu.append(show_probes)
-		
-		show_adhoc = gtk.CheckMenuItem('Ad-Hoc Networks')
-		show_adhoc.connect("activate", self.on_network_filter_type)
-		network_type_menu.append(show_adhoc)
-		
-		show_data = gtk.CheckMenuItem('Data Networks')
-		show_data.connect("activate", self.on_network_filter_type)
-		network_type_menu.append(show_data)
-		
 		networks_menu = gtk.Menu()
 		networks_menuitem = gtk.MenuItem("Networks")
 		networks_menuitem.set_submenu(networks_menu)
 		view_menu.append(networks_menuitem)
 		
-		show_current = gtk.RadioMenuItem(None, 'Networks from the current session')
-		show_current.set_active(True)
-		show_current.connect("activate", self.on_network_filter_networks, "current")
-		networks_menu.append(show_current)
+		for name, key in (("Network List", "network_list"), ("Map", "map")):
+			menu = gtk.Menu()
+			menuitem = gtk.MenuItem(name)
+			menuitem.set_submenu(menu)
+			networks_menu.append(menuitem)
+			
+			show_none = gtk.RadioMenuItem(None, 'Disable')
+			menu.append(show_none)
+			show_current = gtk.RadioMenuItem(show_none, 'Networks from the current session')
+			menu.append(show_current)
+			show_all = gtk.RadioMenuItem(show_none, 'All Networks')
+			menu.append(show_all)
+			
+			if self.config["filter_networks"][key] == "none":
+				show_none.set_active(True)
+			if self.config["filter_networks"][key] == "current":
+				show_current.set_active(True)
+			if self.config["filter_networks"][key] == "all":
+				show_all.set_active(True)
+			
+			show_none.connect("activate", self.on_network_filter_networks, key, "none")
+			show_current.connect("activate", self.on_network_filter_networks, key, "current")
+			show_all.connect("activate", self.on_network_filter_networks, key, "all")
 		
-		show_all = gtk.RadioMenuItem(show_current, 'All Networks')
-		show_all.connect("activate", self.on_network_filter_networks, "all")
-		networks_menu.append(show_all)
+		network_type_menu = gtk.Menu()
+		network_menuitem = gtk.MenuItem("Network Type")
+		network_menuitem.set_submenu(network_type_menu)
+		view_menu.append(network_menuitem)
+		
+		for network_type, key in (("Infrastructure", "infrastructure"),("Data", "data"), ("Probe", "probe"), ("Ad-Hoc", "ad-hoc")):
+			item = gtk.CheckMenuItem('%s Networks' % network_type)
+			if self.config["filter_type"][key]:
+				item.set_active(True)
+			item.connect("activate", self.on_network_filter_type)
+			network_type_menu.append(item)
 		
 		crypt_menu = gtk.Menu()
 		crypt_menuitem = gtk.MenuItem("Encryption")
@@ -264,7 +265,8 @@ class MainWindow(KismonWindows):
 		
 		for crypt in ("None", "WEP", "WPA", "Other"):
 			crypt_item = gtk.CheckMenuItem(crypt)
-			crypt_item.set_active(True)
+			if self.config["filter_crypt"][crypt.lower()]:
+				crypt_item.set_active(True)
 			crypt_item.connect("activate", self.on_network_filter_crypt)
 			crypt_menu.append(crypt_item)
 		
@@ -292,29 +294,22 @@ class MainWindow(KismonWindows):
 		
 		for network_type in types:
 			if network_type in label:
-				if widget.get_active() is True:
-					self.networks.filters["type"].append(network_type)
-				else:
-					self.networks.filters["type"].remove(network_type)
+				self.config["filter_type"][network_type] = widget.get_active()
 				break
 		self.networks.apply_filters()
 		self.networks_queue_progress()
 		
-	def on_network_filter_networks(self, widget, value):
+	def on_network_filter_networks(self, widget, target, show):
 		if not widget.get_active():
 			return
-		self.networks.filters["networks"] = value
+		
+		self.config["filter_networks"][target] = show
 		self.networks.apply_filters()
 		self.networks_queue_progress()
 		
 	def on_network_filter_crypt(self, widget):
 		crypt = widget.get_label().lower()
-		
-		if widget.get_active() is True:
-			self.networks.filters["crypt"].append(crypt)
-		else:
-			self.networks.filters["crypt"].remove(crypt)
-		
+		self.config["filter_crypt"][crypt] = widget.get_active()
 		self.networks.apply_filters()
 		self.networks_queue_progress()
 		
@@ -660,6 +655,11 @@ class NetworkList:
 		self.locate_network_on_map = locate_network_on_map
 		self.on_signal_graph = on_signal_graph
 		self.networks = networks
+		
+		self.networks.notify_add_list["network_list"] = self.add_network
+		self.networks.notify_remove_list["network_list"] = self.remove_network
+		self.networks.notify_start.append(self.pause)
+		self.networks.notify_stop.append(self.resume)
 		
 		self.treeview = gtk.TreeView()
 		self.treeview.connect("button-press-event", self.on_popup)

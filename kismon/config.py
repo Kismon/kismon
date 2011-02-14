@@ -57,7 +57,23 @@ class Config:
 				},
 			"networks": {
 				"autosave": 5,
-				}
+				},
+			"filter_networks": {
+				"network_list": "current",
+				"map": "current",
+				},
+			"filter_type": {
+				"infrastructure": True,
+				"probe": False,
+				"data": False,
+				"ad-hoc": False,
+				},
+			"filter_crypt": {
+				"none": True,
+				"wep": True,
+				"wpa": True,
+				"other": True,
+				},
 			}
 	
 	def read(self):
