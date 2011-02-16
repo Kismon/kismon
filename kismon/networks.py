@@ -131,9 +131,9 @@ class Networks:
 				for target in targets:
 					show = targets[target]
 					if show == "all":
-						self.notify_add_list[target](mac)
+						self.notify_add_queue.append(mac)
 					elif show == "current" and mac in self.recent_networks:
-						self.notify_add_list[target](mac)
+						self.notify_add_queue.append(mac)
 					else:
 						self.notify_remove_list[target](mac)
 			else:
@@ -161,8 +161,8 @@ class Networks:
 			except IndexError:
 				break
 			
-			for function in self.notify_add_list:
-				function(mac)
+			for target in self.notify_add_list:
+				self.notify_add_list[target](mac)
 			
 			counter += 1
 			if time.time()-start_time > 0.9:
