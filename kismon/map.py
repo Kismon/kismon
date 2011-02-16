@@ -318,19 +318,22 @@ class Map:
 				self.marker_layer[color].show_all_markers()
 			
 	def set_marker_style(self, style):
-		self.config["marker_style"] = style
-		
 		if self.selected_marker is not None:
 			self.on_marker_clicked(self.selected_marker)
 		if style == "name":
 			for key in self.markers:
 				marker = self.markers[key]
 				self.marker_style_name(marker)
-		elif style == "image":
+			self.config["marker_style"] = style
+		else:
 			for key in self.markers:
 				marker = self.markers[key]
 				self.marker_style_image(marker)
-				
+			self.config["marker_style"] = "point"
+			
+	def on_set_marker_style(self, widget, style):
+		self.set_marker_style(style)
+			
 	def marker_style_name(self, marker):
 		"""show the name on the map and remove the image
 		"""
@@ -502,28 +505,7 @@ class MapWidget:
 		self.view = self.embed.get_view()
 		self.map = Map(self.config, self.view, memphis)
 		
-		self.vbox = gtk.VBox()
-		self.init_menu()
-		self.vbox.add(self.embed)
-		
-		self.widget = self.vbox
-		
-	def init_menu(self):
-		hbox = gtk.HBox()
-		self.vbox.pack_start(hbox, expand=False, fill=False, padding=0)
-		
-		label = gtk.Label("Marker style:")
-		hbox.add(label)
-		
-		combobox = gtk.combo_box_new_text()
-		combobox.connect("changed", self.on_change_marker_style)
-		combobox.append_text('Names')
-		combobox.append_text('Images')
-		if self.config["marker_style"] == "name":
-			combobox.set_active(0)
-		else:
-			combobox.set_active(1)
-		hbox.add(combobox)
+		self.widget = self.embed
 		
 	def on_change_marker_style(self, widget):
 		style = widget.get_active_text().lower()[:-1]
