@@ -167,6 +167,7 @@ Last seen: %s"""
 		gobject.threads_init()
 		gobject.timeout_add(500, self.queue_handler)
 		gobject.timeout_add(300, self.queue_handler_networks)
+		gobject.idle_add(self.networks.apply_filters)
 		
 	def init_map(self, memphis=True):
 		if self.map_error is not None:
