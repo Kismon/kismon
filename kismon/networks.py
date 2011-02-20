@@ -44,8 +44,9 @@ class Networks:
 		self.notify_add_list = {}
 		self.notify_add_queue = []
 		self.notify_remove_list = {}
-		self.notify_start = []
-		self.notify_stop = []
+		self.disable_refresh_functions = []
+		self.refresh_disabled = False
+		self.resume_refresh_functions = []
 		self.queue_running = False
 		self.block_queue_start = False
 		self.temp_ssid_data = {}
@@ -99,6 +100,7 @@ class Networks:
 	def apply_filters(self):
 		self.stop_queue()
 		self.apply_filters_on_networks()
+		self.disable_refresh()
 		self.start_queue()
 		
 	def check_filter(self, network):
@@ -142,20 +144,24 @@ class Networks:
 				for target in self.notify_remove_list:
 					self.notify_remove_list[target](mac)
 		
-		
 	def notify_add(self, mac):
 		if mac not in self.recent_networks:
 			self.recent_networks.append(mac)
 		
 		self.apply_filters_on_networks((mac,))
 		
+	def disable_refresh(self):
+		if self.refresh_disabled is True:
+			print True
+			return
+		self.refresh_disabled = True
+		for function in self.disable_refresh_functions:
+			function()
+		
 	def notify_add_queue_process(self):
 		self.queue_running = True
 		start_time = time.time()
 		counter = 0
-		
-		for function in self.notify_start:
-			function()
 		
 		while self.queue_running:
 			try:
@@ -168,14 +174,17 @@ class Networks:
 			
 			counter += 1
 			if time.time()-start_time > 0.9:
-				print "%s in %ssec, %s left" % (counter, round(time.time()-start_time,3), len(self.notify_add_queue))
+				print "%s networks added in %ssec, %s networks left" % (counter, round(time.time()-start_time,3), len(self.notify_add_queue))
 				yield True
 				start_time = time.time()
 				counter = 0
 		self.queue_running = False
 		self.queue_task = None
-		for function in self.notify_stop:
-			function()
+		if self.refresh_disabled is True:
+			for function in self.resume_refresh_functions:
+				function()
+			self.refresh_disabled = False
+		
 		yield False
 		
 	def start_queue(self):

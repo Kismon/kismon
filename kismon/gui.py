@@ -677,8 +677,8 @@ class NetworkList:
 		
 		self.networks.notify_add_list["network_list"] = self.add_network
 		self.networks.notify_remove_list["network_list"] = self.remove_network
-		self.networks.notify_start.append(self.pause)
-		self.networks.notify_stop.append(self.resume)
+		self.networks.disable_refresh_functions.append(self.pause)
+		self.networks.resume_refresh_functions.append(self.resume)
 		
 		self.treeview = gtk.TreeView()
 		self.treeview.connect("button-press-event", self.on_popup)
@@ -738,7 +738,7 @@ class NetworkList:
 		self.network_popup = network_popup
 	
 	def on_column_clicked(self, widget):
-		self.network_list.set_search_column(widget.num)
+		self.treeview.set_search_column(widget.num)
 	
 	def add_network(self, mac):
 		network = self.networks.get_network(mac)
@@ -786,6 +786,11 @@ class NetworkList:
 				num += 1
 		else:
 			self.network_iter[mac] = self.store.append(line)
+			
+			adj = self.treeview.get_vadjustment()
+			self.scroll_value = int(adj.get_value())
+			if self.scroll_value == 0:
+				gobject.idle_add(self.treeview.scroll_to_point, -1, 0)
 		
 	def remove_network(self, mac):
 		try:

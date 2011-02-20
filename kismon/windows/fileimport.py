@@ -213,5 +213,6 @@ class FileImportWindow:
 	def on_close(self, widget):
 		self.gtkwin.destroy()
 		self.networks.block_queue_start = False
+		self.networks.disable_refresh()
 		self.networks.start_queue()
 		self.networks_queue_progress()
