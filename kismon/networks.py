@@ -130,9 +130,11 @@ class Networks:
 			if self.check_filter(network):
 				for target in targets:
 					show = targets[target]
-					if show == "all" and mac not in self.notify_add_queue:
+					if mac in self.notify_add_queue:
+						pass
+					elif show == "all":
 						self.notify_add_queue.append(mac)
-					elif show == "current" and mac in self.recent_networks and mac not in self.notify_add_queue:
+					elif show == "current" and mac in self.recent_networks:
 						self.notify_add_queue.append(mac)
 					else:
 						self.notify_remove_list[target](mac)
