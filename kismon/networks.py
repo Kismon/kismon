@@ -152,7 +152,6 @@ class Networks:
 		
 	def disable_refresh(self):
 		if self.refresh_disabled is True:
-			print True
 			return
 		self.refresh_disabled = True
 		for function in self.disable_refresh_functions:
