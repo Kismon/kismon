@@ -753,7 +753,7 @@ class NetworkList:
 		else:
 			ssid_str = network["ssid"]
 			
-		if "signal_dbm" in network:
+		if "signal_dbm" in network and len(network["signal_dbm"]) == 3:
 			signal = network["signal_dbm"]["last"]
 		else:
 			signal = 0
