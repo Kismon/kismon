@@ -1,3 +1,22 @@
+kismon 0.3 (2011-03-03)
+===============================
+
+Changes:
+* networks will be saved and loaded
+* Kismet csv and netxml files can be imported
+* the network list can be sorted
+* added a statusbar to the main window
+* the last gps position will be saved
+* added a window to configure the channels in Kismet
+* the signal graph shows a seperate line for each interface (>=Kismet 2011-01-R1)
+* added a graph that shows the number of packets per second of a network
+* libchamplain can now be installed without libmemphis
+* the log list automatically scrolls to the last entry
+* the number of entries in the log list can be limited
+* the zoom buttons are now on the map
+* the filters (encryption, type, ...) are now save in the config
+* various bugfixes
+
 kismon 0.2  (2010-09-03)
 ===============================
 
