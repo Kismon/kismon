@@ -93,6 +93,7 @@ class Map:
 			clutter.color_from_string('black'))
 		label.add(label_text)
 		self.networks_label = label_text
+		self.set_moving(self.config["follow_gps"])
 
 		width, height = label_text.get_size()
 		label_bg.set_size(width + padding + 50, height + padding )
@@ -221,8 +222,8 @@ class Map:
 	def zoom_out(self, actor=None, event=None, view=None):
 		self.view.zoom_out()
 		
-	def set_position(self, lat, lon):
-		if self.config["follow_gps"] is True:
+	def set_position(self, lat, lon, force=False):
+		if self.config["follow_gps"] is True or force is True:
 			self.view.center_on(lat, lon)
 		else:
 			self.next_position = (lat, lon)
@@ -367,8 +368,15 @@ class Map:
 	def on_toggle_moving(self, actor=None, event=None):
 		if self.follow_label is None:
 			return
-		text = "Follow GPS: %s"
+		
 		if self.config["follow_gps"] is True:
+			self.set_moving(False)
+		else:
+			self.set_moving(True)
+		
+	def set_moving(self, mode):
+		text = "Follow GPS: %s"
+		if mode is False:
 			self.stop_moving()
 			self.follow_label.set_text(text % "off")
 		else:
