@@ -31,7 +31,7 @@ class ChannelWindow:
 			table = gtk.Table(3, 3)
 			frame.add(table)
 			hop_button = gtk.RadioButton(None, 'Hop')
-			if source["hop"] == 1:
+			if source["hop"] > 0:
 				hop_button.clicked()
 			hop_button.connect("clicked", self.on_change_mode, uuid, "hop")
 			hop_button.set_alignment(0,0)
@@ -42,10 +42,8 @@ class ChannelWindow:
 			field.set_max_length(3)
 			field.set_increments(1,10)
 			field.set_range(1,100)
-			if source["hop"] == 1:
-				field.set_value(source["velocity"])
-			else:
-				field.set_value(3)
+			field.set_value(source["velocity"])
+			if source["hop"] == 0:
 				field.set_sensitive(False)
 			self.widgets[uuid]["hop"] = field
 			field.connect("changed", self.on_change_value, uuid, "hop")
