@@ -47,7 +47,7 @@ class Config:
 				"log_list_max": 50,
 				},
 			"map": {
-				"marker_style": "image",
+				"marker_style": "point",
 				"follow_gps": True,
 				"source": "osm-mapnik",
 				"osm_file": "",

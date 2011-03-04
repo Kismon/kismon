@@ -266,8 +266,8 @@ class Map:
 		if self.selected_marker is not None:
 			marker.hide()
 		
-		if self.config["marker_style"] == "image":
-			self.marker_style_image(marker)
+		if self.config["marker_style"] == "point":
+			self.marker_style_point(marker)
 		else:
 			self.marker_style_name(marker)
 		
@@ -329,7 +329,7 @@ class Map:
 		else:
 			for key in self.markers:
 				marker = self.markers[key]
-				self.marker_style_image(marker)
+				self.marker_style_point(marker)
 			self.config["marker_style"] = "point"
 			
 	def on_set_marker_style(self, widget, style):
@@ -342,8 +342,8 @@ class Map:
 		marker.set_draw_background(True)
 		marker.set_image(None)
 		
-	def marker_style_image(self, marker):
-		"""show the image on the map and remove the text and background
+	def marker_style_point(self, marker):
+		"""show a point on the map and remove the text and background
 		"""
 		marker.set_draw_background(False)
 		texture = clutter.Texture()
