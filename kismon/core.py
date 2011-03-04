@@ -152,16 +152,18 @@ Last seen: %s"""
 		
 		self.battery_max = None
 		self.battery = None
-		for name in os.listdir("/proc/acpi/battery/"):
-			self.battery = name
-			f = open("/proc/acpi/battery/%s/info" % name)
-			for line in f.readlines():
-				if line.startswith("last full capacity:"):
-					max = line.split(":")[1].strip()
-					self.battery_max = int(max.split()[0])
-					break
-			gobject.timeout_add(30000, self.update_battery_bar)
-			break
+		path = "/proc/acpi/battery/"
+		if os.path.exists(path):
+			for name in os.listdir(path):
+				self.battery = name
+				f = open("%s%s/info" % (path, name))
+				for line in f.readlines():
+					if line.startswith("last full capacity:"):
+						max = line.split(":")[1].strip()
+						self.battery_max = int(max.split()[0])
+						break
+				gobject.timeout_add(30000, self.update_battery_bar)
+				break
 		self.update_battery_bar()
 		
 		gobject.threads_init()
