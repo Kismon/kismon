@@ -160,6 +160,7 @@ def config():
 def core():
 	test_core = Core()
 	core_tests(test_core)
+	test_core.add_network_to_map("00:12:2A:03:B9:12")
 	test_core.client_stop()
 	
 	arg = "--disable-map"
@@ -183,6 +184,20 @@ def core_tests(test_core):
 	task = test_core.networks.notify_add_queue_process()
 	while task.next():
 		continue
+
+class TestWidget:
+		def __init__(self):
+			self.active = True
+			self.text = ""
+		
+		def get_active(self):
+			return self.active
+			
+		def get_active_text(self):
+			return self.text
+			
+		def get_label(self):
+			return self.text
 
 def gui_main_window():
 	def dummy():
@@ -218,27 +233,31 @@ def gui_main_window():
 	main_window.on_map_widget(None, False)
 	main_window.on_client_disconnect(None)
 	
-	class TestWidget:
-		def __init__(self):
-			self.active = True
-			self.text = ""
-		
-		def get_active(self):
-			return self.active
-			
-		def get_active_text(self):
-			return self.text
-			
-		def get_label(self):
-			return self.text
-	
 	test_widget = TestWidget()
 	config_window = main_window.config_window
 	config_window.on_map_source_mapnik(test_widget)
 	config_window.on_map_source_memphis(test_widget)
 	config_window.on_memphis_rules(test_widget, "default")
 	
-	file_import_window = FileImportWindow(test_networks, None)
+	main_window.on_file_import(None)
+	
+	test_widget.text = "Infrastructure"
+	main_window.on_network_filter_type(test_widget)
+	main_window.on_network_filter_networks(test_widget, "map", "all")
+	
+def gui_channel_window():
+	sources = {"123":{"uuid": "123","hop": 3, "username": "123", "velocity": 3}}
+	channel_window = ChannelWindow(sources, None)
+	test_widget = TestWidget()
+	channel_window.on_change_mode(test_widget, "123", "hop")
+	channel_window.on_change_mode(test_widget, "123", "lock")
+	channel_window.on_change_value(None, "123", "hop")
+	channel_window.on_cancel(None)
+
+def gui_file_import_window():
+	test_widget = TestWidget()
+	file_import_window = FileImportWindow(test_networks, main_window.networks_queue_progress)
+	file_import_window.create_file_chooser("dir")
 	filename = "/tmp/test-networks.json"
 	test_networks.save(filename)
 	file_import_window.add_file(filename)
@@ -248,12 +267,7 @@ def gui_main_window():
 	file_import_window.add_file(filename)
 	file_import_window.on_start(None)
 	file_import_window.parse_file()
-	
-	main_window.on_file_import(None)
-	
-	test_widget.text = "Infrastructure"
-	main_window.on_network_filter_type(test_widget)
-	main_window.on_network_filter_networks(test_widget, "map", "all")
+	file_import_window.on_close(None)
 
 def gui_map_window():
 	test_config = Config(None).default_config["map"]
@@ -267,6 +281,7 @@ def gui_signal_window():
 		return
 	signal_window = SignalWindow("11:22:33:44:55:66", destroy)
 	signal_window.add_value(None, None, -30)
+	signal_window.add_value(None, None, -31)
 	signal_window.draw_graph(600, 400)
 	now = int(time.time())
 	for signal in (-50, -60, -70, -80, -50):
@@ -274,6 +289,15 @@ def gui_signal_window():
 		signal_window.history[now] = {}
 		signal_window.history[now]["test"] = (signal, signal * -1)
 	signal_window.draw_graph(600, 400)
+	class TestEvent:
+		class TestArea:
+			def __init__(self):
+				self.width = 100
+				self.height = 100
+		def __init__(self):
+			self.area = self.TestArea()
+	signal_window.on_expose_event(None, TestEvent())
+	signal_window.on_expose_event(None, TestEvent())
 
 def map():
 	test_config = Config(None).default_config["map"]
@@ -298,6 +322,7 @@ def map():
 	test_map.on_map_pressed(None, None)
 	test_map.on_map_released(None, None)
 	test_map.set_source("osm-mapnik")
+	test_map.remove_marker("333")
 	
 	tmp_osm_file = "/tmp/test-%s.osm" % int(time.time())
 	tmp_osm = open(tmp_osm_file, "w")
@@ -347,6 +372,7 @@ def networks():
 	tmp_csv.close()
 	for x in range(2):
 		networks.import_networks("csv", tmp_csv_file)
+	networks.import_networks("netxml", "")
 	
 	networks_file = "/tmp/networks.json"
 	networks.save(networks_file)
@@ -362,6 +388,7 @@ def test():
 	core()
 	config()
 	gui_main_window()
+	gui_channel_window()
 	gui_map_window()
 	gui_signal_window()
 	map()

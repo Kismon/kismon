@@ -40,7 +40,7 @@ class FileImportWindow:
 		self.gtkwin.add(self.main_box)
 		self.gtkwin.show_all()
 		
-	def on_add(self, widget, add_type):
+	def create_file_chooser(self, add_type):
 		if add_type == "dir":
 			action = gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER
 		else:
@@ -60,6 +60,11 @@ class FileImportWindow:
 		filter.set_name("All files")
 		filter.add_pattern("*")
 		dialog.add_filter(filter)
+		
+		return dialog
+		
+	def on_add(self, widget, add_type):
+		dialog = self.create_file_chooser(add_type)
 		
 		response = dialog.run()
 		filenames = dialog.get_filenames()
