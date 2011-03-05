@@ -45,7 +45,6 @@ class KismonWindows:
 		self.gtkwin.set_position(gtk.WIN_POS_CENTER)
 		self.gtkwin.connect("destroy", self.on_destroy)
 		self.gtkwin.connect('key-press-event', self.on_key_press)
-		
 		self.is_fullscreen = False
 		
 	def fullscreen(self):
@@ -56,22 +55,20 @@ class KismonWindows:
 			self.gtkwin.fullscreen()
 			self.is_fullscreen = True
 		
-		#print "Fullscreen = ",self.is_fullscreen
-		
 	def on_key_press(self, widget, event):
 		keyval = event.keyval
 		name = gtk.gdk.keyval_name(keyval)
 		if name == "F11":
 			self.fullscreen()
 		elif event.state & gtk.gdk.CONTROL_MASK:
-			if self.map_widget is not None:
+			if self.map is not None:
 				if name == "i":
-					self.map_widget.map.zoom_in()
+					self.map.zoom_in()
 				elif name == "o":
-					self.map_widget.map.zoom_out()
+					self.map.zoom_out()
 
 class MainWindow(KismonWindows):
-	def __init__(self, config, client_start, client_stop, map_widget, networks, sources, client):
+	def __init__(self, config, client_start, client_stop, map, networks, sources, client):
 		KismonWindows.__init__(self)
 		self.config = config
 		self.config_window = None
@@ -79,12 +76,10 @@ class MainWindow(KismonWindows):
 		self.client_start = client_start
 		self.client_stop = client_stop
 		self.networks = networks
-		self.map_widget = map_widget
-		if self.map_widget is not None:
-			self.map = map_widget.map
+		self.map = map
 		
-		if map_widget is not None:
-			locate_marker = self.map.locate_marker
+		if map is not None:
+			locate_marker = map.locate_marker
 		else:
 			locate_marker = None
 		
@@ -161,7 +156,7 @@ class MainWindow(KismonWindows):
 		self.apply_config()
 		
 	def apply_config(self):
-		if self.map_widget is None:
+		if self.map is None:
 			return
 		if self.config["window"]["map_position"] == "widget":
 			self.on_map_widget(None, True)
@@ -277,7 +272,7 @@ class MainWindow(KismonWindows):
 		marker_menuitem = gtk.MenuItem("Marker Style")
 		marker_menuitem.set_submenu(marker_menu)
 		view_menu.append(marker_menuitem)
-		if self.map_widget == None:
+		if self.map == None:
 			marker_menu.set_sensitive(False)
 		else:
 			parent = None
@@ -523,7 +518,7 @@ class MainWindow(KismonWindows):
 			except:
 				pass
 			self.config["window"]["map_position"] = "window"
-			self.map_window = MapWindow(self.map_widget)
+			self.map_window = MapWindow(self.map)
 			self.map_window.gtkwin.show_all()
 		else:
 			try:
@@ -532,7 +527,7 @@ class MainWindow(KismonWindows):
 				pass
 		
 	def on_map_widget(self, widget, override=False):
-		map_widget = self.map_widget.widget
+		map_widget = self.map.widget
 		if (widget is not None and widget.get_active()) or override is True:
 			self.config["window"]["map_position"] = "widget"
 			self.notebook.append_page(map_widget)
@@ -838,8 +833,8 @@ class MapWindow(KismonWindows):
 		self.gtkwin.set_title("Map")
 		self.gtkwin.show()
 		self.gtkwin.set_size_request(640, 480)
-		self.map_widget = map_widget
-		self.gtkwin.add(self.map_widget.widget)
+		self.map_widget = map_widget.widget
+		self.gtkwin.add(self.map_widget)
 		
 	def on_destroy(self, window):
 		self.remove_map()
@@ -847,7 +842,7 @@ class MapWindow(KismonWindows):
 		
 	def remove_map(self):
 		if self.gtkwin is not None:
-			self.gtkwin.remove(self.map_widget.widget)
+			self.gtkwin.remove(self.map_widget)
 		
 	def hide(self):
 		self.gtkwin.hide()

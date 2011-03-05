@@ -189,7 +189,7 @@ def gui_main_window():
 		return
 	
 	test_config = Config(None).default_config
-	test_map = MapWidget(test_config["map"])
+	test_map = Map(test_config["map"])
 	test_networks =  networks()
 	
 	main_window = MainWindow(test_config, dummy, dummy, test_map, test_networks, None, None)
@@ -257,7 +257,7 @@ def gui_main_window():
 
 def gui_map_window():
 	test_config = Config(None).default_config["map"]
-	test_map = MapWidget(test_config)
+	test_map = Map(test_config)
 	map_window = MapWindow(test_map)
 	map_window.hide()
 	map_window.on_destroy(None)
@@ -277,9 +277,8 @@ def gui_signal_window():
 
 def map():
 	test_config = Config(None).default_config["map"]
-	test_map_widget = MapWidget(test_config, memphis=False)
-	test_map_widget = MapWidget(test_config)
-	test_map = test_map_widget.map
+	test_map = Map(test_config, memphis=False)
+	test_map = Map(test_config)
 	
 	test_map.set_zoom(16)
 	test_map.set_position(52.513, 13.323)
@@ -317,7 +316,7 @@ def map():
 	test_window.connect("destroy", gtk.main_quit)
 	test_window.show()
 	test_window.set_size_request(640, 480)
-	test_window.add(test_map_widget.widget)
+	test_window.add(test_map.widget)
 	test_window.show_all()
 
 def networks():

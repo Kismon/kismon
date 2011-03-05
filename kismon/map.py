@@ -27,7 +27,6 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
-
 import gtk
 import gobject
 import champlaingtk
@@ -39,9 +38,8 @@ import os
 import hashlib
 
 class Map:
-	def __init__(self, config, view, memphis):
+	def __init__(self, config, memphis=True):
 		self.config = config
-		self.view = view
 		self.memphis = memphis
 		self.generator_is_running = False
 		self.toggle_moving_button = None
@@ -51,6 +49,13 @@ class Map:
 		self.selected_marker = None
 		self.next_position = None
 		self.networks_label_count = 0
+		
+		self.embed = champlaingtk.ChamplainEmbed()
+		self.embed.connect("button-press-event", self.on_map_pressed)
+		self.embed.connect("button-release-event", self.on_map_released)
+		self.widget = self.embed
+		self.view = self.embed.get_view()
+		
 		self.colors = {
 			"red": clutter.Color(255, 0, 0, 220),
 			"green": clutter.Color(0, 255, 0, 220),
@@ -70,6 +75,8 @@ class Map:
 		self.load_images()
 		self.create_dots()
 		self.create_right_group()
+		
+		
 		
 		self.marker_layer = {}
 		for color in ("red", "orange", "green"):
@@ -108,8 +115,6 @@ class Map:
 		self.apply_config()
 		
 		self.view.connect("allocation-changed", self.on_resize)
-		self.view.connect("button-press-event", self.on_map_pressed)
-		self.view.connect("button-release-event", self.on_map_released)
 		
 	def on_resize(self, actor, box, flags):
 		gobject.idle_add(self.move_right_group)
@@ -504,20 +509,6 @@ class Map:
 		if networks != self.networks_label_count:
 			self.networks_label.set_text("Networks shown: %s" % networks)
 			self.networks_label_count = networks
-
-class MapWidget:
-	def __init__(self, config, memphis=True):
-		self.config = config
-		
-		self.embed = champlaingtk.ChamplainEmbed()
-		self.view = self.embed.get_view()
-		self.map = Map(self.config, self.view, memphis)
-		
-		self.widget = self.embed
-		
-	def on_change_marker_style(self, widget):
-		style = widget.get_active_text().lower()[:-1]
-		self.map.set_marker_style(style)
 
 if __name__ == "__main__":
 	import test

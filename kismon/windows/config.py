@@ -11,9 +11,7 @@ class ConfigWindow:
 		self.gtkwin.set_title("Kismon Preferences")
 		self.main_window = main_window
 		self.config = main_window.config
-		self.map_widget = main_window.map_widget
-		if self.map_widget is not None:
-			self.map = self.map_widget.map
+		self.map = main_window.map
 		
 		self.notebook = gtk.Notebook()
 		self.gtkwin.add(self.notebook)
@@ -27,7 +25,7 @@ class ConfigWindow:
 		self.notebook.append_page(map_page)
 		self.notebook.set_tab_label_text(map_page, "Map")
 		
-		if self.map_widget is None:
+		if self.map is None:
 			label = gtk.Label("Map disabled")
 			map_page.attach(label, 0, 1, 0, 1, yoptions=gtk.SHRINK)
 		else:

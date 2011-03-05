@@ -31,7 +31,7 @@ POSSIBILITY OF SUCH DAMAGE.
 from client import *
 from gui import MainWindow, MapWindow, show_timestamp
 from config import Config
-from map import MapWidget
+from map import Map
 from networks import Networks
 
 import os
@@ -113,7 +113,7 @@ Last seen: %s"""
 		self.main_window = MainWindow(self.config,
 			self.client_start,
 			self.client_stop,
-			self.map_widget,
+			self.map,
 			self.networks,
 			self.sources,
 			self.client_thread.client)
@@ -144,7 +144,7 @@ Last seen: %s"""
 					return
 		self.networks.set_autosave(self.config["networks"]["autosave"], self.networks_file, self.main_window.log_list.add)
 		
-		if self.map_widget is not None:
+		if self.map is not None:
 			self.networks.notify_add_list["map"] = self.add_network_to_map
 			self.networks.notify_remove_list["map"] = self.map.remove_marker
 		
@@ -173,11 +173,9 @@ Last seen: %s"""
 		
 	def init_map(self, memphis=True):
 		if self.map_error is not None:
-			self.map_widget = None
 			self.map = None
 		else:
-			self.map_widget = MapWidget(self.config["map"], memphis)
-			self.map = self.map_widget.map
+			self.map = Map(self.config["map"], memphis)
 			self.map.set_zoom(16)
 			pos = self.config["map"]["last_position"].split("/")
 			self.map.set_position(float(pos[0]), float(pos[1]), True)
@@ -226,7 +224,7 @@ Last seen: %s"""
 				break
 		if gps is not None:
 			self.main_window.update_gps_table(gps)
-			if fix is not None and self.map_widget is not None:
+			if fix is not None and self.map is not None:
 				self.map.set_position(fix[0], fix[1])
 		
 		#status
@@ -286,7 +284,7 @@ Last seen: %s"""
 				self.main_window.networks_queue_progress()
 		
 		self.main_window.update_statusbar()
-		if self.map_widget is not None:
+		if self.map is not None:
 			self.map.update_networks_label()
 		
 		return True
