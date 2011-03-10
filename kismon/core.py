@@ -31,7 +31,6 @@ POSSIBILITY OF SUCH DAMAGE.
 from client import *
 from gui import MainWindow, MapWindow, show_timestamp
 from config import Config
-from map import Map
 from networks import Networks
 
 import os
@@ -175,6 +174,7 @@ Last seen: %s"""
 		if self.map_error is not None:
 			self.map = None
 		else:
+			from map import Map
 			self.map = Map(self.config["map"], memphis)
 			self.map.set_zoom(16)
 			pos = self.config["map"]["last_position"].split("/")
