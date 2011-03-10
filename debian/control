@@ -7,7 +7,7 @@ Standards-Version: 3.8.4
 
 Package: kismon
 Architecture: all
-Depends: python, python-gtk2, python-clutter
+Depends: python, python-gtk2, python-clutter, python-simplejson
 Description: PyGTK based Kismet Newcore Client
  * Note: This package no dependencies for libchamplain and libmemphis,
  because right now there are no packages with the required versions.
