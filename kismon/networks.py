@@ -125,7 +125,10 @@ class Networks:
 		if networks is None:
 			networks = self.networks
 		
-		targets = self.config["filter_networks"]
+		targets = {}
+		for target in self.config["filter_networks"]:
+			if target in self.notify_add_list:
+				targets[target] = self.config["filter_networks"][target]
 		
 		for mac in networks:
 			network = self.networks[mac]
