@@ -198,6 +198,18 @@ class MainWindow(KismonWindows):
 		file_import.connect("activate", self.on_file_import)
 		file_menu.append(file_import)
 		
+		export_menu = gtk.Menu()
+		export_menuitem = gtk.ImageMenuItem(gtk.STOCK_SAVE_AS)
+		export_menuitem.set_label("Export Networks")
+		export_menuitem.set_submenu(export_menu)
+		file_menu.append(export_menuitem)
+		
+		for export_format, extension in (("Kismon", "json"),):
+			item = gtk.RadioMenuItem(None, export_format)
+			item.connect("activate", self.on_file_export, export_format.lower(), extension)
+			export_menu.append(item)
+			parent = item
+		
 		sep = gtk.SeparatorMenuItem()
 		file_menu.append(sep)
 		
@@ -590,6 +602,23 @@ class MainWindow(KismonWindows):
 		file_import_window = FileImportWindow(self.networks, self.networks_queue_progress)
 		file_import_window.gtkwin.set_transient_for(self.gtkwin)
 		file_import_window.gtkwin.set_modal(True)
+		
+	def on_file_export(self, widget, export_format, extension):
+		dialog = gtk.FileChooserDialog(title="Export as %s" % (export_format),
+			parent=self.gtkwin, action=gtk.FILE_CHOOSER_ACTION_SAVE)
+		dialog.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_OK)
+		dialog.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
+		dialog.set_do_overwrite_confirmation(True)
+		dialog.set_current_name("*.%s" % extension)
+		
+		filename = False
+		if dialog.run() == gtk.RESPONSE_OK:
+			filename = dialog.get_filename()
+		dialog.destroy()
+		if filename == False:
+			return
+		
+		self.networks.export_networks(export_format, filename)
 		
 	def update_statusbar(self):
 		text = "Networks: %s in the current session, %s total" % \

@@ -66,9 +66,7 @@ class Networks:
 			notify(msg)
 		
 		tmpfilename = filename + ".new"
-		f = open(tmpfilename, "w")
-		json.dump(self.networks, f, sort_keys=True, indent=2)
-		f.close()
+		self.save_networks(tmpfilename)
 		
 		for num in range(self.num_backups - 2, -1 , -1):
 			backup_filename = "%s.%s" % (filename, num)
@@ -79,6 +77,11 @@ class Networks:
 			os.rename(filename, filename + ".0")
 		os.rename(tmpfilename, filename)
 		return True
+		
+	def save_networks(self, filename):
+		f = open(filename, "w")
+		json.dump(self.networks, f, sort_keys=True, indent=2)
+		f.close()
 		
 	def set_autosave(self, minutes, filename=None, notify=None):
 		if filename is not None:
@@ -323,6 +326,10 @@ class Networks:
 			self.add_network_data(mac, parser.networks[mac])
 		
 		return len(parser.networks)
+		
+	def export_networks(self, export_format, filename):
+		if export_format == "kismon":
+			self.save_networks(filename)
 
 class Netxml:
 	def __init__(self):
