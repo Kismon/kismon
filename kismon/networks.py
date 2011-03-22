@@ -330,6 +330,95 @@ class Networks:
 	def export_networks(self, export_format, filename):
 		if export_format == "kismon":
 			self.save_networks(filename)
+		elif export_format == "kismet netxml":
+			self.export_networks_netxml(filename)
+		
+	def export_networks_netxml(self, filename):
+		locale.setlocale(locale.LC_TIME, 'C');
+		f = open(filename, "w")
+		f.write('<?xml version="1.0" encoding="ISO-8859-1"?>\n')
+		f.write('<!DOCTYPE detection-run SYSTEM "http://kismetwireless.net/kismet-3.1.0.dtd">\n')
+		f.write('<detection-run kismet-version="2009.06.R1" start-time="Sat Oct 24 09:05:35 2009">\n\n')
+		
+		num = 0
+		for mac in self.networks:
+			network = self.networks[mac]
+			firsttime = timestamp2timestring(network["firsttime"])
+			lasttime = timestamp2timestring(network["lasttime"])
+			ssid = network["ssid"].replace("<","&lt;").replace(">","&gt;").replace("&","&amp;")
+			manuf = "Unknown" if network["manuf"] == "" else network["manuf"].replace("&", "&amp;")
+			f.write('<wireless-network number="%s" type="%s" first-time="%s" last-time="%s">\n' % \
+				(num, network["type"], firsttime, lasttime)
+				)
+			f.write(' <SSID first-time="%s" last-time="%s">\n' % (firsttime, lasttime))
+			
+			crypts = decode_cryptset(network["cryptset"])
+			if network["cryptset"] == 0:
+				f.write('  <encryption>None</encryption>\n')
+			if "wep" in crypts:
+				f.write('  <encryption>WEP</encryption>\n')
+			if "layer3" in crypts:
+				f.write('  <encryption>Layer3</encryption>\n')
+			if "wpa_migmode" in crypts:
+				f.write('  <encryption>WPA Migration Mode</encryption>\n')
+			if "wep40" in crypts:
+				f.write('  <encryption>WEP40</encryption>\n')
+			if "wep104" in crypts:
+				f.write('  <encryption>WEP104</encryption>\n')
+			if "tkip" in crypts:
+				f.write('  <encryption>WPA+TKIP</encryption>\n')
+			if "psk" in crypts:
+				f.write('  <encryption>WPA+PSK</encryption>\n')
+			if "aes_ocb" in crypts:
+				f.write('  <encryption>WPA+AES-OCB</encryption>\n')
+			if "aes_ccm" in crypts:
+				f.write('  <encryption>WPA+AES-CCM</encryption>\n')
+			if "leap" in crypts:
+				f.write('  <encryption>WPA+LEAP</encryption>\n')
+			if "ttls" in crypts:
+				f.write('  <encryption>WPA+TTLS</encryption>\n')
+			if "tls" in crypts:
+				f.write('  <encryption>WPA+TLS</encryption>\n')
+			if "peap" in crypts:
+				f.write('  <encryption>WPA+PEAP</encryption>\n')
+			if "isakmp" in crypts:
+				f.write('  <encryption>ISAKMP</encryption>\n')
+			if "pptp" in crypts:
+				f.write('  <encryption>PPTP</encryption>\n')
+			if "tls" in crypts:
+				f.write('  <encryption>Fortress</encryption>\n')
+			if "fortress" in crypts:
+				f.write('  <encryption>Keyguard</encryption>\n')
+			
+			f.write('  <essid cloaked="%s">%s</essid>\n' % (True if ssid == "" else False, ssid ))
+			
+			f.write(' </SSID>\n')
+			f.write(' <BSSID>%s</BSSID>\n' % mac)
+			f.write(' <manuf>%s</manuf>\n' % manuf)
+			f.write(' <channel>%s</channel>\n' % network["channel"])
+			if "signal_dbm" in network:
+				f.write(' <snr-info>\n')
+				f.write('  <last_signal_dbm>%s</last_signal_dbm>\n' % network["signal_dbm"]["last"])
+				f.write('  <min_signal_dbm>%s</min_signal_dbm>\n' % network["signal_dbm"]["min"])
+				f.write('  <max_signal_dbm>%s</max_signal_dbm>\n' % network["signal_dbm"]["max"])
+				f.write(' </snr-info>\n')
+			if network["lat"] != 0 and network["lon"] != 0:
+				f.write(' <gps-info>\n')
+				f.write('  <min-lat>%s</min-lat>\n' % network["lat"])
+				f.write('  <min-lon>%s</min-lon>\n' % network["lon"])
+				f.write('  <max-lat>%s</max-lat>\n' % network["lat"])
+				f.write('  <max-lon>%s</max-lon>\n' % network["lon"])
+				f.write('  <peak-lat>%s</peak-lat>\n' % network["lat"])
+				f.write('  <peak-lon>%s</peak-lon>\n' % network["lon"])
+				f.write('  <avg-lat>%s</avg-lat>\n' % network["lat"])
+				f.write('  <avg-lon>%s</avg-lon>\n' % network["lon"])
+				f.write(' </gps-info>\n')
+			f.write('</wireless-network>\n')
+			num += 1
+		
+		f.write('</detection-run>')
+		f.close()
+		locale.resetlocale(locale.LC_TIME)
 
 class Netxml:
 	def __init__(self):
@@ -468,6 +557,9 @@ class CSV:
 
 def timestring2timestamp(timestring):
 	return int(time.mktime(time.strptime(timestring)))
+	
+def timestamp2timestring(timestamp):
+	return time.strftime("%a %b %d %H:%M:%S %Y", time.gmtime(timestamp))
 
 if __name__ == "__main__":
 	import test

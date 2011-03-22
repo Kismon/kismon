@@ -204,8 +204,8 @@ class MainWindow(KismonWindows):
 		export_menuitem.set_submenu(export_menu)
 		file_menu.append(export_menuitem)
 		
-		for export_format, extension in (("Kismon", "json"),):
-			item = gtk.RadioMenuItem(None, export_format)
+		for export_format, extension in (("Kismon", "json"),("Kismet netxml", "netxml"),):
+			item = gtk.MenuItem(export_format)
 			item.connect("activate", self.on_file_export, export_format.lower(), extension)
 			export_menu.append(item)
 			parent = item
@@ -609,7 +609,7 @@ class MainWindow(KismonWindows):
 		dialog.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_OK)
 		dialog.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
 		dialog.set_do_overwrite_confirmation(True)
-		dialog.set_current_name("*.%s" % extension)
+		dialog.set_current_name("kismon.%s" % extension)
 		
 		filename = False
 		if dialog.run() == gtk.RESPONSE_OK:
