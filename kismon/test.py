@@ -382,6 +382,7 @@ def networks():
 	networks.save(networks_file)
 	networks.export_networks_netxml("/tmp/test.netxml")
 	networks.import_networks("netxml", "/tmp/test.netxml")
+	networks.export_networks_kmz("/tmp/test.kmz")
 	
 	return networks
 

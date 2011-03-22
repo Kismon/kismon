@@ -33,6 +33,7 @@ import xml.parsers.expat
 import time
 import locale
 import gobject
+import zipfile
 
 from client import *
 
@@ -332,6 +333,8 @@ class Networks:
 			self.save_networks(filename)
 		elif export_format == "kismet netxml":
 			self.export_networks_netxml(filename)
+		elif export_format == "google earth kmz":
+			self.export_networks_kmz(filename)
 		
 	def export_networks_netxml(self, filename):
 		locale.setlocale(locale.LC_TIME, 'C');
@@ -419,6 +422,92 @@ class Networks:
 		f.write('</detection-run>')
 		f.close()
 		locale.resetlocale(locale.LC_TIME)
+		
+	def export_networks_kmz(self, filename):
+		kml_folder = """
+<Folder>
+<name>%s: %s APs</name>
+<Style id="%s"><IconStyle><scale>0.5</scale>
+<Icon>")
+<href>http://files.salecker.org/kismon/images/%s.gif</href>
+</Icon></IconStyle></Style>
+%s
+</Folder>"""
+		data = []
+		zip_output = zipfile.ZipFile(filename, "w")
+		data.append("<?xml version='1.0' encoding='UTF-8'?>\r\n")
+		data.append("<kml xmlns='http://earth.google.com/kml/2.1'>\r\n")
+		data.append("<Document>\r\n")
+		data.append("<name>Kismon</name>\r\n")
+		data.append("<open>1</open>")
+		
+		count = {"WPA":0, "WEP":0, "None":0, "Other":0}
+		folders = self.export_networks_kmz_folders(count)
+		
+		for crypt in ("WPA", "WEP", "None", "Other"):
+			if crypt == "WPA":
+				pic = "WPA"
+			elif crypt == "WEP":
+				pic = "WEP"
+			else:
+				pic = "Open"
+			
+			data.append(kml_folder %(
+				crypt,
+				count[crypt],
+				crypt,
+				pic,
+				"".join(folders[crypt])
+			))
+		data.append("\r\n</Document>\r\n</kml>")
+		
+		zinfo = zipfile.ZipInfo("kismon.kml")
+		zinfo.compress_type = zipfile.ZIP_DEFLATED
+		zip_output.writestr(zinfo, "".join(data))
+		zip_output.close()
+		
+	def export_networks_kmz_folders(self, count):
+		kml_placemark = """<Placemark><styleUrl>#%s</styleUrl><name>%s</name>
+<Point><coordinates>%s,%s</coordinates></Point>
+<description><![CDATA[
+SSID: %s<br />
+MAC: %s<br />
+Manuf: %s<br />
+Type: %s<br />
+Channel: %s<br />
+Encryption: <FONT color=%s>%s</FONT><br />
+Last time: %s<br />
+GPS: %s,%s]]></description></Placemark>"""
+		
+		folders = {"WPA":[], "WEP":[], "None":[], "Other":[]}
+		colors = {"WPA":"red", "WEP":"orange", "None":"green", "Other":"grey"}
+		for mac in self.networks:
+			network = self.networks[mac]
+			if network["lat"] == 0 and network["lon"] == 0:
+				continue
+			
+			ssid = network["ssid"].replace("<","&lt;").replace(">","&gt;").replace("&","&amp;")
+			
+			crypts = decode_cryptset(network["cryptset"])
+			crypt = "Other"
+			for c in crypts:
+				if c.startswith("wpa"):
+					crypt = "WPA"
+			if crypt != "Other":
+				pass
+			elif "wep" in crypts:
+				crypt = "WEP"
+			elif "none" in crypts:
+				crypt = "None"
+			
+			folders[crypt].append(kml_placemark %(
+				crypt, ssid, network["lon"],network["lat"], ssid, mac,
+				network["manuf"], network["type"], network["channel"],
+				colors[crypt], ",".join(crypts).upper(), network["lasttime"],
+				network["lat"], network["lat"],
+			))
+			count[crypt] += 1
+		return folders
 
 class Netxml:
 	def __init__(self):
