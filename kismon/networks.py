@@ -79,9 +79,39 @@ class Networks:
 		os.rename(tmpfilename, filename)
 		return True
 		
-	def save_networks(self, filename):
+	def save_networks_json(self, filename):
 		f = open(filename, "w")
 		json.dump(self.networks, f, sort_keys=True, indent=2)
+		f.close()
+		
+	def save_networks(self, filename):
+		f = open(filename, "w")
+		f.write('{\n')
+		macs = sorted(self.networks.keys())
+		enc = json.JSONEncoder()
+		for mac in macs:
+			network = self.networks[mac]
+			f.write('  "%s": {\n' % mac)
+			f.write('    "channel": %s, \n' % network["channel"])
+			f.write('    "cryptset": %s, \n' % network["cryptset"])
+			f.write('    "firsttime": %s, \n'  % network["firsttime"])
+			f.write('    "lasttime": %s, \n' % network["lasttime"])
+			f.write('    "lat": %s, \n' % network["lat"])
+			f.write('    "lon": %s, \n' % network["lon"])
+			f.write('    "manuf": %s, \n' % enc.encode(network["manuf"]))
+			if "signal_dbm" in network:
+				f.write('    "signal_dbm": {\n')
+				f.write('      "last": %s, \n' % network["signal_dbm"]["last"])
+				f.write('      "max": %s, \n' % network["signal_dbm"]["max"])
+				f.write('      "min": %s\n' % network["signal_dbm"]["min"])
+				f.write('    }, \n')
+			f.write('    "ssid": %s, \n' % enc.encode(network["ssid"]))
+			f.write('    "type": "%s"\n' % network["type"])
+			if mac != macs[-1]:
+				f.write('  }, \n')
+			else:
+				f.write('  }\n')
+		f.write('}')
 		f.close()
 		
 	def set_autosave(self, minutes, filename=None, notify=None):
