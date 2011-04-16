@@ -36,6 +36,7 @@ import gobject
 import zipfile
 
 from client import *
+from gui import show_timestamp
 
 class Networks:
 	def __init__(self, config):
@@ -365,6 +366,8 @@ class Networks:
 			self.export_networks_netxml(filename)
 		elif export_format == "google earth kmz":
 			self.export_networks_kmz(filename)
+		elif export_format == "mappoint csv":
+			self.export_networks_mappoint(filename)
 		
 	def export_networks_netxml(self, filename):
 		locale.setlocale(locale.LC_TIME, 'C');
@@ -533,11 +536,24 @@ GPS: %s,%s]]></description></Placemark>"""
 			folders[crypt].append(kml_placemark %(
 				crypt, ssid, network["lon"],network["lat"], ssid, mac,
 				network["manuf"], network["type"], network["channel"],
-				colors[crypt], ",".join(crypts).upper(), network["lasttime"],
+				colors[crypt], ",".join(crypts).upper(), show_timestamp(network["lasttime"]),
 				network["lat"], network["lat"],
 			))
 			count[crypt] += 1
 		return folders
+		
+	def export_networks_mappoint(self, filename):
+		f = open(filename, "w")
+		
+		f.write('Latitude;Longitude;SSID;BSSID;Type;Encryption;Channel;Last Seen;\n')
+		for mac in self.networks:
+			network = self.networks[mac]
+			crypt = ",".join(decode_cryptset(network["cryptset"])).upper()
+			f.write('%s;%s;%s;%s;%s;%s;%s;%s;\n' % (
+				network["lat"], network["lon"], network["ssid"].replace(";"," "),
+				mac,network["type"], crypt, network["channel"], show_timestamp(network["lasttime"])
+				))
+		f.close()
 
 class Netxml:
 	def __init__(self):

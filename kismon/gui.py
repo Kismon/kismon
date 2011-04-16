@@ -205,7 +205,7 @@ class MainWindow(KismonWindows):
 		file_menu.append(export_menuitem)
 		
 		for export_format, extension in (("Kismon", "json"),("Kismet netxml", "netxml"),
-				("Google Earth KMZ", "kmz")):
+				("Google Earth KMZ", "kmz"), ("MapPoint csv", "csv")):
 			item = gtk.MenuItem(export_format)
 			item.connect("activate", self.on_file_export, export_format.lower(), extension)
 			export_menu.append(item)
