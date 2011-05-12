@@ -549,8 +549,9 @@ GPS: %s,%s]]></description></Placemark>"""
 		for mac in self.networks:
 			network = self.networks[mac]
 			crypt = ",".join(decode_cryptset(network["cryptset"])).upper()
-			f.write('%s;%s;%s;%s;%s;%s;%s;%s;\n' % (
-				network["lat"], network["lon"], network["ssid"].replace(";"," "),
+			gps = "%s;%s" % (network["lat"], network["lon"])
+			f.write('%s;%s;%s;%s;%s;%s;%s;\n' % (
+				gps.replace(".",","), network["ssid"].replace(";"," "),
 				mac,network["type"], crypt, network["channel"], show_timestamp(network["lasttime"])
 				))
 		f.close()
