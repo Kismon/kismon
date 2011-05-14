@@ -41,29 +41,29 @@ import gtk
 import gobject
 
 def check_champlain():
-	try:
-		import champlaingtk
-		import champlain
-	except:
-		return sys.exc_info()[1]
-	
 	pipe = subprocess.Popen("pkg-config --exists --print-errors 'champlain-0.6 >= 0.6.1'",
 		shell=True, stderr=subprocess.PIPE)
 	champlain_check = pipe.stderr.read().strip()
 	if champlain_check != '':
 		return champlain_check
-
-def check_memphis():
+	
 	try:
-		import champlainmemphis
+		import champlaingtk
+		import champlain
 	except:
 		return sys.exc_info()[1]
-	
+
+def check_memphis():
 	pipe = subprocess.Popen("pkg-config --exists --print-errors 'memphis-0.2 >= 0.2.3'",
 		shell=True, stderr=subprocess.PIPE)
 	memphis_check = pipe.stderr.read().strip()
 	if memphis_check != '':
 		return memphis_check
+	
+	try:
+		import champlainmemphis
+	except:
+		return sys.exc_info()[1]
 
 class Core:
 	def __init__(self):
