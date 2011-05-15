@@ -380,9 +380,9 @@ def networks():
 	networks.import_networks("networks",networks_file)
 	networks.apply_filters()
 	networks.save(networks_file)
-	networks.export_networks_netxml("/tmp/test.netxml")
+	networks.export_networks_netxml("/tmp/test.netxml", networks.networks)
 	networks.import_networks("netxml", "/tmp/test.netxml")
-	networks.export_networks_kmz("/tmp/test.kmz")
+	networks.export_networks_kmz("/tmp/test.kmz", networks.networks)
 	
 	return networks
 

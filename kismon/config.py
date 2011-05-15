@@ -61,6 +61,7 @@ class Config:
 			"filter_networks": {
 				"network_list": "current",
 				"map": "current",
+				"export": "all"
 				},
 			"filter_type": {
 				"infrastructure": True,

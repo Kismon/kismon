@@ -83,6 +83,10 @@ class MainWindow(KismonWindows):
 		else:
 			locate_marker = None
 		
+		self.export_networks = {}
+		self.networks.notify_add_list["export"] = self.export_add_network
+		self.networks.notify_remove_list["export"] = self.export_remove_network
+		
 		self.network_list = NetworkList(self.networks, locate_marker, self.on_signal_graph)
 		
 		self.gtkwin.set_title("Kismon")
@@ -206,10 +210,17 @@ class MainWindow(KismonWindows):
 		
 		for export_format, extension in (("Kismon", "json"),("Kismet netxml", "netxml"),
 				("Google Earth KMZ", "kmz"), ("MapPoint csv", "csv")):
-			item = gtk.MenuItem(export_format)
-			item.connect("activate", self.on_file_export, export_format.lower(), extension)
-			export_menu.append(item)
-			parent = item
+			
+			menu = gtk.Menu()
+			menuitem = gtk.MenuItem(gtk.STOCK_SAVE_AS)
+			menuitem.set_label(export_format)
+			menuitem.set_submenu(menu)
+			export_menu.append(menuitem)
+			
+			for amount in ("All", "Filtered"):
+				item = gtk.MenuItem(amount)
+				item.connect("activate", self.on_file_export, export_format.lower(), extension, amount)
+				menu.append(item)
 		
 		sep = gtk.SeparatorMenuItem()
 		file_menu.append(sep)
@@ -230,14 +241,15 @@ class MainWindow(KismonWindows):
 		networks_menuitem.set_submenu(networks_menu)
 		view_menu.append(networks_menuitem)
 		
-		for name, key in (("Network List", "network_list"), ("Map", "map")):
+		for name, key in (("Network List", "network_list"), ("Map", "map"), ("Export", "export")):
 			menu = gtk.Menu()
 			menuitem = gtk.MenuItem(name)
 			menuitem.set_submenu(menu)
 			networks_menu.append(menuitem)
 			
 			show_none = gtk.RadioMenuItem(None, 'Disable')
-			menu.append(show_none)
+			if key != "export":
+				menu.append(show_none)
 			show_current = gtk.RadioMenuItem(show_none, 'Networks from the current session')
 			menu.append(show_current)
 			show_all = gtk.RadioMenuItem(show_none, 'All Networks')
@@ -604,7 +616,7 @@ class MainWindow(KismonWindows):
 		file_import_window.gtkwin.set_transient_for(self.gtkwin)
 		file_import_window.gtkwin.set_modal(True)
 		
-	def on_file_export(self, widget, export_format, extension):
+	def on_file_export(self, widget, export_format, extension, amount):
 		dialog = gtk.FileChooserDialog(title="Export as %s" % (export_format),
 			parent=self.gtkwin, action=gtk.FILE_CHOOSER_ACTION_SAVE)
 		dialog.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_OK)
@@ -619,7 +631,21 @@ class MainWindow(KismonWindows):
 		if filename == False:
 			return
 		
-		self.networks.export_networks(export_format, filename)
+		if amount == "Filtered":
+			networks = []
+			for mac in self.export_networks:
+				if self.export_networks[mac] is True:
+					networks.append(mac)
+		else:
+			networks = None
+		
+		self.networks.export_networks(export_format, filename, networks)
+		
+	def export_add_network(self, mac):
+		self.export_networks[mac] = True
+		
+	def export_remove_network(self, mac):
+		self.export_networks[mac] = False
 		
 	def update_statusbar(self):
 		text = "Networks: %s in the current session, %s total" % \

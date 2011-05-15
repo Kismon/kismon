@@ -44,7 +44,7 @@ class Networks:
 		self.config = config
 		self.recent_networks = []
 		self.notify_add_list = {}
-		self.notify_add_queue = []
+		self.notify_add_queue = {}
 		self.notify_remove_list = {}
 		self.disable_refresh_functions = []
 		self.refresh_disabled = False
@@ -68,7 +68,7 @@ class Networks:
 			notify(msg)
 		
 		tmpfilename = filename + ".new"
-		self.save_networks(tmpfilename)
+		self.save_networks(tmpfilename, self.networks)
 		
 		for num in range(self.num_backups - 2, -1 , -1):
 			backup_filename = "%s.%s" % (filename, num)
@@ -85,10 +85,10 @@ class Networks:
 		json.dump(self.networks, f, sort_keys=True, indent=2)
 		f.close()
 		
-	def save_networks(self, filename):
+	def save_networks(self, filename, networks):
 		f = open(filename, "w")
 		f.write('{\n')
-		macs = sorted(self.networks.keys())
+		macs = sorted(networks)
 		enc = json.JSONEncoder()
 		for mac in macs:
 			network = self.networks[mac]
@@ -170,12 +170,10 @@ class Networks:
 			if self.check_filter(network):
 				for target in targets:
 					show = targets[target]
-					if mac in self.notify_add_queue:
-						pass
-					elif show == "all":
-						self.notify_add_queue.append(mac)
-					elif show == "current" and mac in self.recent_networks:
-						self.notify_add_queue.append(mac)
+					if show == "all" or (show == "current" and mac in self.recent_networks):
+						if mac not in self.notify_add_queue:
+							self.notify_add_queue[mac] =  {}
+						self.notify_add_queue[mac][target] = True
 					else:
 						self.notify_remove_list[target](mac)
 			else:
@@ -201,20 +199,21 @@ class Networks:
 		counter = 0
 		
 		while self.queue_running:
-			try:
-				mac = self.notify_add_queue.pop()
-			except IndexError:
+			for mac in self.notify_add_queue.keys():
+				for target in self.notify_add_queue[mac]:
+					self.notify_add_list[target](mac)
+				
+				del self.notify_add_queue[mac]
+				
+				counter += 1
+				if time.time()-start_time > 0.9:
+					print "%s networks added in %ssec, %s networks left" % (counter, round(time.time()-start_time,3), len(self.notify_add_queue))
+					yield True
+					start_time = time.time()
+					counter = 0
+			if len(self.notify_add_queue) == 0:
 				break
 			
-			for target in self.notify_add_list:
-				self.notify_add_list[target](mac)
-			
-			counter += 1
-			if time.time()-start_time > 0.9:
-				print "%s networks added in %ssec, %s networks left" % (counter, round(time.time()-start_time,3), len(self.notify_add_queue))
-				yield True
-				start_time = time.time()
-				counter = 0
 		self.queue_running = False
 		self.queue_task = None
 		if self.refresh_disabled is True:
@@ -235,7 +234,7 @@ class Networks:
 		if self.queue_task is not None:
 			gobject.source_remove(self.queue_task)
 			self.queue_task = None
-		self.notify_add_queue = []
+		self.notify_add_queue = {}
 		
 	def add_bssid_data(self, bssid):
 		mac = bssid["bssid"]
@@ -359,17 +358,19 @@ class Networks:
 		
 		return len(parser.networks)
 		
-	def export_networks(self, export_format, filename):
+	def export_networks(self, export_format, filename, networks=None):
+		if networks is None:
+			networks = self.networks
 		if export_format == "kismon":
-			self.save_networks(filename)
+			self.save_networks(filename, networks)
 		elif export_format == "kismet netxml":
-			self.export_networks_netxml(filename)
+			self.export_networks_netxml(filename, networks)
 		elif export_format == "google earth kmz":
-			self.export_networks_kmz(filename)
+			self.export_networks_kmz(filename, networks)
 		elif export_format == "mappoint csv":
-			self.export_networks_mappoint(filename)
+			self.export_networks_mappoint(filename, networks)
 		
-	def export_networks_netxml(self, filename):
+	def export_networks_netxml(self, filename, networks):
 		locale.setlocale(locale.LC_TIME, 'C');
 		f = open(filename, "w")
 		f.write('<?xml version="1.0" encoding="ISO-8859-1"?>\n')
@@ -377,7 +378,7 @@ class Networks:
 		f.write('<detection-run kismet-version="2009.06.R1" start-time="Sat Oct 24 09:05:35 2009">\n\n')
 		
 		num = 0
-		for mac in self.networks:
+		for mac in networks:
 			network = self.networks[mac]
 			firsttime = timestamp2timestring(network["firsttime"])
 			lasttime = timestamp2timestring(network["lasttime"])
@@ -456,7 +457,7 @@ class Networks:
 		f.close()
 		locale.resetlocale(locale.LC_TIME)
 		
-	def export_networks_kmz(self, filename):
+	def export_networks_kmz(self, filename, networks):
 		kml_folder = """
 <Folder>
 <name>%s: %s APs</name>
@@ -475,7 +476,7 @@ class Networks:
 		data.append("<open>1</open>")
 		
 		count = {"WPA":0, "WEP":0, "None":0, "Other":0}
-		folders = self.export_networks_kmz_folders(count)
+		folders = self.export_networks_kmz_folders(count, networks)
 		
 		for crypt in ("WPA", "WEP", "None", "Other"):
 			if crypt == "WPA":
@@ -499,7 +500,7 @@ class Networks:
 		zip_output.writestr(zinfo, "".join(data))
 		zip_output.close()
 		
-	def export_networks_kmz_folders(self, count):
+	def export_networks_kmz_folders(self, count, networks):
 		kml_placemark = """<Placemark><styleUrl>#%s</styleUrl><name>%s</name>
 <Point><coordinates>%s,%s</coordinates></Point>
 <description><![CDATA[
@@ -514,7 +515,7 @@ GPS: %s,%s]]></description></Placemark>"""
 		
 		folders = {"WPA":[], "WEP":[], "None":[], "Other":[]}
 		colors = {"WPA":"red", "WEP":"orange", "None":"green", "Other":"grey"}
-		for mac in self.networks:
+		for mac in networks:
 			network = self.networks[mac]
 			if network["lat"] == 0 and network["lon"] == 0:
 				continue
@@ -542,11 +543,11 @@ GPS: %s,%s]]></description></Placemark>"""
 			count[crypt] += 1
 		return folders
 		
-	def export_networks_mappoint(self, filename):
+	def export_networks_mappoint(self, filename, networks):
 		f = open(filename, "w")
 		
 		f.write('Latitude;Longitude;SSID;BSSID;Type;Encryption;Channel;Last Seen;\n')
-		for mac in self.networks:
+		for mac in networks:
 			network = self.networks[mac]
 			crypt = ",".join(decode_cryptset(network["cryptset"])).upper()
 			gps = "%s;%s" % (network["lat"], network["lon"])
