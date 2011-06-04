@@ -546,16 +546,30 @@ GPS: %s,%s]]></description></Placemark>"""
 	def export_networks_mappoint(self, filename, networks):
 		f = open(filename, "w")
 		
-		f.write('Latitude;Longitude;SSID;BSSID;Type;Encryption;Channel;Last Seen;\n')
+		f.write('Latitude;Longitude;SSID;BSSID;Encryption;Channel;Last Seen;\n')
 		for mac in networks:
 			network = self.networks[mac]
-			crypt = ",".join(decode_cryptset(network["cryptset"])).upper()
 			gps = "%s;%s" % (network["lat"], network["lon"])
-			f.write('%s;%s;%s;%s;%s;%s;%s;\n' % (
+			f.write('%s;%s;%s;%s;%s;%s;\n' % (
 				gps.replace(".",","), network["ssid"].replace(";"," "),
-				mac,network["type"], crypt, network["channel"], show_timestamp(network["lasttime"])
+				mac, print_cryptset(network["cryptset"]), network["channel"], show_timestamp(network["lasttime"])
 				))
 		f.close()
+		
+def print_cryptset(cryptset):
+	crypts = decode_cryptset(cryptset)
+	crypt = "Other"
+	
+	if "aes_ccm" in crypts:
+		crypt = "WPA2"
+	elif "wpa" in crypts:
+		crypt = "WPA"
+	elif "wep" in crypts:
+		crypt = "WEP"
+	elif "none" in crypts:
+		crypt = "None"
+	
+	return crypt
 
 class Netxml:
 	def __init__(self):
