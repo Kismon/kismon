@@ -46,7 +46,13 @@ class Map:
 		self.osm = osmgpsmap.GpsMap()
 		self.osd = osmgpsmap.GpsMapOsd(show_zoom=True, show_coordinates=False, show_scale=False, show_dpad=True, show_gps_in_dpad=True)
 		self.osm.layer_add(self.osd)
+		
 		self.osm.connect('button-press-event', self.on_map_pressed)
+		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_UP, gtk.gdk.keyval_from_name("Up"))
+		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_DOWN, gtk.gdk.keyval_from_name("Down"))
+		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_LEFT, gtk.gdk.keyval_from_name("Left"))
+		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_RIGHT, gtk.gdk.keyval_from_name("Right"))
+		
 		self.widget = self.osm
 		
 		if os.path.isdir("/usr/share/kismon"):
@@ -124,16 +130,21 @@ class Map:
 		except KeyError:
 			pass
 		
-		if not self.check_position(lat, lon):
-			marker = self.osm.image_add(lat, lon, self.textures[color])
-		else:
-			marker = DummyMarker()
-		marker.color_name = color
-		marker.key = key
-		marker.lat = lat
-		marker.lon = lon
-		self.markers[key] = marker
-		self.occupy_position(lat, lon, key)
+		self.add_image(lat, lon, key, color)
+		self.markers[key] = Marker(key, lat, lon, color)
+		
+	def add_image(self, lat, lon, key, color):
+		if not self.occupy_position(lat, lon, key):
+			return
+		
+		image = self.osm.image_add(lat, lon, self.textures[color])
+		self.coordinates[lat][lon]["image"] = image
+		
+	def clear_position(self, lat, lon, key):
+		self.coordinates[lat][lon]["markers"].remove(key)
+		if len(self.coordinates[lat][lon]["markers"]) == 0 :
+			self.osm.image_remove(self.coordinates[lat][lon]["image"])
+			del self.coordinates[lat][lon]["image"]
 		
 	def update_marker(self, marker, key, lat, lon):
 		if self.config["update_marker_positions"] is False:
@@ -141,28 +152,34 @@ class Map:
 		old_lat = marker.lat
 		old_lon = marker.lon
 		if old_lat != lat or old_lon != lon:
-			new_point = osmgpsmap.point_new_degrees(lat, lon)
-			marker.set_property("point", new_point)
-			
+			new = False
 			try:
-				if key in self.coordinates[old_lon][old_lon]:
-					self.coordinates[old_lon][old_lon].remove(key)
+				if len(self.coordinates[lat][lon]["markers"]) > 0:
+					self.coordinates[lat][lon]["markers"].append(key)
+				else:
+					new = True
 			except KeyError:
-				pass
+				new = True
 			
-			self.occupy_position(lat, lon, key)
+			if new == True:
+				self.add_image(lat, lon, key, marker.color)
+			
+			self.clear_position(old_lat, old_lon, key)
 			
 	def occupy_position(self, lat, lon, key):
 		try:
-			self.coordinates[lat][lon] = [key, ]
+			self.coordinates[lat][lon]["markers"].append(key)
+			if len(self.coordinates[lat][lon]["markers"]) == 1:
+				return True
+			else:
+				return False
 		except KeyError:
-			self.coordinates[lat] = {lon: [key, ]}
-		
-	def check_position(self, lat, lon):
-		try:
-			return self.coordinates[lat][lon]
-		except KeyError:
-			return False
+			if lat not in self.coordinates:
+				self.coordinates[lat] = {lon: {"markers": [key, ]}}
+				return True
+			else:
+				self.coordinates[lat][lon] = {"markers": [key, ]}
+				return True
 		
 	def remove_marker(self, key):
 		try:
@@ -170,26 +187,14 @@ class Map:
 		except KeyError:
 			return
 		
-		if not marker.get_property("point"):
-			pass
-		else:
-			self.osm.image_remove(marker)
+		self.clear_position(marker.lat, marker.lon, key)
 		del self.markers[key]
-		
-		try:
-			if key in self.coordinates[marker.lat][marker.lon]:
-				self.coordinates[marker.lat][marker.lon].remove(key)
-		except KeyError:
-			pass
 		
 	def stop_moving(self):
 		self.osm.set_property("auto-center", False)
-		print "stop"
-	
+		
 	def start_moving(self):
 		self.osm.set_property("auto-center", True)
-		print "auto-center"
-		
 		lat, lon = self.config["last_position"].split("/")
 		self.set_position(float(lat), float(lon))
 		
@@ -215,13 +220,13 @@ class Map:
 			
 		self.config["source"] = id
 		
-class DummyMarker():
-	def get_property(self, key):
-		return False
-		
-	def set_property(self, key, value):
-		return False
-
+class Marker():
+	def __init__(self, key, lat, lon, color):
+		self.key = key
+		self.lat = lat
+		self.lon = lon
+		self.color = color
+	
 if __name__ == "__main__":
 	import test
 	test.map()
