@@ -293,25 +293,6 @@ class MainWindow(KismonWindows):
 		sep = gtk.SeparatorMenuItem()
 		view_menu.append(sep)
 		
-		marker_menu = gtk.Menu()
-		marker_menuitem = gtk.MenuItem("Marker Style")
-		marker_menuitem.set_submenu(marker_menu)
-		view_menu.append(marker_menuitem)
-		if self.map == None:
-			marker_menu.set_sensitive(False)
-		else:
-			parent = None
-			for style in ("Point", "Name"):
-				item = gtk.RadioMenuItem(parent, style)
-				if self.config["map"]["marker_style"] == style.lower():
-					item.set_active(True)
-				item.connect("activate", self.map.on_set_marker_style, style.lower())
-				marker_menu.append(item)
-				parent = item
-			
-		sep = gtk.SeparatorMenuItem()
-		view_menu.append(sep)
-			
 		config_menuitem = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)
 		config_menuitem.connect("activate", self.on_config_window)
 		view_menu.append(config_menuitem)

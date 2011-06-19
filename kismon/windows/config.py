@@ -125,63 +125,17 @@ class ConfigWindow:
 		source_frame.add(source_vbox)
 		map_page.attach(source_frame, 0, 1, 1, 2, yoptions=gtk.SHRINK)
 		
-		memphis = self.main_window.map.memphis
-		
-		map_source_mapnik = gtk.RadioButton(None, 'OSM Mapnik (default)')
-		
-		if self.config["map"]["source"] == "osm-mapnik" or not memphis:
-			map_source_mapnik.clicked()
-		map_source_mapnik.connect("clicked", self.on_map_source_mapnik)
-		source_vbox.add(map_source_mapnik)
-		
-		map_source_memphis = gtk.RadioButton(map_source_mapnik,
-			'Memphis (local rendering)')
+		first = None
+		for name, source in (("Openstreetmap (default)", "openstreetmap"),
+				("Openstreetmap Renderer", "openstreetmap-renderer")):
+			map_source = gtk.RadioButton(first, name)
+			if first is None:
+				first = map_source
 			
-		if not memphis:
-			map_source_memphis.set_sensitive(False)
-		elif self.config["map"]["source"] == "memphis-local":
-			map_source_memphis.clicked()
-		
-		map_source_memphis.connect("clicked", self.on_map_source_memphis)
-		source_vbox.add(map_source_memphis)
-		
-		osm_frame = gtk.Frame("OSM File")
-		osm_vbox = gtk.VBox()
-		osm_frame.add(osm_vbox)
-		dialog = gtk.FileChooserDialog(title="Select OSM File",
-			parent=self.gtkwin, action=gtk.FILE_CHOOSER_ACTION_OPEN,
-			buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN,gtk.RESPONSE_ACCEPT)
-			)
-		dialog.connect("file-activated", self.on_osm_file_changed)
-		osm_file_chooser_button = gtk.FileChooserButton(dialog)
-		if self.config["map"]["osm_file"] != "":
-			osm_file_chooser_button.set_filename(self.config["map"]["osm_file"])
-		
-		osm_vbox.add(osm_file_chooser_button)
-		map_page.attach(osm_frame, 0, 1, 2, 3, yoptions=gtk.SHRINK)
-		
-		rules_frame = gtk.Frame("Memphis Rules")
-		rules_vbox = gtk.VBox()
-		rules_frame.add(rules_vbox)
-		map_page.attach(rules_frame, 0, 1, 3, 4, yoptions=gtk.SHRINK)
-		
-		rules_default = gtk.RadioButton(None, 'Memphis default')
-		if self.config["map"]["memphis_rules"] == "default":
-			rules_default.clicked()
-		rules_default.connect("toggled", self.on_memphis_rules, "default")
-		rules_vbox.add(rules_default)
-		
-		rules_minimal = gtk.RadioButton(rules_default, 'Minimal')
-		if self.config["map"]["memphis_rules"] == "minimal":
-			rules_minimal.clicked()
-		rules_minimal.connect("toggled", self.on_memphis_rules, "minimal")
-		rules_vbox.add(rules_minimal)
-		
-		rules_night = gtk.RadioButton(rules_default, 'Night')
-		if self.config["map"]["memphis_rules"] == "night":
-			rules_night.clicked()
-		rules_night.connect("toggled", self.on_memphis_rules, "night")
-		rules_vbox.add(rules_night)
+			if self.config["map"]["source"] == source:
+				map_source.clicked()
+			map_source.connect("clicked", self.on_map_source, source)
+			source_vbox.add(map_source)
 		
 		perf_frame = gtk.Frame("Performance")
 		perf_vbox = gtk.VBox()
@@ -197,29 +151,9 @@ class ConfigWindow:
 	def on_destroy(self, window):
 		self.gtkwin = None
 		
-	def on_osm_file_changed(self, widget):
-		filename = widget.get_filename()
-		self.config["map"]["osm_file"] = filename
-		if self.config["map"]["source"] == "memphis-local":
-			self.map.load_osm_file()
-		
-	def on_map_source_mapnik(self, widget):
+	def on_map_source(self, widget, source):
 		if widget.get_active():
-			self.config["map"]["source"] = "osm-mapnik"
-			self.map.set_source("osm-mapnik")
-		
-	def on_map_source_memphis(self, widget):
-		if not widget.get_active():
-			return
-		self.config["map"]["source"] = "memphis-local"
-		
-		if os.path.isfile(self.config["map"]["osm_file"]):
-			self.map.set_source("memphis-local")
-			
-	def on_memphis_rules(self, widget, name):
-		if widget.get_active():
-			self.config["map"]["memphis_rules"] = name
-			self.map.load_memphis_rules()
+			self.map.set_source(source)
 		
 	def on_update_marker_positions(self, widget):
 		self.config["map"]["update_marker_positions"] = widget.get_active()

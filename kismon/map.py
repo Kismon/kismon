@@ -29,40 +29,26 @@ POSSIBILITY OF SUCH DAMAGE.
 """
 import gtk
 import gobject
-import champlaingtk
-import champlain
-import champlainmemphis
-import clutter
+import osmgpsmap
 
 import os
 import hashlib
 
 class Map:
-	def __init__(self, config, memphis=True):
+	def __init__(self, config):
 		self.config = config
-		self.memphis = memphis
 		self.generator_is_running = False
 		self.toggle_moving_button = None
 		self.markers = {}
-		self.marker_text = "%s\n<span size=\"small\">%s</span>"
-		self.marker_font = "Serif 10"
-		self.selected_marker = None
-		self.next_position = None
 		self.networks_label_count = 0
+		self.coordinates = {}
 		
-		self.embed = champlaingtk.ChamplainEmbed()
-		self.embed.connect("button-press-event", self.on_map_pressed)
-		self.embed.connect("button-release-event", self.on_map_released)
-		self.widget = self.embed
-		self.view = self.embed.get_view()
+		self.osm = osmgpsmap.GpsMap()
+		self.osd = osmgpsmap.GpsMapOsd(show_zoom=True, show_coordinates=False, show_scale=False, show_dpad=True, show_gps_in_dpad=True)
+		self.osm.layer_add(self.osd)
+		self.osm.connect('button-press-event', self.on_map_pressed)
+		self.widget = self.osm
 		
-		self.colors = {
-			"red": clutter.Color(255, 0, 0, 220),
-			"green": clutter.Color(0, 255, 0, 220),
-			"orange":clutter.Color(243, 148, 7, 220),
-			"black": clutter.Color(0, 0, 0, 255),
-			"white": clutter.Color(255, 255, 255, 220),
-			}
 		if os.path.isdir("/usr/share/kismon"):
 			self.share_folder = "/usr/share/kismon/"
 		else:
@@ -72,176 +58,59 @@ class Map:
 			"position": "%sposition.png" % self.share_folder
 			}
 		self.textures = {}
-		self.load_images()
 		self.create_dots()
-		self.create_right_group()
-		
-		
-		
-		self.marker_layer = {}
-		for color in ("red", "orange", "green"):
-			self.marker_layer[color] = champlain.Layer()
-			self.view.add_layer(self.marker_layer[color])
-		self.marker_layer_queue = []
-		
-		self.init_position_marker()
-		self.view.add_layer(self.position_layer)
-		
-		margin = 5
-		padding = 10
-		
-		label = clutter.Group()
-		label_bg = clutter.Rectangle()
-		label_bg.set_color(clutter.color_from_string('white'))
-		label_bg.set_opacity(180)
-		label.add(label_bg)
-
-		label_text = clutter.Text('Sans 10', "Networks shown: 0", \
-			clutter.color_from_string('black'))
-		label.add(label_text)
-		self.networks_label = label_text
-		self.set_moving(self.config["follow_gps"])
-
-		width, height = label_text.get_size()
-		label_bg.set_size(width + padding + 50, height + padding )
-		label_bg.set_position(margin, margin)
-		label_text.set_position(padding / 2 + margin, padding / 2 + margin)
-		label.show()
-		
-		self.view.add(label)
-		
-		self.map_source_factory = champlain.map_source_factory_dup_default()
-		self.map_data_source = None
 		self.apply_config()
 		
-		self.view.connect("allocation-changed", self.on_resize)
-		
-	def on_resize(self, actor, box, flags):
-		gobject.idle_add(self.move_right_group)
-		
-	def create_right_group(self):
-		margin = 5
-		padding = 4
-		start = 0
-		view_width, view_height = self.view.get_size()
-		right_group = clutter.Group()
-		
-		for text in ("in", "out"):
-			size = 28
-			texture = clutter.CairoTexture(width=size, height=size)
-			context = texture.cairo_create()
-			context.set_source_color(self.colors["white"])
-			context.arc(size/2, size/2, size/2-1, 0, 3.14*2)
-			context.fill()
-			context.stroke()
-			
-			context.set_source_color(self.colors["black"])
-			context.arc(size/2, size/2, size/2-1, 0, 3.14*2)
-			context.set_line_width(1)
-			context.stroke()
-			
-			context.set_line_width(3)
-			if text == "in":
-				context.move_to(size/2, 5)
-				context.line_to(size/2, size - 5)
-				
-			context.move_to(5, size/2)
-			context.line_to(size - 5, size/2)
-			
-			context.stroke()
-			del(context)
-			
-			texture.set_position(20 + start, 28)
-			texture.set_reactive(True)
-			if text == "in":
-				texture.connect('button-release-event', self.zoom_in)
-			else:
-				texture.connect('button-release-event', self.zoom_out)
-			right_group.add(texture)
-			start += 32
-		
-		label = clutter.Group()
-		label_bg = clutter.Rectangle()
-		label_bg.set_color(clutter.color_from_string('white'))
-		label_bg.set_opacity(180)
-		label.add(label_bg)
-
-		label_text = clutter.Text('Sans 10', "Follow GPS: on", \
-			clutter.color_from_string('black'))
-		label.add(label_text)
-		self.follow_label = label_text
-
-		width, height = label_text.get_size()
-		label_bg.set_size(width + padding * 3, height + padding * 2)
-		label_bg.set_position(0, 0)
-		label_text.set_position(padding , padding)
-		label.show()
-		label.set_reactive(True)
-		label.connect('button-release-event', self.on_toggle_moving)
-		right_group.add(label)
-		
-		self.view.add(right_group)
-		self.right_group = right_group
-		self.move_right_group()
-		
-	def move_right_group(self):
-		view_width, view_height = self.view.get_size()
-		self.right_group.set_position(view_width - 110, 8)
-		
 	def apply_config(self):
-		if self.config["source"] == "memphis-local":
-			self.set_source("memphis-local")
+		pass
 		
-	def init_position_marker(self):
-		"""show a marker at the current position
-		"""
-		self.position_layer = champlain.Layer()
-		self.position_marker = champlain.marker_new_from_file(self.images["position"])
-		self.position_marker.set_draw_background(False)
-		self.position_layer.add_marker(self.position_marker)
-		
-	def load_images(self):
-		for name in self.images:
-			filename = self.images[name]
-			texture = clutter.Texture()
-			texture.set_from_file(self.images[name])
-			self.textures[name] = texture.get_cogl_texture()
-			
 	def create_dots(self):
 		for color in ("red", "orange", "green"):
-			texture = clutter.CairoTexture(width=16, height=16)
-			context = texture.cairo_create()
-			context.set_source_color(self.colors[color])
-			context.arc(8, 8, 7, 0, 3.14*2)
-			context.fill()
-			context.stroke()
-			del(context)
-			self.textures[color] = texture.get_cogl_texture()
+			size = 16
+			
+			drawable = gtk.gdk.Pixmap(None, size, size, 24)
+			ctx = drawable.cairo_create()
+			ctx.set_source_rgba(1, 1, 1, 1)
+			ctx.rectangle(0, 0, size, size)
+			ctx.fill()
+			ctx.stroke()
+			
+			if color == "red":
+				ctx.set_source_rgb(1, 0, 0)
+			elif color == "orange":
+				ctx.set_source_rgb(1, 1, 0)
+			else:
+				ctx.set_source_rgb(0, 1, 0)
+			
+			ctx.arc(size/2, size/2, size/2-1, 0, 3.14*2)
+			ctx.fill()
+			ctx.stroke()
+			cmap = gtk.gdk.colormap_get_system()
+			pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, size, size)
+			
+			pixbuf.get_from_drawable(drawable, cmap, 0, 0, 0, 0, size, size)
+			
+			self.textures[color] = pixbuf.add_alpha(True , 255, 255, 255)
 		
 	def set_zoom(self, zoom):
-		self.view.set_property("zoom-level", zoom)
+		self.osm.set_zoom(zoom)
 		
 	def zoom_in(self, actor=None, event=None, view=None):
-		self.view.zoom_in()
+		self.osm.zoom_in()
 		
 	def zoom_out(self, actor=None, event=None, view=None):
-		self.view.zoom_out()
+		self.osm.zoom_out()
 		
 	def set_position(self, lat, lon, force=False):
-		if self.config["follow_gps"] is True or force is True:
-			self.view.center_on(lat, lon)
-		else:
-			self.next_position = (lat, lon)
+		self.osm.gps_clear()
+		self.osm.gps_add(lat, lon, heading=osmgpsmap.INVALID);
 		
-		self.position_marker.set_position(lat, lon)
 		self.config["last_position"] = "%s/%s" % (lat, lon)
 		
-	def add_marker(self, key, name, text, color, lat, lon):
+	def add_marker(self, key, color, lat, lon):
 		"""add a new marker to the marker_layer
 		
 		key: a unique key
-		name: the name, shown when marker_style is 'name'
-		text: shown after click on the marker
 		color: a color from self.colors
 		lat: latitude
 		lon: longitude
@@ -250,265 +119,108 @@ class Map:
 			return
 		try:
 			marker = self.markers[key]
-			self.update_marker(marker, name, text, lat, lon)
+			self.update_marker(marker, key, lat, lon)
 			return
 		except KeyError:
 			pass
 		
-		marker = champlain.Marker()
-		marker.set_position(lat, lon)
-		marker.set_use_markup(True)
-		marker.set_reactive(True)
-		marker.set_color(self.colors[color])
-		marker.set_font_name(self.marker_font)
-		marker.set_text_color(self.colors["black"])
-		marker.set_name(name)
-		marker.connect("button-press-event", self.on_marker_clicked)
-		
-		marker.long_text = text
-		marker.color_name = color
-		
-		if self.selected_marker is not None:
-			marker.hide()
-		
-		if self.config["marker_style"] == "point":
-			self.marker_style_point(marker)
+		if not self.check_position(lat, lon):
+			marker = self.osm.image_add(lat, lon, self.textures[color])
 		else:
-			self.marker_style_name(marker)
-		
-		self.marker_layer[marker.color_name].add_marker(marker)
+			marker = DummyMarker()
+		marker.color_name = color
+		marker.key = key
+		marker.lat = lat
+		marker.lon = lon
 		self.markers[key] = marker
+		self.occupy_position(lat, lon, key)
 		
-	def update_marker(self, marker, name, text, lat, lon):
-		marker.long_text = text
-		marker.set_name(name)
-		if self.config["marker_style"] == "name":
-			marker.set_text(name)
-			
+	def update_marker(self, marker, key, lat, lon):
 		if self.config["update_marker_positions"] is False:
 			return
-		if marker.get_latitude() != lat or marker.get_longitude() != lon:
-			marker.set_position(lat, lon)
+		old_lat = marker.lat
+		old_lon = marker.lon
+		if old_lat != lat or old_lon != lon:
+			new_point = osmgpsmap.point_new_degrees(lat, lon)
+			marker.set_property("point", new_point)
+			
+			try:
+				if key in self.coordinates[old_lon][old_lon]:
+					self.coordinates[old_lon][old_lon].remove(key)
+			except KeyError:
+				pass
+			
+			self.occupy_position(lat, lon, key)
+			
+	def occupy_position(self, lat, lon, key):
+		try:
+			self.coordinates[lat][lon] = [key, ]
+		except KeyError:
+			self.coordinates[lat] = {lon: [key, ]}
+		
+	def check_position(self, lat, lon):
+		try:
+			return self.coordinates[lat][lon]
+		except KeyError:
+			return False
 		
 	def remove_marker(self, key):
 		try:
 			marker = self.markers[key]
 		except KeyError:
 			return
-		self.marker_layer[marker.color_name].remove_marker(marker)
-		del self.markers[key]
-	
-	def on_marker_clicked(self, marker, event=None):
-		"""hide all markers and create a new marker with the long text
-		"""
-		if self.selected_marker is None:
-			text = self.marker_text % (marker.get_name(), marker.long_text)
-			lat = marker.get_latitude()
-			lon = marker.get_longitude()
-			
-			self.selected_marker = champlain.marker_new_with_text(text,
-				self.marker_font, self.colors["black"], self.colors[marker.color_name])
-			self.selected_marker.connect("button-press-event", self.on_marker_clicked)
-			self.selected_marker.set_position(lat, lon)
-			self.selected_marker.set_use_markup(True)
-			self.selected_marker.set_reactive(True)
-			self.selected_marker.color_name = marker.color_name
-			for color in self.marker_layer:
-				self.marker_layer[color].hide_all_markers()
-			self.marker_layer[marker.color_name].add_marker(self.selected_marker)
-			
-		else:
-			self.marker_layer[marker.color_name].remove_marker(marker)
-			self.selected_marker = None
-			for color in self.marker_layer:
-				self.marker_layer[color].show_all_markers()
-			
-	def set_marker_style(self, style):
-		if self.selected_marker is not None:
-			self.on_marker_clicked(self.selected_marker)
-		if style == "name":
-			for key in self.markers:
-				marker = self.markers[key]
-				self.marker_style_name(marker)
-			self.config["marker_style"] = style
-		else:
-			for key in self.markers:
-				marker = self.markers[key]
-				self.marker_style_point(marker)
-			self.config["marker_style"] = "point"
-			
-	def on_set_marker_style(self, widget, style):
-		self.set_marker_style(style)
-			
-	def marker_style_name(self, marker):
-		"""show the name on the map and remove the image
-		"""
-		marker.set_text(marker.get_name())
-		marker.set_draw_background(True)
-		marker.set_image(None)
 		
-	def marker_style_point(self, marker):
-		"""show a point on the map and remove the text and background
-		"""
-		marker.set_draw_background(False)
-		texture = clutter.Texture()
-		texture.set_cogl_texture(self.textures[marker.color_name])
-		marker.set_image(texture)
-		if marker.get_text() is not None:
-			marker.set_text(" ")
+		if not marker.get_property("point"):
+			pass
+		else:
+			self.osm.image_remove(marker)
+		del self.markers[key]
+		
+		try:
+			if key in self.coordinates[marker.lat][marker.lon]:
+				self.coordinates[marker.lat][marker.lon].remove(key)
+		except KeyError:
+			pass
 		
 	def stop_moving(self):
-		self.config["follow_gps"] = False
+		self.osm.set_property("auto-center", False)
+		print "stop"
 	
 	def start_moving(self):
-		self.config["follow_gps"] = True
+		self.osm.set_property("auto-center", True)
+		print "auto-center"
 		
-		if self.next_position is None:
-			return
-		
-		lat, lon = self.next_position
-		self.set_position(lat, lon)
-		self.next_position = None
-		
-	def on_toggle_moving(self, actor=None, event=None):
-		if self.follow_label is None:
-			return
-		
-		if self.config["follow_gps"] is True:
-			self.set_moving(False)
-		else:
-			self.set_moving(True)
-		
-	def set_moving(self, mode):
-		text = "Follow GPS: %s"
-		if mode is False:
-			self.stop_moving()
-			self.follow_label.set_text(text % "off")
-		else:
-			self.start_moving()
-			self.follow_label.set_text(text % "on")
+		lat, lon = self.config["last_position"].split("/")
+		self.set_position(float(lat), float(lon))
 		
 	def on_map_pressed(self, actor, event):
-		"""disable set_position if the map is pressed
-		"""
-		if self.config["follow_gps"] is True:
-			self.stop_moving()
-		
-	def on_map_released(self, actor, event):
-		
-		text = self.follow_label.get_text()
-		if self.config["follow_gps"] is False and "on" in text:
-			self.start_moving()
+		if event != None:
+			if event.x >= 32 and event.x < 48 and event.y >= 32 and event.y < 48:
+				self.start_moving()
 		
 	def locate_marker(self, key):
 		if key not in self.markers:
 			print "marker %s not found" % key
 			return
 			
-		if self.selected_marker is not None:
-			self.on_marker_clicked(self.selected_marker)
-		
 		marker = self.markers[key]
-		lat = marker.get_latitude()
-		lon = marker.get_longitude()
-		
-		self.on_marker_clicked(marker)
-		self.view.center_on(lat, lon)
-		if self.toggle_moving_button is not None:
-			self.toggle_moving_button.set_active(False)
+		self.osm.set_center(marker.lat, marker.lon)
 		
 	def set_source(self, id):
-		if id == "memphis-local" and not self.memphis:
-			return
-		
+		if id == "openstreetmap-renderer":
+			self.osm.set_property("map-source", osmgpsmap.SOURCE_OPENSTREETMAP_RENDERER)
+		else:
+			id = "openstreetmap"
+			self.osm.set_property("map-source", osmgpsmap.SOURCE_OPENSTREETMAP)
+			
 		self.config["source"] = id
 		
-		if id == "memphis-local":
-			self.load_memphis_rules()
-			if self.map_data_source is None:
-				self.load_osm_file()
-			return
-		
-		self.source = self.map_source_factory.create(id)
-		self.view.set_map_source(self.source)
-		
-	def load_osm_file(self):
-		if not self.memphis:
-			return
-		if not os.path.isfile(self.config["osm_file"]):
-			print "no valid OSM file"
-			return
-		
-		self.map_data_source = champlainmemphis.LocalMapDataSource()
-		
-		win = gtk.Window()
-		win.set_title("Loading")
-		label = gtk.Label("Loading OSM file %s ..." % self.config["osm_file"])
-		win.add(label)
-		win.set_position(gtk.WIN_POS_CENTER)
-		win.set_keep_above(True)
-		win.show_all()
-		
-		self.load_osm_file_window = win
-		gobject.idle_add(self._load_osm_file)
-		
-	def _load_osm_file(self):
-		print "Loading osm file..."
-		self.map_data_source.load_map_data(self.config["osm_file"])
-		print "Done"
-		self.load_osm_file_window.destroy()
-		
-		if self.config["source"] == "memphis-local":
-			self.source.set_map_data_source(self.map_data_source)
-			
+class DummyMarker():
+	def get_property(self, key):
 		return False
 		
-	def load_memphis_rules(self):
-		if self.config["source"] != "memphis-local" or not self.memphis:
-			return
-			
-		self.source = self.map_source_factory.create("memphis-local")
-		if self.map_data_source is not None:
-			self.source.set_map_data_source(self.map_data_source)
-		
-		filename = None
-		shares = ["/usr/share/memphis/", "/usr/local/share/memphis/"]
-		for path in shares:
-			full = "%sdefault-rules.xml" % path
-			if os.path.isfile(full):
-				filename = full
-		
-		if self.config["memphis_rules"] == "minimal":
-			filename = "%sminimal-rules.xml" % self.share_folder
-		elif self.config["memphis_rules"] == "night":
-			filename = "%snight-rules.xml" % self.share_folder
-		
-		if filename is None:
-			print "Rules %s not found" % self.config["memphis_rules"]
-			return
-		
-		self.source.load_rules(filename)
-		hash = hashlib.md5(open(filename).read()).hexdigest()
-		name = "%s-%s" % (self.config["memphis_rules"], hash)
-		
-		tile_size = self.source.get_tile_size()
-		error_tile_source = champlain.error_tile_source_new_full(tile_size)
-		
-		file_cache_path = "%s%s.cache%skismon%smemphis%s%s" % (
-			os.path.expanduser("~"), os.sep, os.sep, os.sep, os.sep, name)
-		file_cache = champlain.file_cache_new_full(1024*1024*50, file_cache_path, True)
-		
-		source_chain = champlain.MapSourceChain()
-		source_chain.push(error_tile_source)
-		source_chain.push(self.source)
-		source_chain.push(file_cache)
-		self.view.set_map_source(source_chain)
-		
-	def update_networks_label(self):
-		networks = len(self.markers)
-		if networks != self.networks_label_count:
-			self.networks_label.set_text("Networks shown: %s" % networks)
-			self.networks_label_count = networks
+	def set_property(self, key, value):
+		return False
 
 if __name__ == "__main__":
 	import test

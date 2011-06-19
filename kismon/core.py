@@ -40,28 +40,9 @@ import subprocess
 import gtk
 import gobject
 
-def check_champlain():
-	pipe = subprocess.Popen("pkg-config --exists --print-errors 'champlain-0.6 >= 0.6.1'",
-		shell=True, stderr=subprocess.PIPE)
-	champlain_check = pipe.stderr.read().strip()
-	if champlain_check != '':
-		return champlain_check
-	
+def check_osmgpsmap():
 	try:
-		import champlaingtk
-		import champlain
-	except:
-		return sys.exc_info()[1]
-
-def check_memphis():
-	pipe = subprocess.Popen("pkg-config --exists --print-errors 'memphis-0.2 >= 0.2.3'",
-		shell=True, stderr=subprocess.PIPE)
-	memphis_check = pipe.stderr.read().strip()
-	if memphis_check != '':
-		return memphis_check
-	
-	try:
-		import champlainmemphis
+		import osmgpsmap
 	except:
 		return sys.exc_info()[1]
 
@@ -95,19 +76,13 @@ Last seen: %s"""
 		if "--disable-map" in sys.argv:
 			self.map_error = "--disable-map used"
 		else:
-			self.map_error = check_champlain()
+			self.map_error = check_osmgpsmap()
 
 		if self.map_error is not None:
 			self.map_error =  "%s\nMap disabled" % self.map_error
 			print self.map_error, "\n"
-			
-		memphis_error = check_memphis()
-		if memphis_error is not None:
-			self.init_map(memphis=False)
-			memphis_error =  "%s\nLocal rendering disabled" % memphis_error
-			print memphis_error, "\n"
-		else:
-			self.init_map()
+		
+		self.init_map()
 		
 		self.main_window = MainWindow(self.config,
 			self.client_start,
@@ -119,8 +94,6 @@ Last seen: %s"""
 		self.main_window.log_list.add("Kismon started")
 		if self.map_error is not None:
 			self.main_window.log_list.add(self.map_error)
-		if memphis_error is not None:
-			self.main_window.log_list.add(memphis_error)
 		
 		self.networks_file = "%snetworks.json" % user_dir
 		if os.path.isfile(self.networks_file):
@@ -170,12 +143,12 @@ Last seen: %s"""
 		gobject.timeout_add(300, self.queue_handler_networks)
 		gobject.idle_add(self.networks.apply_filters)
 		
-	def init_map(self, memphis=True):
+	def init_map(self):
 		if self.map_error is not None:
 			self.map = None
 		else:
 			from map import Map
-			self.map = Map(self.config["map"], memphis)
+			self.map = Map(self.config["map"])
 			self.map.set_zoom(16)
 			pos = self.config["map"]["last_position"].split("/")
 			self.map.set_position(float(pos[0]), float(pos[1]), True)
@@ -284,9 +257,6 @@ Last seen: %s"""
 				self.main_window.networks_queue_progress()
 		
 		self.main_window.update_statusbar()
-		if self.map is not None:
-			self.map.update_networks_label()
-		
 		return True
 		
 	def quit(self):
@@ -343,7 +313,7 @@ Last seen: %s"""
 			)
 		text = text.replace("&", "&amp;")
 		
-		self.map.add_marker(mac, ssid, text, color, network["lat"], network["lon"])
+		self.map.add_marker(mac, color, network["lat"], network["lon"])
 		
 def main():
 	core = Core()

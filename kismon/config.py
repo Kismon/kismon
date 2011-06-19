@@ -47,11 +47,7 @@ class Config:
 				"log_list_max": 50,
 				},
 			"map": {
-				"marker_style": "point",
-				"follow_gps": True,
-				"source": "osm-mapnik",
-				"osm_file": "",
-				"memphis_rules": "default",
+				"source": "openstreetmap",
 				"update_marker_positions": True,
 				"last_position": "0/0"
 				},

@@ -235,9 +235,6 @@ def gui_main_window():
 	
 	test_widget = TestWidget()
 	config_window = main_window.config_window
-	config_window.on_map_source_mapnik(test_widget)
-	config_window.on_map_source_memphis(test_widget)
-	config_window.on_memphis_rules(test_widget, "default")
 	
 	main_window.on_file_import(None)
 	
@@ -301,40 +298,23 @@ def gui_signal_window():
 
 def map():
 	test_config = Config(None).default_config["map"]
-	test_map = Map(test_config, memphis=False)
 	test_map = Map(test_config)
 	
 	test_map.set_zoom(16)
 	test_map.set_position(52.513, 13.323)
-	test_map.add_marker("111", "marker 1", "long description\nbla\nblub", "green", 52.513, 13.322)
-	test_map.add_marker("222", "marker 2", "bla", "red", 52.512, 13.322)
-	test_map.add_marker("222", "marker 2 test1", "foobar", "red", 52.512, 13.322)
+	test_map.add_marker("111", "green", 52.513, 13.322)
+	test_map.add_marker("222", "red", 52.512, 13.322)
 	test_map.locate_marker("111")
-	test_map.set_marker_style("name")
-	test_map.add_marker("222", "marker 2 test2", "blub", "red", 52.512, 13.321)
-	test_map.add_marker("333", "marker 3", "test", "orange", 52.511, 13.322)
-	test_map.set_marker_style("point")
-	test_map.on_toggle_moving()
+	test_map.add_marker("222", "red", 52.510, 13.321)
+	test_map.add_marker("333", "orange", 52.511, 13.322)
+	
 	test_map.set_position(52.513,13.323)
-	test_map.on_toggle_moving()
 	test_map.zoom_out()
 	test_map.zoom_in()
 	test_map.on_map_pressed(None, None)
-	test_map.on_map_released(None, None)
-	test_map.set_source("osm-mapnik")
+	test_map.set_source("openstreetmap")
+	test_map.set_source("openstreetmap-renderer")
 	test_map.remove_marker("333")
-	
-	tmp_osm_file = "/tmp/test-%s.osm" % int(time.time())
-	tmp_osm = open(tmp_osm_file, "w")
-	tmp_osm.write('''<?xml version="1.0" encoding="UTF-8"?>
-<osm version="0.6" generator="OpenStreetMap server">
-</osm>
-	''')
-	tmp_osm.close()
-	test_config["osm_file"] = tmp_osm_file
-	test_map.set_source("memphis-local")
-	test_map._load_osm_file()
-	test_map.set_source("osm-mapnik")
 	
 	test_window = gtk.Window()
 	test_window.set_title("Kismon Test Map")
