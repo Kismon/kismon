@@ -1,13 +1,12 @@
 Kismon
 ======
-Kismon is a PyGTK based Kismet Newcore (since 2009-05-RC1) Client that
-can use libchamplain to create a live map of the networks.
+Kismon is a PyGTK based Kismet Newcore (since 2009-05-RC1) Client with
+a live map of the networks.
 
 Dependencies:
 -------------
 
-* libchamplain 0.6.1 with python bindings (./configure --enable-python)
-* libmemhis 0.2.3 (optional for local rendering)
+* python-osmgpsmap
 * pyclutter
 * python 2.6
 * pygtk
@@ -19,26 +18,10 @@ Create Debian/Ubuntu package:
 # apt-get install make debhelper python-support cdbs
 # make builddeb
 
-Note: The created deb has no dependencies for libchamplain and libmemphis,
-because right now there are no packages with the required versions.
-
 Install:
 --------
 
 # make install
-
-Offline usage:
---------------
-
-If you want to use the map without an internet connection you have two
-possibilities.
-
-You can to browse the area and cache the map tiles,
-they will be stored in ~/.cache/champlain.
-
-Or you can render the map locally, than you need an OSM file.
-Sources for OSM files can be found here:
-http://wiki.openstreetmap.org/wiki/Planet.osm#Extracts
 
 Hotkeys:
 ----------
