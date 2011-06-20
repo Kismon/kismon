@@ -200,6 +200,7 @@ class Map:
 		
 	def on_map_pressed(self, actor, event):
 		if event != None:
+			self.osm.grab_focus()
 			if event.x >= 32 and event.x < 48 and event.y >= 32 and event.y < 48:
 				self.start_moving()
 		
