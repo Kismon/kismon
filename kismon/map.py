@@ -52,6 +52,8 @@ class Map:
 		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_DOWN, gtk.gdk.keyval_from_name("Down"))
 		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_LEFT, gtk.gdk.keyval_from_name("Left"))
 		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_RIGHT, gtk.gdk.keyval_from_name("Right"))
+		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_ZOOMIN, gtk.gdk.keyval_from_name("Page_Up"))
+		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_ZOOMOUT, gtk.gdk.keyval_from_name("Page_Down"))
 		
 		self.widget = self.osm
 		
