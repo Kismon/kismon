@@ -40,6 +40,7 @@ gobject.threads_init()
 import time
 import gtk
 import sys
+import tempfile
 
 def get_client_test_data():
 	test_lines = [
@@ -99,7 +100,7 @@ def client():
 	client.server = "invalid:xyz"
 	client.start()
 	
-	test_dump_name = "/tmp/kismet_dump_test.dump"
+	test_dump_name = "%s%skismet_dump_test-%s.dump" % (tempfile.gettempdir(), os.sep, int(time.time()))
 	test_dump = open(test_dump_name, "w")
 	
 	client = TestClient()
@@ -151,7 +152,7 @@ def client():
 	client_thread.run()
 
 def config():
-	conf=Config("/tmp/testconfig.conf")
+	conf=Config(tempfile.gettempdir() + os.sep + "testconfig.conf")
 	conf.read()
 	conf.write()
 	conf.read()
@@ -255,7 +256,7 @@ def gui_file_import_window():
 	test_widget = TestWidget()
 	file_import_window = FileImportWindow(test_networks, main_window.networks_queue_progress)
 	file_import_window.create_file_chooser("dir")
-	filename = "/tmp/test-networks.json"
+	filename = "%s%stest-networks-%s.json" % (tempfile.gettempdir(), os.sep, int(time.time()))
 	test_networks.save(filename)
 	file_import_window.add_file(filename)
 	test_widget.text = "networks"
@@ -345,7 +346,7 @@ def networks():
 				networks.add_ssid_data(data[1])
 				data[1]["lasttime"] = data[1]["lasttime"] + 1
 	
-	tmp_csv_file = "/tmp/test-%s.csv" % int(time.time())
+	tmp_csv_file = "%s%stest-%s.csv" % (tempfile.gettempdir(), os.sep, int(time.time()))
 	tmp_csv = open(tmp_csv_file, "w")
 	tmp_csv.write("""Network;NetType;ESSID;BSSID;Info;Channel;Cloaked;Encryption;Decrypted;MaxRate;MaxSeenRate;Beacon;LLC;Data;Crypt;Weak;Total;Carrier;Encoding;FirstTime;LastTime;BestQuality;BestSignal;BestNoise;GPSMinLat;GPSMinLon;GPSMinAlt;GPSMinSpd;GPSMaxLat;GPSMaxLon;GPSMaxAlt;GPSMaxSpd;GPSBestLat;GPSBestLon;GPSBestAlt;DataSize;IPType;IP;
 1;infrastructure;WsF;00:18:84:15:18:A5;;3;No;WEP,WPA,PSK,AES-CCM;No;18.0;1000;25600;148;0;0;0;148;IEEE 802.11g;;Thu Jan 22 05:48:23 2009;Thu Jan 22 05:51:46 2009;0;65;-98;52.549381;13.141430;120.120003;0.000000;52.549652;13.141682;120.120003;2.934490;0.000000;0.000000;0.000000;0;None;0.0.0.0;""")
@@ -354,15 +355,15 @@ def networks():
 		networks.import_networks("csv", tmp_csv_file)
 	networks.import_networks("netxml", "")
 	
-	networks_file = "/tmp/networks.json"
+	networks_file = "%s%snetworks-%s.json" % (tempfile.gettempdir(), os.sep, int(time.time()))
 	networks.save(networks_file)
 	networks.load(networks_file)
 	networks.import_networks("networks",networks_file)
 	networks.apply_filters()
 	networks.save(networks_file)
-	networks.export_networks_netxml("/tmp/test.netxml", networks.networks)
-	networks.import_networks("netxml", "/tmp/test.netxml")
-	networks.export_networks_kmz("/tmp/test.kmz", networks.networks)
+	networks.export_networks_netxml(tempfile.gettempdir() + os.sep + "test.netxml", networks.networks)
+	networks.import_networks("netxml", tempfile.gettempdir() + os.sep + "test.netxml")
+	networks.export_networks_kmz(tempfile.gettempdir() + os.sep + "test.kmz", networks.networks)
 	
 	return networks
 

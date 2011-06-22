@@ -455,7 +455,7 @@ class Networks:
 		
 		f.write('</detection-run>')
 		f.close()
-		locale.resetlocale(locale.LC_TIME)
+		locale.setlocale(locale.LC_TIME, '')
 		
 	def export_networks_kmz(self, filename, networks):
 		kml_folder = """
@@ -595,7 +595,7 @@ class Netxml:
 		else:
 			print "Parser: filename is not a file (%s)" % filename
 		
-		locale.resetlocale(locale.LC_TIME)
+		locale.setlocale(locale.LC_TIME, '')
 	
 	def parse_start_element(self, name, attrs):
 		"""<name attr="">
@@ -704,7 +704,7 @@ class CSV:
 				"ssid": data["ESSID"],
 				"cryptset": encode_cryptset(crypts)
 			}
-		locale.resetlocale(locale.LC_TIME)
+		locale.setlocale(locale.LC_TIME, '')
 
 def timestring2timestamp(timestring):
 	return int(time.mktime(time.strptime(timestring)))
