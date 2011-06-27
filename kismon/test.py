@@ -305,6 +305,7 @@ def map():
 	test_map.set_position(52.513, 13.323)
 	test_map.add_marker("111", "green", 52.513, 13.322)
 	test_map.add_marker("222", "red", 52.512, 13.322)
+	test_map.add_marker("333", "orange", 52.512, 13.322)
 	test_map.locate_marker("111")
 	test_map.add_marker("222", "red", 52.510, 13.321)
 	test_map.add_marker("333", "orange", 52.511, 13.322)

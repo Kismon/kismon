@@ -166,6 +166,8 @@ class Map:
 			if new == True:
 				self.add_image(lat, lon, key, marker.color)
 			
+			marker.lat = lat
+			marker.lon = lon
 			self.clear_position(old_lat, old_lon, key)
 			
 	def occupy_position(self, lat, lon, key):
