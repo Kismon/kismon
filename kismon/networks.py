@@ -392,7 +392,7 @@ class Networks:
 			crypts = decode_cryptset(network["cryptset"])
 			if network["cryptset"] == 0:
 				f.write('  <encryption>None</encryption>\n')
-			if "wep" in crypts:
+			if crypts == ["wep"]:
 				f.write('  <encryption>WEP</encryption>\n')
 			if "layer3" in crypts:
 				f.write('  <encryption>Layer3</encryption>\n')
