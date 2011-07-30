@@ -1,3 +1,11 @@
+kismon 0.4 (2011-05-21)
+===============================
+
+Changes:
+* Map: switched from libchamplain to osmgpsmap
+* Export: Kismon json, Kismet netxml, Google Earth kmz, MapPoint csv
+* various bugfixes
+
 kismon 0.3 (2011-03-03)
 ===============================
 
