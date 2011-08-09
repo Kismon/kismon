@@ -73,9 +73,11 @@ class Map:
 		pass
 		
 	def create_dots(self):
-		for color in ("red", "orange", "green"):
-			size = 16
-			
+		for color in ("red", "orange", "green", "crosshair"):
+			if color == "crosshair":
+				size = 32
+			else:
+				size = 16
 			drawable = gtk.gdk.Pixmap(None, size, size, 24)
 			ctx = drawable.cairo_create()
 			ctx.set_source_rgba(1, 1, 1, 1)
@@ -87,11 +89,21 @@ class Map:
 				ctx.set_source_rgb(1, 0, 0)
 			elif color == "orange":
 				ctx.set_source_rgb(1, 1, 0)
+			elif color == "crosshair":
+				ctx.set_source_rgb(0, 0, 0)
 			else:
 				ctx.set_source_rgb(0, 1, 0)
 			
-			ctx.arc(size/2, size/2, size/2-1, 0, 3.14*2)
-			ctx.fill()
+			if color == "crosshair":
+				ctx.set_line_width(2)
+				ctx.arc(size/2, size/2, size/4, 0, 3.14*2)
+				ctx.move_to(3, size/2)
+				ctx.line_to(size-3, size/2)
+				ctx.move_to(size/2, 3)
+				ctx.line_to(size/2, size-3)
+			else:
+				ctx.arc(size/2, size/2, size/2-1, 0, 3.14*2)
+				ctx.fill()
 			ctx.stroke()
 			cmap = gtk.gdk.colormap_get_system()
 			pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, size, size)
@@ -215,6 +227,12 @@ class Map:
 			
 		marker = self.markers[key]
 		self.osm.set_center(marker.lat, marker.lon)
+		crosshair_key = "locate"
+		if crosshair_key in self.markers:
+			self.osm.image_remove(self.markers[crosshair_key].image)
+			del self.markers[crosshair_key]
+		self.markers[crosshair_key] = Marker(key, marker.lat, marker.lon, "crosshair")
+		self.markers[crosshair_key].image = self.osm.image_add(marker.lat, marker.lon, self.textures["crosshair"])
 		
 	def set_source(self, id):
 		if id == "openstreetmap-renderer":
@@ -225,7 +243,7 @@ class Map:
 			
 		self.config["source"] = id
 		
-class Marker():
+class Marker:
 	def __init__(self, key, lat, lon, color):
 		self.key = key
 		self.lat = lat
