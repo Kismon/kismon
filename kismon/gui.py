@@ -713,7 +713,7 @@ class NetworkList:
 		self.networks.resume_refresh_functions.append(self.resume)
 		
 		self.treeview = gtk.TreeView()
-		self.treeview.connect("button-press-event", self.on_popup)
+		self.treeview.connect("button-press-event", self.on_treeview_clicked)
 		num=0
 		columns=("BSSID", "Type", "SSID", "Ch", "Crypt",
 			"First Seen", "Last Seen", "Latitude", "Longitude",
@@ -841,10 +841,7 @@ class NetworkList:
 		self.treeview.set_model(self.store)
 		self.treeview.thaw_child_notify()
 		
-	def on_popup(self, treeview, event):
-		if event.button != 3: # right click
-			return
-		
+	def on_treeview_clicked(self, treeview, event):
 		x = int(event.x)
 		y = int(event.y)
 		pthinfo = treeview.get_path_at_pos(x, y)
@@ -857,7 +854,11 @@ class NetworkList:
 		network_iter = self.store.get_iter(path)
 		mac = self.store.get_value(network_iter, 0)
 		self.network_selected = mac
-		self.network_popup.popup(None, None, None, event.button, event.time)
+		
+		if event.type == gtk.gdk._2BUTTON_PRESS: # double click
+			self.on_locate_marker(None)
+		elif event.button == 3: # right click
+			self.network_popup.popup(None, None, None, event.button, event.time)
 		
 	def on_locate_marker(self, widget):
 		if self.locate_network_on_map is not None:
