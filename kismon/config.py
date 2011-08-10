@@ -71,8 +71,9 @@ class Config:
 				"wpa": True,
 				"other": True,
 				},
-			"filter_ssid": {
-				"regexpr": "",
+			"filter_regexpr": {
+				"ssid": "",
+				"bssid": "",
 				}
 			}
 	

@@ -290,9 +290,10 @@ class MainWindow(KismonWindows):
 			crypt_item.connect("activate", self.on_network_filter_crypt)
 			crypt_menu.append(crypt_item)
 		
-		ssid_menuitem = gtk.MenuItem("SSID (regular expression)")
-		ssid_menuitem.connect("activate", self.on_network_filter_ssid)
-		view_menu.append(ssid_menuitem)
+		for key in ("ssid", "bssid"):
+			regexpr_menuitem = gtk.MenuItem("%s (regular expression)" % key.upper())
+			regexpr_menuitem.connect("activate", self.on_network_filter_regexpr, key)
+			view_menu.append(regexpr_menuitem)
 		
 		sep = gtk.SeparatorMenuItem()
 		view_menu.append(sep)
@@ -337,11 +338,11 @@ class MainWindow(KismonWindows):
 		self.networks.apply_filters()
 		self.networks_queue_progress()
 		
-	def on_network_filter_ssid(self, widget):
-		dialog = gtk.Dialog("SSID (regular expression)", parent=self.gtkwin)
+	def on_network_filter_regexpr(self, widget, key):
+		dialog = gtk.Dialog("%s (regular expression)" % key.upper(), parent=self.gtkwin)
 		entry = gtk.Entry()
 		entry.set_width_chars(100)
-		entry.set_text(self.config["filter_ssid"]["regexpr"])
+		entry.set_text(self.config["filter_regexpr"][key])
 		hbox = gtk.HBox()
 		hbox.pack_start(gtk.Label("Regular expression:"), False, 5, 5)
 		hbox.pack_end(entry)
@@ -351,7 +352,7 @@ class MainWindow(KismonWindows):
 		dialog.run()
 		regexpr = entry.get_text()
 		dialog.destroy()
-		self.config["filter_ssid"]["regexpr"] = regexpr
+		self.config["filter_regexpr"][key] = regexpr
 		self.networks.apply_filters()
 		self.networks_queue_progress()
 		

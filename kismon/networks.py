@@ -139,7 +139,7 @@ class Networks:
 		self.disable_refresh()
 		self.start_queue()
 		
-	def check_filter(self, network):
+	def check_filter(self, mac, network):
 		if self.config["filter_type"][network["type"]] == False:
 			return False
 		
@@ -154,9 +154,12 @@ class Networks:
 			crypt = "other"
 		if self.config["filter_crypt"][crypt] == False:
 			return False
-			
-		if self.config["filter_ssid"]["regexpr"] != "":
-			if re.search(r"%s" % self.config["filter_ssid"]["regexpr"], network["ssid"]) is None:
+		
+		if self.config["filter_regexpr"]["ssid"] != "":
+			if re.search(r"%s" % self.config["filter_regexpr"]["ssid"], network["ssid"]) is None:
+				return False
+		if self.config["filter_regexpr"]["bssid"] != "":
+			if re.search(r"%s" % self.config["filter_regexpr"]["bssid"], mac) is None:
 				return False
 		
 		return True
@@ -172,7 +175,7 @@ class Networks:
 		
 		for mac in networks:
 			network = self.networks[mac]
-			if self.check_filter(network):
+			if self.check_filter(mac, network):
 				for target in targets:
 					show = targets[target]
 					if show == "all" or (show == "current" and mac in self.recent_networks):
