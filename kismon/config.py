@@ -71,6 +71,9 @@ class Config:
 				"wpa": True,
 				"other": True,
 				},
+			"filter_ssid": {
+				"regexpr": "",
+				}
 			}
 	
 	def read(self):

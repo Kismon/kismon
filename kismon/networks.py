@@ -34,6 +34,7 @@ import time
 import locale
 import gobject
 import zipfile
+import re
 
 from client import *
 from gui import show_timestamp
@@ -153,6 +154,10 @@ class Networks:
 			crypt = "other"
 		if self.config["filter_crypt"][crypt] == False:
 			return False
+			
+		if self.config["filter_ssid"]["regexpr"] != "":
+			if re.search(r"%s" % self.config["filter_ssid"]["regexpr"], network["ssid"]) is None:
+				return False
 		
 		return True
 		
