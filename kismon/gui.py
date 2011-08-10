@@ -658,7 +658,7 @@ class MainWindow(KismonWindows):
 			on_map = 0
 		
 		text = "Networks: %s in the current session, %s total, %s in the network list, %s on the map" % \
-			(len(self.networks.recent_networks), len(self.networks.networks), len(self.network_list.network_lines), on_map)
+			(len(self.networks.recent_networks), len(self.networks.networks), len(self.network_list.network_iter), on_map)
 		self.statusbar.push(self.statusbar_context, text)
 		
 	def on_channel_config(self, widget):
