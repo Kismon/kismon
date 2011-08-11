@@ -6,8 +6,7 @@ a live map of the networks.
 Dependencies:
 -------------
 
-* python-osmgpsmap
-* pyclutter
+* python-osmgpsmap (>=0.7.2)
 * python 2.6
 * pygtk
 * python-simplejson
