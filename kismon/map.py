@@ -156,9 +156,21 @@ class Map:
 		
 	def clear_position(self, lat, lon, key):
 		self.coordinates[lat][lon]["markers"].remove(key)
-		if len(self.coordinates[lat][lon]["markers"]) == 0 :
+		renew = False
+		if len(self.coordinates[lat][lon]["markers"]) != 0:
+			next = self.coordinates[lat][lon]["markers"][0]
+			if self.markers[key].color != self.markers[next].color:
+				renew = True
+		else:
+			next = None
+		
+		if next is None or renew is True:
 			self.osm.image_remove(self.coordinates[lat][lon]["image"])
 			del self.coordinates[lat][lon]["image"]
+		
+		if renew is True:
+			next = self.coordinates[lat][lon]["markers"][0]
+			self.add_image(lat, lon, next, self.markers[next].color)
 		
 	def update_marker(self, marker, key, lat, lon):
 		if self.config["update_marker_positions"] is False:
@@ -184,6 +196,8 @@ class Map:
 			
 	def occupy_position(self, lat, lon, key):
 		try:
+			if key in self.coordinates[lat][lon]["markers"]:
+				return True
 			self.coordinates[lat][lon]["markers"].append(key)
 			if len(self.coordinates[lat][lon]["markers"]) == 1:
 				return True
