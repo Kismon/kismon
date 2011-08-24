@@ -557,9 +557,11 @@ GPS: %s,%s]]></description></Placemark>"""
 		f.write('Latitude;Longitude;SSID;BSSID;Encryption;Channel;Last Seen;\n')
 		for mac in networks:
 			network = self.networks[mac]
+			if network["lat"] == 0 and network["lon"] == 0:
+				continue
 			gps = "%s;%s" % (network["lat"], network["lon"])
-			f.write('%s;%s;%s;%s;%s;%s;\n' % (
-				gps.replace(".",","), network["ssid"].replace(";"," "),
+			f.write('%s;"%s";%s;%s;%s;%s;\n' % (
+				gps.replace(".",","), network["ssid"].replace(";"," ").replace('"'," "),
 				mac, print_cryptset(network["cryptset"]), network["channel"], show_timestamp(network["lasttime"])
 				))
 		f.close()
