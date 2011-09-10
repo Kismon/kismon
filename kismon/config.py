@@ -49,7 +49,10 @@ class Config:
 			"map": {
 				"source": "openstreetmap",
 				"update_marker_positions": True,
-				"last_position": "0/0"
+				"last_position": "0/0",
+				"custom_source_url": "http://localhost:8080/#Z/#X/#Y.png",
+				"custom_source_min": 12,
+				"custom_source_max": 17,
 				},
 			"networks": {
 				"autosave": 5,

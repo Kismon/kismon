@@ -7,7 +7,7 @@ class ConfigWindow:
 		self.gtkwin = gtk.Window()
 		self.gtkwin.set_position(gtk.WIN_POS_CENTER)
 		self.gtkwin.connect("destroy", self.on_destroy)
-		self.gtkwin.set_size_request(640, 480)
+		self.gtkwin.set_size_request(640, 320)
 		self.gtkwin.set_title("Kismon Preferences")
 		self.main_window = main_window
 		self.config = main_window.config
@@ -127,7 +127,8 @@ class ConfigWindow:
 		
 		first = None
 		for name, source in (("Openstreetmap (default)", "openstreetmap"),
-				("Openstreetmap Renderer", "openstreetmap-renderer")):
+				("Openstreetmap Renderer", "openstreetmap-renderer"),
+				("Custom tile source", "custom")):
 			map_source = gtk.RadioButton(first, name)
 			if first is None:
 				first = map_source
@@ -136,6 +137,48 @@ class ConfigWindow:
 				map_source.clicked()
 			map_source.connect("clicked", self.on_map_source, source)
 			source_vbox.add(map_source)
+		
+		hbox = gtk.HBox()
+		source_vbox.add(hbox)
+		
+		label = gtk.Label("     URL: ")
+		label.set_alignment(xalign=0, yalign=0.5)
+		label.set_justify(gtk.JUSTIFY_LEFT)
+		hbox.pack_start(label, False, False, 5)
+		
+		entry = gtk.Entry()
+		entry.set_width_chars(50)
+		entry.set_text(self.config["map"]["custom_source_url"])
+		entry.connect("changed", self.on_change_map_source_custom_url)
+		hbox.pack_start(entry, False, False, 5)
+		
+		hbox = gtk.HBox()
+		source_vbox.add(hbox)
+		
+		x=1
+		for name in ("     Zoom Levels: ", " - "):
+			label = gtk.Label(name)
+			label.set_alignment(xalign=0, yalign=0.5)
+			label.set_justify(gtk.JUSTIFY_LEFT)
+			hbox.pack_start(label, False, False, 5)
+			
+			field = gtk.SpinButton()
+			field.set_numeric(True)
+			field.set_max_length(5)
+			field.set_increments(1,3)
+			field.set_range(1,18)
+			if x == 1:
+				name = "custom_source_min"
+			else:
+				name = "custom_source_max"
+			field.set_value(self.config["map"][name])
+			field.connect("output", self.on_change_map_source_custom_zoom, name)
+			hbox.pack_start(field, False, False, 5)
+			x += 1
+		
+		apply_button = gtk.Button(stock=gtk.STOCK_APPLY)
+		apply_button.connect("clicked", self.on_map_source, "custom")
+		hbox.pack_start(apply_button, False, False, 5)
 		
 		perf_frame = gtk.Frame("Performance")
 		perf_vbox = gtk.VBox()
@@ -152,8 +195,21 @@ class ConfigWindow:
 		self.gtkwin = None
 		
 	def on_map_source(self, widget, source):
-		if widget.get_active():
+		if (type(widget) == gtk.RadioButton and widget.get_active()) or type(widget) == gtk.Button:
 			self.map.set_source(source)
+			if self.config["window"]["map_position"] == "widget":
+				self.main_window.on_map_widget(None, True)
+			elif self.config["window"]["map_position"] == "window":
+				self.main_window.map_window.gtkwin.add(self.main_window.map.widget)
+				self.main_window.map_window.gtkwin.show_all()
+		
+	def on_change_map_source_custom_url(self, widget):
+		print widget.get_text()
+		self.config["map"]["custom_source_url"] = widget.get_text()
+		
+	def on_change_map_source_custom_zoom(self, widget, name):
+		print name, int(widget.get_value())
+		self.config["map"][name] = int(widget.get_value())
 		
 	def on_update_marker_positions(self, widget):
 		self.config["map"]["update_marker_positions"] = widget.get_active()

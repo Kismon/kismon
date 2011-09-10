@@ -43,19 +43,7 @@ class Map:
 		self.networks_label_count = 0
 		self.coordinates = {}
 		
-		self.osm = osmgpsmap.GpsMap()
-		self.osd = osmgpsmap.GpsMapOsd(show_zoom=True, show_coordinates=False, show_scale=False, show_dpad=True, show_gps_in_dpad=True)
-		self.osm.layer_add(self.osd)
-		
-		self.osm.connect('button-press-event', self.on_map_pressed)
-		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_UP, gtk.gdk.keyval_from_name("Up"))
-		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_DOWN, gtk.gdk.keyval_from_name("Down"))
-		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_LEFT, gtk.gdk.keyval_from_name("Left"))
-		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_RIGHT, gtk.gdk.keyval_from_name("Right"))
-		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_ZOOMIN, gtk.gdk.keyval_from_name("Page_Up"))
-		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_ZOOMOUT, gtk.gdk.keyval_from_name("Page_Down"))
-		
-		self.widget = self.osm
+		self.init_osm()
 		
 		if os.path.isdir("/usr/share/kismon"):
 			self.share_folder = "/usr/share/kismon/"
@@ -68,6 +56,33 @@ class Map:
 		self.textures = {}
 		self.create_dots()
 		self.apply_config()
+		
+	def init_osm(self):
+		if self.config["source"] != "custom":
+			self.osm = osmgpsmap.GpsMap()
+		else:
+			self.osm = osmgpsmap.GpsMap(repo_uri=self.config["custom_source_url"],
+				min_zoom=self.config["custom_source_min"],
+				max_zoom=self.config["custom_source_max"])
+		
+		self.osd = osmgpsmap.GpsMapOsd(show_zoom=True, show_coordinates=False, show_scale=False, show_dpad=True, show_gps_in_dpad=True)
+		self.osm.layer_add(self.osd)
+		
+		self.osm.connect('button-press-event', self.on_map_pressed)
+		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_UP, gtk.gdk.keyval_from_name("Up"))
+		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_DOWN, gtk.gdk.keyval_from_name("Down"))
+		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_LEFT, gtk.gdk.keyval_from_name("Left"))
+		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_RIGHT, gtk.gdk.keyval_from_name("Right"))
+		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_ZOOMIN, gtk.gdk.keyval_from_name("Page_Up"))
+		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_ZOOMOUT, gtk.gdk.keyval_from_name("Page_Down"))
+		
+		self.coordinates = {}
+		for mac in self.markers.keys():
+			marker = self.markers[mac]
+			del self.markers[mac]
+			self.add_marker(marker.key, marker.color, marker.lat, marker.lon)
+		
+		self.widget = self.osm
 		
 	def apply_config(self):
 		pass
@@ -249,13 +264,28 @@ class Map:
 		self.markers[crosshair_key].image = self.osm.image_add(marker.lat, marker.lon, self.textures["crosshair"])
 		
 	def set_source(self, id):
+		self.osm.download_cancel_all()
+		old_id = self.config["source"]
+		self.config["source"] = id
+		if self.widget.get_parent():
+			self.widget.get_parent().remove(self.widget)
+		if old_id == "custom" and id != "custom":
+			zoom = self.osm.get_property("zoom")
+			self.init_osm()
+			self.set_zoom(zoom)
+			self.start_moving()
+		
 		if id == "openstreetmap-renderer":
 			self.osm.set_property("map-source", osmgpsmap.SOURCE_OPENSTREETMAP_RENDERER)
+		elif id == "custom":
+			zoom = self.osm.get_property("zoom")
+			self.init_osm()
+			self.set_zoom(zoom)
+			self.start_moving()
 		else:
 			id = "openstreetmap"
 			self.osm.set_property("map-source", osmgpsmap.SOURCE_OPENSTREETMAP)
-			
-		self.config["source"] = id
+			self.config["source"] = id
 		
 class Marker:
 	def __init__(self, key, lat, lon, color):
