@@ -201,11 +201,9 @@ class ConfigWindow:
 				self.main_window.map_window.gtkwin.show_all()
 		
 	def on_change_map_source_custom_url(self, widget):
-		print widget.get_text()
 		self.config["map"]["custom_source_url"] = widget.get_text()
 		
 	def on_change_map_source_custom_zoom(self, widget, name):
-		print name, int(widget.get_value())
 		self.config["map"][name] = int(widget.get_value())
 		
 	def on_update_marker_positions(self, widget):
