@@ -34,18 +34,17 @@ class ConfigWindow:
 		self.gtkwin.show_all()
 		
 	def init_general_page(self, page):
-		table = gtk.Table()
-		page.attach(table, 0, 1, 0, 1, yoptions=gtk.SHRINK)
-		
-		label = gtk.Label("<b>Log List</b>")
-		label.set_use_markup(True)
-		label.set_alignment(xalign=0, yalign=0)
-		table.attach(label, 0, 1, 0, 1)
+		frame = gtk.Frame("Log List")
+		page.attach(frame, 0, 1, 0, 1, yoptions=gtk.SHRINK)
+		vbox = gtk.VBox()
+		frame.add(vbox)
+		hbox = gtk.HBox()
+		vbox.add(hbox)
 		
 		label = gtk.Label("Max rows in the log list: ")
 		label.set_alignment(xalign=0, yalign=0.5)
 		label.set_justify(gtk.JUSTIFY_RIGHT)
-		table.attach(label, 0, 1, 1, 2, xoptions=gtk.FILL)
+		hbox.pack_start(label, False, False, 5)
 		
 		field = gtk.SpinButton()
 		field.set_numeric(True)
@@ -54,22 +53,20 @@ class ConfigWindow:
 		field.set_range(-1,99999)
 		field.set_value(self.config["window"]["log_list_max"])
 		field.connect("output", self.on_change_log_list_max)
-		table.attach(field, 1, 2, 1, 2, xoptions=gtk.SHRINK)
+		hbox.pack_start(field, False, False, 5)
 		
 		label = gtk.Label("-1 = unlimited 0 = disable")
 		label.set_alignment(xalign=0, yalign=0.5)
-		table.attach(label, 0, 1, 2, 3)
+		hbox.pack_start(label, False, False, 5)
 		
-		table.set_row_spacing(2,10)
-		
-		label = gtk.Label("<b>Autosave</b>")
-		label.set_use_markup(True)
-		label.set_alignment(xalign=0, yalign=0.5)
-		table.attach(label, 0, 1, 3, 4)
-		
+		frame = gtk.Frame("Autosave")
+		page.attach(frame, 0, 1, 1, 2, yoptions=gtk.SHRINK)
+		vbox = gtk.VBox()
+		frame.add(vbox)
+		hbox = gtk.HBox()
+		vbox.add(hbox)
 		label = gtk.Label("Save the networks every (in minutes):")
-		label.set_alignment(xalign=0, yalign=0.5)
-		table.attach(label, 0, 1, 4, 5, xoptions=gtk.FILL)
+		hbox.pack_start(label, False, False, 5)
 		
 		field = gtk.SpinButton()
 		field.set_numeric(True)
@@ -78,11 +75,11 @@ class ConfigWindow:
 		field.set_range(0,99999)
 		field.set_value(self.config["networks"]["autosave"])
 		field.connect("output", self.on_change_autosave)
-		table.attach(field, 1, 2, 4, 5, xoptions=gtk.SHRINK)
+		hbox.pack_start(field, False, False, 5)
 		
 		label = gtk.Label("0 = disable")
 		label.set_alignment(xalign=0, yalign=0.5)
-		table.attach(label, 0, 1, 5, 6)
+		hbox.pack_start(label, False, False, 5)
 		
 	def on_change_log_list_max(self, widget):
 		if self.config["window"]["log_list_max"] == int(widget.get_value()):
