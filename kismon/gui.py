@@ -570,10 +570,10 @@ class MainWindow(KismonWindows):
 	def on_about_dialog(self, widget):
 		dialog = gtk.AboutDialog()
 		dialog.set_name("Kismon")
-		dialog.set_version("0.4")
+		dialog.set_version("0.5")
 		dialog.set_comments('PyGTK based kismet client')
 		dialog.set_website('http://www.salecker.org/software/kismon/en')
-		dialog.set_copyright("(c) 2010 Patrick Salecker")
+		dialog.set_copyright("(c) 2010-2011 Patrick Salecker")
 		dialog.run()
 		dialog.destroy()
 		

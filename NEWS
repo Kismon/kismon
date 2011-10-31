@@ -1,3 +1,11 @@
+kismon 0.5 (2011-10-31)
+===============================
+
+Changes:
+* BSSID and SSID can be filtered using regular expressions
+* custom map sources can be used
+* removed python-clutter dependency
+
 kismon 0.4 (2011-07-30)
 ===============================
 
