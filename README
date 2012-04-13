@@ -8,6 +8,7 @@ Dependencies
 * python-osmgpsmap (>=0.7.2)
 * python 2.6
 * pygtk
+* pyclutter
 * python-simplejson
 
 Installation
@@ -34,10 +35,10 @@ Launch kismon from the command line after you started kismet or click the
 the kismon icon in the menu of your desktop environment. 
 
 Hotkeys
-* Fullscreen: F11
+* Fullscreen:  F11
 * Zoom in/out: Ctrl + "i"/"o"
 
-Note: The GPS reciever needs to be setup before running kismon.
+Note: The GPS reciever needs to be setup before running kismon and kismet.
 
 Misc
 ----
