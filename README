@@ -21,6 +21,8 @@ or just use
 
 # make install
 
+instead of the python commands.
+
 Create Debian/Ubuntu package
 ----------------------------
 # apt-get install make debhelper python-support cdbs
