@@ -333,7 +333,7 @@ class Networks:
 		if (network["lat"] == 0.0 and network["lon"] == 0.0) or \
 			(((signal and data_signal and network["signal_dbm"]["max"] < data["signal_dbm"]["max"]) or \
 			(not signal and data_signal)) and data["lat"] != 0.0 and data["lon"] != 0.0):
-				network["lat"] = data["lon"]
+				network["lat"] = data["lat"]
 				network["lon"] = data["lon"]
 		if newer or network["ssid"] == "":
 			network["ssid"] = data["ssid"]
