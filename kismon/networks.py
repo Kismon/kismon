@@ -546,7 +546,7 @@ GPS: %s,%s]]></description></Placemark>"""
 				crypt, ssid, network["lon"],network["lat"], ssid, mac,
 				network["manuf"], network["type"], network["channel"],
 				colors[crypt], ",".join(crypts).upper(), show_timestamp(network["lasttime"]),
-				network["lat"], network["lat"],
+				network["lon"], network["lat"],
 			))
 			count[crypt] += 1
 		return folders
