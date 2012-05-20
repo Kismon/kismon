@@ -101,7 +101,7 @@ class Networks:
 			f.write('    "lat": %s, \n' % network["lat"])
 			f.write('    "lon": %s, \n' % network["lon"])
 			f.write('    "manuf": %s, \n' % enc.encode(network["manuf"]))
-			if "signal_dbm" in network and len(network["signal_dbm"]):
+			if "signal_dbm" in network and "last" in network["signal_dbm"]:
 				f.write('    "signal_dbm": {\n')
 				f.write('      "last": %s, \n' % network["signal_dbm"]["last"])
 				f.write('      "max": %s, \n' % network["signal_dbm"]["max"])
@@ -333,7 +333,7 @@ class Networks:
 		if (network["lat"] == 0.0 and network["lon"] == 0.0) or \
 			(((signal and data_signal and network["signal_dbm"]["max"] < data["signal_dbm"]["max"]) or \
 			(not signal and data_signal)) and data["lat"] != 0.0 and data["lon"] != 0.0):
-				network["lat"] = data["lon"]
+				network["lat"] = data["lat"]
 				network["lon"] = data["lon"]
 		if newer or network["ssid"] == "":
 			network["ssid"] = data["ssid"]
@@ -546,7 +546,7 @@ GPS: %s,%s]]></description></Placemark>"""
 				crypt, ssid, network["lon"],network["lat"], ssid, mac,
 				network["manuf"], network["type"], network["channel"],
 				colors[crypt], ",".join(crypts).upper(), show_timestamp(network["lasttime"]),
-				network["lat"], network["lat"],
+				network["lon"], network["lat"],
 			))
 			count[crypt] += 1
 		return folders
