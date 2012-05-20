@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Copyright (c) 2010, Patrick Salecker
+Copyright (c) 2010-2012, Patrick Salecker
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -101,7 +101,7 @@ class Networks:
 			f.write('    "lat": %s, \n' % network["lat"])
 			f.write('    "lon": %s, \n' % network["lon"])
 			f.write('    "manuf": %s, \n' % enc.encode(network["manuf"]))
-			if "signal_dbm" in network:
+			if "signal_dbm" in network and len(network["signal_dbm"]):
 				f.write('    "signal_dbm": {\n')
 				f.write('      "last": %s, \n' % network["signal_dbm"]["last"])
 				f.write('      "max": %s, \n' % network["signal_dbm"]["max"])
