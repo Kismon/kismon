@@ -3,27 +3,52 @@ Kismon
 Kismon is a PyGTK based Kismet Newcore (since 2009-05-RC1) Client with
 a live map of the networks.
 
-Dependencies:
--------------
-
+Dependencies
+------------
 * python-osmgpsmap (>=0.7.2)
 * python 2.6
 * pygtk
+* pyclutter
 * python-simplejson
 
-Create Debian/Ubuntu package:
------------------------------
+Installation
+------------
+$ git clone git://gitorious.org/kismon/mainline.git kismon
+$ cd kismon
+$ python setup.py build
+# python setup.py install
 
-# apt-get install make debhelper python-support cdbs
-# make builddeb
-
-Install:
---------
+or just use
 
 # make install
 
-Hotkeys:
-----------
+instead of the python commands.
 
-* Fullscreen: F11
+Create Debian/Ubuntu package
+----------------------------
+# apt-get install make debhelper python-support cdbs
+# make builddeb
+
+Usage
+-----
+Launch kismon from the command line after you started kismet or click the 
+the kismon icon in the menu of your desktop environment. 
+
+Hotkeys
+* Fullscreen:  F11
 * Zoom in/out: Ctrl + "i"/"o"
+
+Note: The GPS reciever needs to be setup before running kismon and kismet.
+
+Misc
+----
+Website:         http://www.salecker.org/software/kismon/en
+Git repository:  http://gitorious.org/kismon
+
+Author
+------
+Patrick Salecker <mail@salecker.org>
+
+License
+-------
+This kismon is licensed under BSD, for more details check COPYING. 
