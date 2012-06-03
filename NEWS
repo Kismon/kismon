@@ -1,3 +1,10 @@
+kismon 0.6 (2011-06-03)
+===============================
+
+Changes:
+* fix for crash caused by invalid GPS data (thanks to krzotr)
+* various text files cleaned up (thanks to Fabian Affolter)
+
 kismon 0.5 (2011-10-31)
 ===============================
 
