@@ -32,7 +32,7 @@ import simplejson as json
 import xml.parsers.expat
 import time
 import locale
-import gobject
+from gi.repository import GObject
 import zipfile
 import re
 
@@ -123,10 +123,10 @@ class Networks:
 			self.autosave_notify = notify
 		
 		if self.autosave_task is not None:
-			gobject.source_remove(self.autosave_task)
+			GObject.source_remove(self.autosave_task)
 		
 		if minutes > 0:
-			self.autosave_task = gobject.timeout_add(minutes * 60 * 1000, self.save, self.autosave_filename, self.autosave_notify)
+			self.autosave_task = GObject.timeout_add(minutes * 60 * 1000, self.save, self.autosave_filename, self.autosave_notify)
 		
 	def load(self, filename):
 		f = open(filename)
@@ -235,12 +235,12 @@ class Networks:
 		if self.queue_task is not None or self.block_queue_start:
 			return
 		task = self.notify_add_queue_process()
-		self.queue_task = gobject.idle_add(task.next)
+		self.queue_task = GObject.idle_add(task.next)
 		
 	def stop_queue(self):
 		self.queue_running = False
 		if self.queue_task is not None:
-			gobject.source_remove(self.queue_task)
+			GObject.source_remove(self.queue_task)
 			self.queue_task = None
 		self.notify_add_queue = {}
 		

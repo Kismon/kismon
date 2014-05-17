@@ -37,12 +37,12 @@ import os
 import sys
 import subprocess
 
-import gtk
-import gobject
+from gi.repository import Gtk
+from gi.repository import GObject
 
 def check_osmgpsmap():
 	try:
-		import osmgpsmap
+		from gi.repository import OsmGpsMap
 	except:
 		return sys.exc_info()[1]
 
@@ -77,7 +77,7 @@ Last seen: %s"""
 			self.map_error = "--disable-map used"
 		else:
 			self.map_error = check_osmgpsmap()
-
+		
 		if self.map_error is not None:
 			self.map_error =  "%s\nMap disabled" % self.map_error
 			print self.map_error, "\n"
@@ -103,7 +103,7 @@ Last seen: %s"""
 				error = sys.exc_info()[1]
 				print error
 				dialog_message = "Could not read the networks file '%s':\n%s\n\nDo you want to continue?" % (self.networks_file, error)
-				dialog = gtk.MessageDialog(self.main_window.gtkwin, gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_ERROR, gtk.BUTTONS_YES_NO, dialog_message)
+				dialog = Gtk.MessageDialog(self.main_window.gtkwin, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, Gtk.ButtonsType.YES_NO, dialog_message)
 				def dialog_response(dialog, response_id):
 					self.dialog_response = response_id
 				dialog.connect("response", dialog_response)
@@ -134,14 +134,14 @@ Last seen: %s"""
 						max = line.split(":")[1].strip()
 						self.battery_max = int(max.split()[0])
 						break
-				gobject.timeout_add(30000, self.update_battery_bar)
+				GObject.timeout_add(30000, self.update_battery_bar)
 				break
 		self.update_battery_bar()
 		
-		gobject.threads_init()
-		gobject.timeout_add(500, self.queue_handler)
-		gobject.timeout_add(300, self.queue_handler_networks)
-		gobject.idle_add(self.networks.apply_filters)
+		GObject.threads_init()
+		GObject.timeout_add(500, self.queue_handler)
+		GObject.timeout_add(300, self.queue_handler_networks)
+		GObject.idle_add(self.networks.apply_filters)
 		
 	def init_map(self):
 		if self.map_error is not None:
@@ -320,7 +320,7 @@ def main():
 	if core.main_window.gtkwin == None:
 		sys.exit()
 	try:
-		gtk.main()
+		Gtk.main()
 	except KeyboardInterrupt:
 		pass
 	core.quit()

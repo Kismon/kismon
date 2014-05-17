@@ -35,10 +35,11 @@ from gui import *
 from client import *
 from networks import *
 
-import gobject
-gobject.threads_init()
+from gi.repository import GObject
+GObject.threads_init()
 import time
-import gtk
+from gi.repository import Gtk
+from gi.repository import Gdk
 import sys
 import tempfile
 
@@ -171,7 +172,7 @@ def core():
 	sys.argv.remove(arg)
 	
 	test_core.client_stop()
-	
+
 def core_tests(test_core):
 	test_networks = networks()
 	test_core.networks = test_networks
@@ -199,6 +200,9 @@ class TestWidget:
 			
 		def get_label(self):
 			return self.text
+class TestEvent:
+	def __init__(self):
+		self.new_window_state = Gdk.WindowState.MAXIMIZED
 
 def gui_main_window():
 	def dummy():
@@ -233,6 +237,8 @@ def gui_main_window():
 	main_window.on_map_widget(None, True)
 	main_window.on_map_widget(None, False)
 	main_window.on_client_disconnect(None)
+	test_event = TestEvent()
+	main_window.on_window_state(None, test_event)
 	
 	test_widget = TestWidget()
 	config_window = main_window.config_window
@@ -280,22 +286,17 @@ def gui_signal_window():
 	signal_window = SignalWindow("11:22:33:44:55:66", destroy)
 	signal_window.add_value(None, None, -30)
 	signal_window.add_value(None, None, -31)
-	signal_window.draw_graph(600, 400)
+	surface = cairo.ImageSurface(cairo.FORMAT_RGB24, 600, 400)
+	ctx = cairo.Context(surface)
+	signal_window.draw_graph(600, 400, ctx)
 	now = int(time.time())
 	for signal in (-50, -60, -70, -80, -50):
 		now -= 1
 		signal_window.history[now] = {}
 		signal_window.history[now]["test"] = (signal, signal * -1)
-	signal_window.draw_graph(600, 400)
-	class TestEvent:
-		class TestArea:
-			def __init__(self):
-				self.width = 100
-				self.height = 100
-		def __init__(self):
-			self.area = self.TestArea()
-	signal_window.on_expose_event(None, TestEvent())
-	signal_window.on_expose_event(None, TestEvent())
+	signal_window.draw_graph(600, 400, ctx)
+	signal_window.on_draw_event(None, ctx)
+	signal_window.on_draw_event(None, ctx)
 
 def map():
 	test_config = Config(None).default_config["map"]
@@ -319,9 +320,9 @@ def map():
 	test_map.set_source("openstreetmap-renderer")
 	test_map.remove_marker("333")
 	
-	test_window = gtk.Window()
+	test_window = Gtk.Window()
 	test_window.set_title("Kismon Test Map")
-	test_window.connect("destroy", gtk.main_quit)
+	test_window.connect("destroy", Gtk.main_quit)
 	test_window.show()
 	test_window.set_size_request(640, 480)
 	test_window.add(test_map.widget)

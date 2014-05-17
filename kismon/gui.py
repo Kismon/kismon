@@ -34,15 +34,16 @@ import time
 import os
 import sys
 
-import gtk
-import gobject
+from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import GObject
 
 from windows import *
 
 class KismonWindows:
 	def __init__(self):
-		self.gtkwin = gtk.Window()
-		self.gtkwin.set_position(gtk.WIN_POS_CENTER)
+		self.gtkwin = Gtk.Window()
+		self.gtkwin.set_position(Gtk.WindowPosition.CENTER)
 		self.gtkwin.connect("destroy", self.on_destroy)
 		self.gtkwin.connect('key-press-event', self.on_key_press)
 		self.is_fullscreen = False
@@ -57,10 +58,10 @@ class KismonWindows:
 		
 	def on_key_press(self, widget, event):
 		keyval = event.keyval
-		name = gtk.gdk.keyval_name(keyval)
+		name = Gdk.keyval_name(keyval)
 		if name == "F11":
 			self.fullscreen()
-		elif event.state & gtk.gdk.CONTROL_MASK:
+		elif event.get_state() & Gdk.ModifierType.CONTROL_MASK:
 			if self.map is not None:
 				if name == "i":
 					self.map.zoom_in()
@@ -104,46 +105,50 @@ class MainWindow(KismonWindows):
 		self.sources = sources
 		self.client = client
 		
-		self.notebook = gtk.Notebook()
+		self.notebook = Gtk.Notebook()
 		
-		vbox = gtk.VBox()
+		vbox = Gtk.VBox()
 		self.gtkwin.add(vbox)
-		vbox.pack_start(self.init_menu(), expand=False, fill=False, padding=0)
+		vbox.pack_start(self.init_menu(), False, False, 0)
 		
-		vpaned_main = gtk.VPaned()
+		vpaned_main = Gtk.VPaned()
 		vpaned_main.set_position(320)
 		vbox.add(vpaned_main)
-		hbox = gtk.HBox()
+		hbox = Gtk.HBox()
 		vpaned_main.add1(hbox)
 		hbox.pack_start(self.network_list.widget, expand=True, fill=True, padding=0)
 		
-		right_table = gtk.Table(rows=3, columns=1)
-		right_scrolled = gtk.ScrolledWindow()
-		right_scrolled.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+		right_table = Gtk.Table(rows=3, columns=1)
+		right_scrolled = Gtk.ScrolledWindow()
+		right_scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
 		right_scrolled.add_with_viewport(right_table)
 		right_scrolled.set_size_request(160, -1)
-		right_scrolled.get_children()[0].set_shadow_type(gtk.SHADOW_NONE)
+		right_scrolled.get_children()[0].set_shadow_type(Gtk.ShadowType.NONE)
 		hbox.pack_end(right_scrolled, expand=False, fill=False, padding=2)
 		
-		self.info_expander = gtk.Expander("Infos")
+		self.info_expander = Gtk.Expander()
+		self.info_expander.set_label("Infos")
 		self.info_expander.set_expanded(True)
-		right_table.attach(self.info_expander, 0, 1, 0, 1, yoptions=gtk.SHRINK)
+		right_table.attach(self.info_expander, 0, 1, 0, 1, yoptions=Gtk.AttachOptions.SHRINK)
 		self.init_info_table()
 		
-		self.gps_expander = gtk.Expander("GPS Data")
+		self.gps_expander = Gtk.Expander()
+		self.gps_expander.set_label("GPS Data")
 		self.gps_expander.set_expanded(True)
-		right_table.attach(self.gps_expander, 0, 1, 1, 2, yoptions=gtk.SHRINK)
+		right_table.attach(self.gps_expander, 0, 1, 1, 2, yoptions=Gtk.AttachOptions.SHRINK)
 		self.init_gps_table()
 		
-		self.sources_expander = gtk.Expander("Sources")
+		self.sources_expander = Gtk.Expander()
+		self.sources_expander.set_label("Sources")
 		self.sources_expander.set_expanded(True)
-		right_table.attach(self.sources_expander, 0, 1, 2, 3, yoptions=gtk.SHRINK)
+		right_table.attach(self.sources_expander, 0, 1, 2, 3, yoptions=Gtk.AttachOptions.SHRINK)
 		self.sources_table = None
 		self.sources_table_sources = {}
 		
-		battery_expander = gtk.Expander("Battery")
-		right_table.attach(battery_expander, 0, 1, 3, 4, yoptions=gtk.SHRINK)
-		self.battery_bar = gtk.ProgressBar()
+		battery_expander = Gtk.Expander()
+		battery_expander.set_label("Battery")
+		right_table.attach(battery_expander, 0, 1, 3, 4, yoptions=Gtk.AttachOptions.SHRINK)
+		self.battery_bar = Gtk.ProgressBar()
 		battery_expander.add(self.battery_bar)
 		self.set_battery_bar(100.0)
 		
@@ -152,7 +157,7 @@ class MainWindow(KismonWindows):
 		self.notebook.append_page(self.log_list.widget)
 		self.notebook.set_tab_label_text(self.log_list.widget, "Log")
 		
-		self.statusbar = gtk.Statusbar()
+		self.statusbar = Gtk.Statusbar()
 		self.statusbar_context = self.statusbar.get_context_id("Starting...")
 		vbox.pack_end(self.statusbar, expand=False, fill=False, padding=0)
 		
@@ -172,38 +177,38 @@ class MainWindow(KismonWindows):
 	def on_destroy(self, widget):
 		print "Window destroyed"
 		self.gtkwin = None
-		gtk.main_quit()
+		Gtk.main_quit()
 		
 	def init_menu(self):
-		menubar = gtk.MenuBar()
+		menubar = Gtk.MenuBar()
 		
-		file_menu = gtk.Menu()
-		file_menuitem = gtk.MenuItem("File")
+		file_menu = Gtk.Menu()
+		file_menuitem = Gtk.MenuItem("File")
 		file_menuitem.set_submenu(file_menu)
 		
-		connect = gtk.ImageMenuItem(gtk.STOCK_CONNECT)
+		connect = Gtk.ImageMenuItem.new_from_stock(Gtk.STOCK_CONNECT)
 		connect.connect("activate", self.on_client_connect)
 		file_menu.append(connect)
 		
-		disconnect = gtk.ImageMenuItem(gtk.STOCK_DISCONNECT)
+		disconnect = Gtk.ImageMenuItem.new_from_stock(Gtk.STOCK_DISCONNECT)
 		disconnect.connect("activate", self.on_client_disconnect)
 		file_menu.append(disconnect)
 		
-		channel_config = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)
+		channel_config = Gtk.ImageMenuItem.new_from_stock(Gtk.STOCK_PREFERENCES)
 		channel_config.set_label("Configure Channels")
 		channel_config.connect("activate", self.on_channel_config)
 		file_menu.append(channel_config)
 		
-		sep = gtk.SeparatorMenuItem()
+		sep = Gtk.SeparatorMenuItem()
 		file_menu.append(sep)
 		
-		file_import = gtk.ImageMenuItem(gtk.STOCK_OPEN)
+		file_import = Gtk.ImageMenuItem.new_from_stock(Gtk.STOCK_OPEN)
 		file_import.set_label("Import Networks")
 		file_import.connect("activate", self.on_file_import)
 		file_menu.append(file_import)
 		
-		export_menu = gtk.Menu()
-		export_menuitem = gtk.ImageMenuItem(gtk.STOCK_SAVE_AS)
+		export_menu = Gtk.Menu()
+		export_menuitem = Gtk.ImageMenuItem.new_from_stock(Gtk.STOCK_SAVE_AS)
 		export_menuitem.set_label("Export Networks")
 		export_menuitem.set_submenu(export_menu)
 		file_menu.append(export_menuitem)
@@ -211,48 +216,48 @@ class MainWindow(KismonWindows):
 		for export_format, extension in (("Kismon", "json"),("Kismet netxml", "netxml"),
 				("Google Earth KMZ", "kmz"), ("MapPoint csv", "csv")):
 			
-			menu = gtk.Menu()
-			menuitem = gtk.MenuItem(gtk.STOCK_SAVE_AS)
+			menu = Gtk.Menu()
+			menuitem = Gtk.MenuItem(Gtk.STOCK_SAVE_AS)
 			menuitem.set_label(export_format)
 			menuitem.set_submenu(menu)
 			export_menu.append(menuitem)
 			
 			for amount in ("All", "Filtered"):
-				item = gtk.MenuItem(amount)
+				item = Gtk.MenuItem(amount)
 				item.connect("activate", self.on_file_export, export_format.lower(), extension, amount)
 				menu.append(item)
 		
-		sep = gtk.SeparatorMenuItem()
+		sep = Gtk.SeparatorMenuItem()
 		file_menu.append(sep)
 		
-		exit = gtk.ImageMenuItem(gtk.STOCK_QUIT)
+		exit = Gtk.ImageMenuItem.new_from_stock(Gtk.STOCK_QUIT)
 		exit.connect("activate", self.on_destroy)
 		file_menu.append(exit)
 		
 		menubar.append(file_menuitem)
 		
-		view_menu = gtk.Menu()
-		view_menuitem = gtk.MenuItem("View")
+		view_menu = Gtk.Menu()
+		view_menuitem = Gtk.MenuItem("View")
 		view_menuitem.set_submenu(view_menu)
 		menubar.append(view_menuitem)
 		
-		networks_menu = gtk.Menu()
-		networks_menuitem = gtk.MenuItem("Amount of networks")
+		networks_menu = Gtk.Menu()
+		networks_menuitem = Gtk.MenuItem("Amount of networks")
 		networks_menuitem.set_submenu(networks_menu)
 		view_menu.append(networks_menuitem)
 		
 		for name, key in (("Network List", "network_list"), ("Map", "map"), ("Export", "export")):
-			menu = gtk.Menu()
-			menuitem = gtk.MenuItem(name)
+			menu = Gtk.Menu()
+			menuitem = Gtk.MenuItem(name)
 			menuitem.set_submenu(menu)
 			networks_menu.append(menuitem)
 			
-			show_none = gtk.RadioMenuItem(None, 'Disable')
+			show_none = Gtk.RadioMenuItem(label='Disable')
 			if key != "export":
 				menu.append(show_none)
-			show_current = gtk.RadioMenuItem(show_none, 'Networks from the current session')
+			show_current = Gtk.RadioMenuItem(group=show_none, label='Networks from the current session')
 			menu.append(show_current)
-			show_all = gtk.RadioMenuItem(show_none, 'All Networks')
+			show_all = Gtk.RadioMenuItem(group=show_none, label='All Networks')
 			menu.append(show_all)
 			
 			if self.config["filter_networks"][key] == "none":
@@ -266,48 +271,48 @@ class MainWindow(KismonWindows):
 			show_current.connect("activate", self.on_network_filter_networks, key, "current")
 			show_all.connect("activate", self.on_network_filter_networks, key, "all")
 		
-		network_type_menu = gtk.Menu()
-		network_menuitem = gtk.MenuItem("Network Type")
+		network_type_menu = Gtk.Menu()
+		network_menuitem = Gtk.MenuItem("Network Type")
 		network_menuitem.set_submenu(network_type_menu)
 		view_menu.append(network_menuitem)
 		
 		for network_type, key in (("Infrastructure", "infrastructure"),("Data", "data"), ("Probe", "probe"), ("Ad-Hoc", "ad-hoc")):
-			item = gtk.CheckMenuItem('%s Networks' % network_type)
+			item = Gtk.CheckMenuItem('%s Networks' % network_type)
 			if self.config["filter_type"][key]:
 				item.set_active(True)
 			item.connect("activate", self.on_network_filter_type)
 			network_type_menu.append(item)
 		
-		crypt_menu = gtk.Menu()
-		crypt_menuitem = gtk.MenuItem("Encryption")
+		crypt_menu = Gtk.Menu()
+		crypt_menuitem = Gtk.MenuItem("Encryption")
 		crypt_menuitem.set_submenu(crypt_menu)
 		view_menu.append(crypt_menuitem)
 		
 		for crypt in ("None", "WEP", "WPA", "Other"):
-			crypt_item = gtk.CheckMenuItem(crypt)
+			crypt_item = Gtk.CheckMenuItem(crypt)
 			if self.config["filter_crypt"][crypt.lower()]:
 				crypt_item.set_active(True)
 			crypt_item.connect("activate", self.on_network_filter_crypt)
 			crypt_menu.append(crypt_item)
 		
 		for key in ("ssid", "bssid"):
-			regexpr_menuitem = gtk.MenuItem("%s (regular expression)" % key.upper())
+			regexpr_menuitem = Gtk.MenuItem("%s (regular expression)" % key.upper())
 			regexpr_menuitem.connect("activate", self.on_network_filter_regexpr, key)
 			view_menu.append(regexpr_menuitem)
 		
-		sep = gtk.SeparatorMenuItem()
+		sep = Gtk.SeparatorMenuItem()
 		view_menu.append(sep)
 		
-		config_menuitem = gtk.ImageMenuItem(gtk.STOCK_PREFERENCES)
+		config_menuitem = Gtk.ImageMenuItem.new_from_stock(Gtk.STOCK_PREFERENCES)
 		config_menuitem.connect("activate", self.on_config_window)
 		view_menu.append(config_menuitem)
 		
-		help_menu = gtk.Menu()
-		help_menuitem = gtk.MenuItem("Help")
+		help_menu = Gtk.Menu()
+		help_menuitem = Gtk.MenuItem("Help")
 		help_menuitem.set_submenu(help_menu)
 		menubar.append(help_menuitem)
 		
-		about = gtk.ImageMenuItem(gtk.STOCK_ABOUT)
+		about = Gtk.ImageMenuItem.new_from_stock(Gtk.STOCK_ABOUT)
 		about.connect("activate", self.on_about_dialog)
 		help_menu.append(about)
 		
@@ -339,13 +344,13 @@ class MainWindow(KismonWindows):
 		self.networks_queue_progress()
 		
 	def on_network_filter_regexpr(self, widget, key):
-		dialog = gtk.Dialog("%s (regular expression)" % key.upper(), parent=self.gtkwin)
-		entry = gtk.Entry()
+		dialog = Gtk.Dialog("%s (regular expression)" % key.upper(), parent=self.gtkwin)
+		entry = Gtk.Entry()
 		entry.set_width_chars(100)
 		entry.set_text(self.config["filter_regexpr"][key])
-		hbox = gtk.HBox()
-		hbox.pack_start(gtk.Label("Regular expression:"), False, 5, 5)
-		hbox.pack_end(entry)
+		hbox = Gtk.HBox()
+		hbox.pack_start(Gtk.Label("Regular expression:", True, True, 0), False, 5, 5)
+		hbox.pack_end(entry, True, True, 0)
 		dialog.vbox.pack_end(hbox, True, True, 0)
 		dialog.add_button("Apply", 1)
 		dialog.show_all()
@@ -362,13 +367,13 @@ class MainWindow(KismonWindows):
 		
 		self.progress_bar_max = float(len(self.networks.notify_add_queue))
 		if self.networks.queue_task:
-			self.progress_bar = gtk.ProgressBar()
+			self.progress_bar = Gtk.ProgressBar()
 			self.progress_bar.set_text("0.0%%, %s networks left" % len(self.networks.notify_add_queue))
 			self.progress_bar.set_fraction(0)
 			
-			self.progress_bar_win = gtk.Window()
+			self.progress_bar_win = Gtk.Window()
 			self.progress_bar_win.set_title("Adding networks")
-			self.progress_bar_win.set_position(gtk.WIN_POS_CENTER)
+			self.progress_bar_win.set_position(Gtk.WindowPosition.CENTER)
 			self.progress_bar_win.set_default_size(300, 30)
 			self.progress_bar_win.set_modal(True)
 			self.progress_bar_win.set_transient_for(self.gtkwin)
@@ -379,7 +384,7 @@ class MainWindow(KismonWindows):
 			self.progress_bar_win.connect("delete-event",on_delete_event)
 			self.progress_bar_win.connect("destroy", self.on_destroy_progress_bar_win)
 			
-			gobject.idle_add(self.networks_queue_progress_update)
+			GObject.idle_add(self.networks_queue_progress_update)
 			
 	def networks_queue_progress_update(self):
 		if self.networks.queue_task is None:
@@ -394,22 +399,22 @@ class MainWindow(KismonWindows):
 		self.progress_bar_win = None
 		
 	def init_info_table(self):
-		table = gtk.Table(2, 2)
+		table = Gtk.Table(2, 2)
 		
-		networks_label = gtk.Label("Networks: ")
+		networks_label = Gtk.Label(label="Networks: ")
 		networks_label.set_alignment(xalign=0, yalign=0)
 		table.attach(networks_label, 0, 1, 0, 1)
 		
-		networks_value_label = gtk.Label()
+		networks_value_label = Gtk.Label()
 		networks_value_label.set_alignment(xalign=0, yalign=0)
 		table.attach(networks_value_label, 1, 2, 0, 1)
 		self.info_table_networks = networks_value_label
 		
-		packets_label = gtk.Label("Packets: ")
+		packets_label = Gtk.Label(label="Packets: ")
 		packets_label.set_alignment(xalign=0, yalign=0)
 		table.attach(packets_label, 0, 1, 1, 2)
 		
-		packets_value_label = gtk.Label()
+		packets_value_label = Gtk.Label()
 		packets_value_label.set_alignment(xalign=0, yalign=0)
 		table.attach(packets_value_label, 1, 2, 1, 2)
 		self.info_table_packets = packets_value_label
@@ -423,31 +428,31 @@ class MainWindow(KismonWindows):
 		self.info_table_packets.set_text("%s" % data["packets"])
 	
 	def init_gps_table(self):
-		table = gtk.Table(3, 2)
+		table = Gtk.Table(3, 2)
 		
-		fix_label = gtk.Label("Fix: ")
+		fix_label = Gtk.Label(label="Fix: ")
 		fix_label.set_alignment(xalign=0, yalign=0)
 		table.attach(fix_label, 0, 1, 0, 1)
 		
-		fix_value_label = gtk.Label()
+		fix_value_label = Gtk.Label()
 		fix_value_label.set_alignment(xalign=0, yalign=0)
 		table.attach(fix_value_label, 1, 2, 0, 1)
 		self.gps_table_fix = fix_value_label
 		
-		lat_label = gtk.Label("Latitude: ")
+		lat_label = Gtk.Label(label="Latitude: ")
 		lat_label.set_alignment(xalign=0, yalign=0)
 		table.attach(lat_label, 0, 1, 1, 2)
 		
-		lat_value_label = gtk.Label()
+		lat_value_label = Gtk.Label()
 		lat_value_label.set_alignment(xalign=0, yalign=0)
 		table.attach(lat_value_label, 1, 2, 1, 2)
 		self.gps_table_lat = lat_value_label
 		
-		lon_label = gtk.Label("Longitude: ")
+		lon_label = Gtk.Label(label="Longitude: ")
 		lon_label.set_alignment(xalign=0, yalign=0)
 		table.attach(lon_label, 0, 1, 2, 3)
 		
-		lon_value_label = gtk.Label()
+		lon_value_label = Gtk.Label()
 		lon_value_label.set_alignment(xalign=0, yalign=0)
 		table.attach(lon_value_label, 1, 2, 2, 3)
 		self.gps_table_lon = lon_value_label
@@ -473,7 +478,7 @@ class MainWindow(KismonWindows):
 		if self.sources_table is not None:
 			self.sources_expander.remove(self.sources_table)
 			
-		table = gtk.Table(len(sources)*5-1, 2)
+		table = Gtk.Table(len(sources)*5-1, 2)
 		for uuid in sources:
 			self.init_sources_table_source(sources[uuid], table)
 		
@@ -495,11 +500,11 @@ class MainWindow(KismonWindows):
 		row = len(self.sources_table_sources) * 5
 		for title, value in rows:
 			if title is not None:
-				label = gtk.Label("%s: "%title)
+				label = Gtk.Label(label="%s: "%title)
 				label.set_alignment(xalign=0, yalign=0)
 				table.attach(label, 0, 1, row, row+1)
 			
-			label = gtk.Label(value)
+			label = Gtk.Label(label=value)
 			label.set_alignment(xalign=0, yalign=0)
 			table.attach(label, 1, 2, row, row+1)
 			self.sources_table_sources[source["uuid"]][title] = label
@@ -519,12 +524,12 @@ class MainWindow(KismonWindows):
 			sources_table_source["Packets"].set_text("%s" % source["packets"])
 		
 	def on_client_connect(self, widget):
-		dialog = gtk.Dialog("Connect", parent=self.gtkwin)
-		entry = gtk.Entry()
+		dialog = Gtk.Dialog("Connect", parent=self.gtkwin)
+		entry = Gtk.Entry()
 		entry.set_text(self.config["kismet"]["server"])
 		dialog.set_has_separator(False)
 		dialog.add_action_widget(entry, 1)
-		dialog.add_button(gtk.STOCK_CONNECT, 1)
+		dialog.add_button(Gtk.STOCK_CONNECT, 1)
 		dialog.show_all()
 		dialog.run()
 		server = entry.get_text()
@@ -568,17 +573,17 @@ class MainWindow(KismonWindows):
 				self.notebook.remove_page(page)
 			
 	def on_about_dialog(self, widget):
-		dialog = gtk.AboutDialog()
-		dialog.set_name("Kismon")
+		dialog = Gtk.AboutDialog()
+		dialog.set_program_name("Kismon")
 		dialog.set_version("0.6")
 		dialog.set_comments('PyGTK based kismet client')
 		dialog.set_website('http://www.salecker.org/software/kismon/en')
-		dialog.set_copyright("(c) 2010-2011 Patrick Salecker")
+		dialog.set_copyright("(c) 2010-2014 Patrick Salecker")
 		dialog.run()
 		dialog.destroy()
 		
 	def on_window_state(self,window, event):
-		if event.new_window_state == gtk.gdk.WINDOW_STATE_MAXIMIZED:
+		if event.new_window_state == Gdk.WindowState.MAXIMIZED:
 			self.config["window"]["maximized"] = True
 		else:
 			self.config["window"]["maximized"] = False
@@ -621,15 +626,15 @@ class MainWindow(KismonWindows):
 		file_import_window.gtkwin.set_modal(True)
 		
 	def on_file_export(self, widget, export_format, extension, amount):
-		dialog = gtk.FileChooserDialog(title="Export as %s" % (export_format),
-			parent=self.gtkwin, action=gtk.FILE_CHOOSER_ACTION_SAVE)
-		dialog.add_button(gtk.STOCK_SAVE, gtk.RESPONSE_OK)
-		dialog.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
+		dialog = Gtk.FileChooserDialog(title="Export as %s" % (export_format),
+			parent=self.gtkwin, action=Gtk.FileChooserAction.SAVE)
+		dialog.add_button(Gtk.STOCK_SAVE, Gtk.ResponseType.OK)
+		dialog.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
 		dialog.set_do_overwrite_confirmation(True)
 		dialog.set_current_name("kismon.%s" % extension)
 		
 		filename = False
-		if dialog.run() == gtk.RESPONSE_OK:
+		if dialog.run() == Gtk.ResponseType.OK:
 			filename = dialog.get_filename()
 		dialog.destroy()
 		if filename == False:
@@ -668,27 +673,27 @@ class LogList:
 	def __init__(self, config):
 		self.rows = []
 		self.config = config
-		self.treeview = gtk.TreeView()
+		self.treeview = Gtk.TreeView()
 		num=0
 		for column in ("Time", "Message"):
-			tvcolumn = gtk.TreeViewColumn(column)
+			tvcolumn = Gtk.TreeViewColumn(column)
 			self.treeview.append_column(tvcolumn)
-			cell = gtk.CellRendererText()
+			cell = Gtk.CellRendererText()
 			tvcolumn.pack_start(cell, True)
 			tvcolumn.add_attribute(cell, 'text', num)
 			tvcolumn.set_sort_column_id(num)
 			tvcolumn.set_clickable(True)
 			num += 1
 		
-		self.store = gtk.ListStore(
-			gobject.TYPE_STRING, #time
-			gobject.TYPE_STRING, #message
+		self.store = Gtk.ListStore(
+			GObject.TYPE_STRING, #time
+			GObject.TYPE_STRING, #message
 			)
 		self.treeview.set_model(self.store)
 		
-		log_scrolled = gtk.ScrolledWindow()
-		log_scrolled.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-		log_scrolled.set_shadow_type(gtk.SHADOW_NONE)
+		log_scrolled = Gtk.ScrolledWindow()
+		log_scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+		log_scrolled.set_shadow_type(Gtk.ShadowType.NONE)
 		log_scrolled.add(self.treeview)
 		
 		self.widget = log_scrolled
@@ -740,16 +745,16 @@ class NetworkList:
 		self.networks.disable_refresh_functions.append(self.pause)
 		self.networks.resume_refresh_functions.append(self.resume)
 		
-		self.treeview = gtk.TreeView()
+		self.treeview = Gtk.TreeView()
 		self.treeview.connect("button-press-event", self.on_treeview_clicked)
 		num=0
 		columns=("BSSID", "Type", "SSID", "Ch", "Crypt",
 			"First Seen", "Last Seen", "Latitude", "Longitude",
 			"Signal dbm")
 		for column in columns:
-			tvcolumn = gtk.TreeViewColumn(column)
+			tvcolumn = Gtk.TreeViewColumn(column)
 			self.treeview.append_column(tvcolumn)
-			cell = gtk.CellRendererText()
+			cell = Gtk.CellRendererText()
 			tvcolumn.pack_start(cell, True)
 			tvcolumn.add_attribute(cell, 'text', num)
 			tvcolumn.set_sort_column_id(num)
@@ -760,37 +765,38 @@ class NetworkList:
 			num+=1
 		self.treeview.show()
 		
-		self.store = gtk.ListStore(
-			gobject.TYPE_STRING, #mac
-			gobject.TYPE_STRING, #type
-			gobject.TYPE_STRING, #ssid
-			gobject.TYPE_INT, #channel
-			gobject.TYPE_STRING, #cryptset
-			gobject.TYPE_STRING, #firsttime
-			gobject.TYPE_STRING, #lasttime
-			gobject.TYPE_FLOAT, #lat
-			gobject.TYPE_FLOAT, #lon
-			gobject.TYPE_INT, #signal dbm
+		self.store = Gtk.ListStore(
+			GObject.TYPE_STRING, #mac
+			GObject.TYPE_STRING, #type
+			GObject.TYPE_STRING, #ssid
+			GObject.TYPE_INT, #channel
+			GObject.TYPE_STRING, #cryptset
+			GObject.TYPE_STRING, #firsttime
+			GObject.TYPE_STRING, #lasttime
+			GObject.TYPE_FLOAT, #lat
+			GObject.TYPE_FLOAT, #lon
+			GObject.TYPE_INT, #signal dbm
 			)
 		self.treeview.set_model(self.store)
 		
-		scrolled = gtk.ScrolledWindow()
-		scrolled.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+		scrolled = Gtk.ScrolledWindow()
+		scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
 		scrolled.add(self.treeview)
 		
-		frame = gtk.Frame("Networks")
+		frame = Gtk.Frame()
+		frame.set_label("Networks")
 		frame.add(scrolled)
 		
 		self.widget = frame
 		
-		self.store.set_sort_column_id(6, gtk.SORT_DESCENDING)
+		self.store.set_sort_column_id(6, Gtk.SortType.DESCENDING)
 		
-		network_popup = gtk.Menu()
-		locate_item = gtk.MenuItem('Locate on map')
+		network_popup = Gtk.Menu()
+		locate_item = Gtk.MenuItem('Locate on map')
 		network_popup.append(locate_item)
 		locate_item.connect("activate", self.on_locate_marker)
 		
-		signal_item = gtk.MenuItem('Signal graph')
+		signal_item = Gtk.MenuItem('Signal graph')
 		network_popup.append(signal_item)
 		signal_item.connect("activate", self.on_signal_graph)
 		
@@ -850,7 +856,7 @@ class NetworkList:
 			adj = self.treeview.get_vadjustment()
 			self.scroll_value = int(adj.get_value())
 			if self.scroll_value == 0:
-				gobject.idle_add(self.treeview.scroll_to_point, -1, 0)
+				GObject.idle_add(self.treeview.scroll_to_point, -1, 0)
 		
 	def remove_network(self, mac):
 		try:
@@ -883,10 +889,10 @@ class NetworkList:
 		mac = self.store.get_value(network_iter, 0)
 		self.network_selected = mac
 		
-		if event.type == gtk.gdk._2BUTTON_PRESS: # double click
+		if event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS: # double click
 			self.on_locate_marker(None)
 		elif event.button == 3: # right click
-			self.network_popup.popup(None, None, None, event.button, event.time)
+			self.network_popup.popup(None, None, None, 0, event.button, event.time, )
 		
 	def on_locate_marker(self, widget):
 		if self.locate_network_on_map is not None:

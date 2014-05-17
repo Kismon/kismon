@@ -1,11 +1,11 @@
 import os
 
-import gtk
+from gi.repository import Gtk
 
 class ConfigWindow:
 	def __init__(self, main_window):
-		self.gtkwin = gtk.Window()
-		self.gtkwin.set_position(gtk.WIN_POS_CENTER)
+		self.gtkwin = Gtk.Window()
+		self.gtkwin.set_position(Gtk.WindowPosition.CENTER)
 		self.gtkwin.connect("destroy", self.on_destroy)
 		self.gtkwin.set_size_request(640, 320)
 		self.gtkwin.set_title("Kismon Preferences")
@@ -13,40 +13,41 @@ class ConfigWindow:
 		self.config = main_window.config
 		self.map = main_window.map
 		
-		self.notebook = gtk.Notebook()
+		self.notebook = Gtk.Notebook()
 		self.gtkwin.add(self.notebook)
 		
-		general_page = gtk.Table(rows=2, columns=1)
+		general_page = Gtk.Table(rows=2, columns=1)
 		self.notebook.append_page(general_page)
 		self.notebook.set_tab_label_text(general_page, "General")
 		self.init_general_page(general_page)
 		
-		map_page = gtk.Table(rows=2, columns=1)
+		map_page = Gtk.Table(rows=2, columns=1)
 		self.notebook.append_page(map_page)
 		self.notebook.set_tab_label_text(map_page, "Map")
 		
 		if self.map is None:
-			label = gtk.Label("Map disabled")
-			map_page.attach(label, 0, 1, 0, 1, yoptions=gtk.SHRINK)
+			label = Gtk.Label(label="Map disabled")
+			map_page.attach(label, 0, 1, 0, 1, yoptions=Gtk.AttachOptions.SHRINK)
 		else:
 			self.init_map_page(map_page)
 		
 		self.gtkwin.show_all()
 		
 	def init_general_page(self, page):
-		frame = gtk.Frame("Log List")
-		page.attach(frame, 0, 1, 0, 1, yoptions=gtk.SHRINK)
-		vbox = gtk.VBox()
+		frame = Gtk.Frame()
+		frame.set_label("Log List")
+		page.attach(frame, 0, 1, 0, 1, yoptions=Gtk.AttachOptions.SHRINK)
+		vbox = Gtk.VBox()
 		frame.add(vbox)
-		hbox = gtk.HBox()
+		hbox = Gtk.HBox()
 		vbox.add(hbox)
 		
-		label = gtk.Label("Max rows in the log list: ")
+		label = Gtk.Label(label="Max rows in the log list: ")
 		label.set_alignment(xalign=0, yalign=0.5)
-		label.set_justify(gtk.JUSTIFY_RIGHT)
+		label.set_justify(Gtk.Justification.RIGHT)
 		hbox.pack_start(label, False, False, 5)
 		
-		field = gtk.SpinButton()
+		field = Gtk.SpinButton()
 		field.set_numeric(True)
 		field.set_max_length(5)
 		field.set_increments(1,100)
@@ -55,20 +56,21 @@ class ConfigWindow:
 		field.connect("output", self.on_change_log_list_max)
 		hbox.pack_start(field, False, False, 5)
 		
-		label = gtk.Label("-1 = unlimited 0 = disable")
+		label = Gtk.Label(label="-1 = unlimited 0 = disable")
 		label.set_alignment(xalign=0, yalign=0.5)
 		hbox.pack_start(label, False, False, 5)
 		
-		frame = gtk.Frame("Autosave")
-		page.attach(frame, 0, 1, 1, 2, yoptions=gtk.SHRINK)
-		vbox = gtk.VBox()
+		frame = Gtk.Frame()
+		frame.set_label("Autosave")
+		page.attach(frame, 0, 1, 1, 2, yoptions=Gtk.AttachOptions.SHRINK)
+		vbox = Gtk.VBox()
 		frame.add(vbox)
-		hbox = gtk.HBox()
+		hbox = Gtk.HBox()
 		vbox.add(hbox)
-		label = gtk.Label("Save the networks every (in minutes):")
+		label = Gtk.Label(label="Save the networks every (in minutes):")
 		hbox.pack_start(label, False, False, 5)
 		
-		field = gtk.SpinButton()
+		field = Gtk.SpinButton()
 		field.set_numeric(True)
 		field.set_max_length(5)
 		field.set_increments(1,100)
@@ -77,7 +79,7 @@ class ConfigWindow:
 		field.connect("output", self.on_change_autosave)
 		hbox.pack_start(field, False, False, 5)
 		
-		label = gtk.Label("0 = disable")
+		label = Gtk.Label(label="0 = disable")
 		label.set_alignment(xalign=0, yalign=0.5)
 		hbox.pack_start(label, False, False, 5)
 		
@@ -94,39 +96,41 @@ class ConfigWindow:
 		self.main_window.networks.set_autosave(self.config["networks"]["autosave"])
 		
 	def init_map_page(self, map_page):
-		position_frame = gtk.Frame("Position")
-		map_page.attach(position_frame, 0, 1, 0, 1, yoptions=gtk.SHRINK)
-		position_vbox = gtk.VBox()
+		position_frame = Gtk.Frame()
+		position_frame.set_label("Position")
+		map_page.attach(position_frame, 0, 1, 0, 1, yoptions=Gtk.AttachOptions.SHRINK)
+		position_vbox = Gtk.VBox()
 		position_frame.add(position_vbox)
 		
-		map_widget = gtk.RadioButton(None, 'In main window (default)')
+		map_widget = Gtk.RadioButton(group=None, label='In main window (default)')
 		if self.config["window"]["map_position"] == "widget":
 			map_widget.clicked()
 		map_widget.connect("clicked", self.main_window.on_map_widget)
 		position_vbox.add(map_widget)
 		
-		map_window = gtk.RadioButton(map_widget, 'In seperate window')
+		map_window = Gtk.RadioButton(group=map_widget, label='In seperate window')
 		if self.config["window"]["map_position"] == "window":
 			map_window.clicked()
 		map_window.connect("clicked", self.main_window.on_map_window)
 		position_vbox.add(map_window)
 		
-		map_hide = gtk.RadioButton(map_widget, 'Hide')
+		map_hide = Gtk.RadioButton(group=map_widget, label='Hide')
 		if self.config["window"]["map_position"] == "hide":
 			map_hide.clicked()
 		map_hide.connect("clicked", self.main_window.on_map_hide)
 		position_vbox.add(map_hide)
 		
-		source_frame = gtk.Frame("Source")
-		source_vbox = gtk.VBox()
+		source_frame = Gtk.Frame()
+		source_frame.set_label("Source")
+		source_vbox = Gtk.VBox()
 		source_frame.add(source_vbox)
-		map_page.attach(source_frame, 0, 1, 1, 2, yoptions=gtk.SHRINK)
+		map_page.attach(source_frame, 0, 1, 1, 2, yoptions=Gtk.AttachOptions.SHRINK)
 		
 		first = None
 		for name, source in (("Openstreetmap (default)", "openstreetmap"),
 				("Openstreetmap Renderer", "openstreetmap-renderer"),
 				("Custom tile source", "custom")):
-			map_source = gtk.RadioButton(first, name)
+			map_source = Gtk.RadioButton(group=first, label=name)
 			if first is None:
 				first = map_source
 			
@@ -135,31 +139,31 @@ class ConfigWindow:
 			map_source.connect("clicked", self.on_map_source, source)
 			source_vbox.add(map_source)
 		
-		hbox = gtk.HBox()
+		hbox = Gtk.HBox()
 		source_vbox.add(hbox)
 		
-		label = gtk.Label("     URL: ")
+		label = Gtk.Label(label="     URL: ")
 		label.set_alignment(xalign=0, yalign=0.5)
-		label.set_justify(gtk.JUSTIFY_LEFT)
+		label.set_justify(Gtk.Justification.LEFT)
 		hbox.pack_start(label, False, False, 5)
 		
-		entry = gtk.Entry()
+		entry = Gtk.Entry()
 		entry.set_width_chars(50)
 		entry.set_text(self.config["map"]["custom_source_url"])
 		entry.connect("changed", self.on_change_map_source_custom_url)
 		hbox.pack_start(entry, False, False, 5)
 		
-		hbox = gtk.HBox()
+		hbox = Gtk.HBox()
 		source_vbox.add(hbox)
 		
 		x=1
 		for name in ("     Zoom Levels: ", " - "):
-			label = gtk.Label(name)
+			label = Gtk.Label(label=name)
 			label.set_alignment(xalign=0, yalign=0.5)
-			label.set_justify(gtk.JUSTIFY_LEFT)
+			label.set_justify(Gtk.Justification.LEFT)
 			hbox.pack_start(label, False, False, 5)
 			
-			field = gtk.SpinButton()
+			field = Gtk.SpinButton()
 			field.set_numeric(True)
 			field.set_max_length(5)
 			field.set_increments(1,3)
@@ -173,16 +177,17 @@ class ConfigWindow:
 			hbox.pack_start(field, False, False, 5)
 			x += 1
 		
-		apply_button = gtk.Button(stock=gtk.STOCK_APPLY)
+		apply_button = Gtk.Button(stock=Gtk.STOCK_APPLY)
 		apply_button.connect("clicked", self.on_map_source, "custom")
 		hbox.pack_start(apply_button, False, False, 5)
 		
-		perf_frame = gtk.Frame("Performance")
-		perf_vbox = gtk.VBox()
+		perf_frame = Gtk.Frame()
+		perf_frame.set_label("Performance")
+		perf_vbox = Gtk.VBox()
 		perf_frame.add(perf_vbox)
-		map_page.attach(perf_frame, 0, 1, 4, 5, yoptions=gtk.SHRINK)
+		map_page.attach(perf_frame, 0, 1, 4, 5, yoptions=Gtk.AttachOptions.SHRINK)
 		
-		perf_marker_positions = gtk.CheckButton("Update marker positions")
+		perf_marker_positions = Gtk.CheckButton("Update marker positions")
 		if self.config["map"]["update_marker_positions"] is True:
 			perf_marker_positions.clicked()
 		perf_marker_positions.connect("clicked", self.on_update_marker_positions)
@@ -192,7 +197,7 @@ class ConfigWindow:
 		self.gtkwin = None
 		
 	def on_map_source(self, widget, source):
-		if (type(widget) == gtk.RadioButton and widget.get_active()) or type(widget) == gtk.Button:
+		if (type(widget) == Gtk.RadioButton and widget.get_active()) or type(widget) == Gtk.Button:
 			self.map.set_source(source)
 			if self.config["window"]["map_position"] == "widget":
 				self.main_window.on_map_widget(None, True)

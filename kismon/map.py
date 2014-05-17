@@ -27,9 +27,12 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
-import gtk
-import gobject
-import osmgpsmap
+from gi.repository import Gtk
+from gi.repository import Gdk, GdkPixbuf
+from gi.repository import GObject
+from gi.repository import OsmGpsMap
+import cairo
+from PIL import Image
 
 import os
 import hashlib
@@ -59,22 +62,22 @@ class Map:
 		
 	def init_osm(self):
 		if self.config["source"] != "custom":
-			self.osm = osmgpsmap.GpsMap()
+			self.osm = OsmGpsMap.Map()
 		else:
-			self.osm = osmgpsmap.GpsMap(repo_uri=self.config["custom_source_url"],
+			self.osm = OsmGpsMap.Map(repo_uri=self.config["custom_source_url"],
 				min_zoom=self.config["custom_source_min"],
 				max_zoom=self.config["custom_source_max"])
 		
-		self.osd = osmgpsmap.GpsMapOsd(show_zoom=True, show_coordinates=False, show_scale=False, show_dpad=True, show_gps_in_dpad=True)
+		self.osd = OsmGpsMap.MapOsd(show_zoom=True, show_coordinates=False, show_scale=False, show_dpad=True, show_gps_in_dpad=True)
 		self.osm.layer_add(self.osd)
 		
 		self.osm.connect('button-press-event', self.on_map_pressed)
-		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_UP, gtk.gdk.keyval_from_name("Up"))
-		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_DOWN, gtk.gdk.keyval_from_name("Down"))
-		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_LEFT, gtk.gdk.keyval_from_name("Left"))
-		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_RIGHT, gtk.gdk.keyval_from_name("Right"))
-		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_ZOOMIN, gtk.gdk.keyval_from_name("Page_Up"))
-		self.osm.set_keyboard_shortcut(osmgpsmap.KEY_ZOOMOUT, gtk.gdk.keyval_from_name("Page_Down"))
+		self.osm.set_keyboard_shortcut(OsmGpsMap.MapKey_t.UP, Gdk.keyval_from_name("Up"))
+		self.osm.set_keyboard_shortcut(OsmGpsMap.MapKey_t.DOWN, Gdk.keyval_from_name("Down"))
+		self.osm.set_keyboard_shortcut(OsmGpsMap.MapKey_t.LEFT, Gdk.keyval_from_name("Left"))
+		self.osm.set_keyboard_shortcut(OsmGpsMap.MapKey_t.RIGHT, Gdk.keyval_from_name("Right"))
+		self.osm.set_keyboard_shortcut(OsmGpsMap.MapKey_t.ZOOMIN, Gdk.keyval_from_name("Page_Up"))
+		self.osm.set_keyboard_shortcut(OsmGpsMap.MapKey_t.ZOOMOUT, Gdk.keyval_from_name("Page_Down"))
 		
 		self.coordinates = {}
 		for mac in self.markers.keys():
@@ -93,8 +96,8 @@ class Map:
 				size = 32
 			else:
 				size = 16
-			drawable = gtk.gdk.Pixmap(None, size, size, 24)
-			ctx = drawable.cairo_create()
+			drawable = cairo.ImageSurface(cairo.FORMAT_RGB24, size, size)
+			ctx = cairo.Context(drawable)
 			ctx.set_source_rgba(1, 1, 1, 1)
 			ctx.rectangle(0, 0, size, size)
 			ctx.fill()
@@ -120,11 +123,9 @@ class Map:
 				ctx.arc(size/2, size/2, size/2-1, 0, 3.14*2)
 				ctx.fill()
 			ctx.stroke()
-			cmap = gtk.gdk.colormap_get_system()
-			pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, True, 8, size, size)
 			
-			pixbuf.get_from_drawable(drawable, cmap, 0, 0, 0, 0, size, size)
-			
+			buffer = Image.frombuffer('RGBA', (size, size), drawable.get_data(), 'raw', 'BGRA', 0, 1)
+			pixbuf = GdkPixbuf.Pixbuf.new_from_data(buffer.tostring(), GdkPixbuf.Colorspace.RGB, True, 8, size, size, drawable.get_stride())
 			self.textures[color] = pixbuf.add_alpha(True , 255, 255, 255)
 		
 	def set_zoom(self, zoom):
@@ -138,7 +139,7 @@ class Map:
 		
 	def set_position(self, lat, lon, force=False):
 		self.osm.gps_clear()
-		self.osm.gps_add(lat, lon, heading=osmgpsmap.INVALID);
+		self.osm.gps_add(lat, lon, heading=OsmGpsMap.MAP_INVALID);
 		
 		self.config["last_position"] = "%s/%s" % (lat, lon)
 		
@@ -276,7 +277,7 @@ class Map:
 			self.start_moving()
 		
 		if id == "openstreetmap-renderer":
-			self.osm.set_property("map-source", osmgpsmap.SOURCE_OPENSTREETMAP_RENDERER)
+			self.osm.set_property("map-source", OsmGpsMap.MapSource_t.OPENSTREETMAP_RENDERER)
 		elif id == "custom":
 			zoom = self.osm.get_property("zoom")
 			self.init_osm()
@@ -284,7 +285,7 @@ class Map:
 			self.start_moving()
 		else:
 			id = "openstreetmap"
-			self.osm.set_property("map-source", osmgpsmap.SOURCE_OPENSTREETMAP)
+			self.osm.set_property("map-source", OsmGpsMap.MapSource_t.OPENSTREETMAP)
 			self.config["source"] = id
 		
 class Marker:
@@ -297,4 +298,4 @@ class Marker:
 if __name__ == "__main__":
 	import test
 	test.map()
-	gtk.main()
+	Gtk.main()

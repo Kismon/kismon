@@ -1,7 +1,9 @@
 import time
 
-import gtk
-import gobject
+from gi.repository import Gtk
+from gi.repository import Gdk, GdkPixbuf
+from gi.repository import GObject
+import cairo
 
 class SignalWindow:
 	def __init__(self, mac, destroy):
@@ -21,60 +23,64 @@ class SignalWindow:
 			(0, 0, 0.5),
 		]
 		
-		self.gtkwin = gtk.Window()
-		self.gtkwin.set_position(gtk.WIN_POS_CENTER)
+		self.gtkwin = Gtk.Window()
+		self.gtkwin.set_position(Gtk.WindowPosition.CENTER)
 		self.gtkwin.connect("destroy", destroy, mac)
 		self.gtkwin.set_default_size(620, 320)
 		self.gtkwin.set_title("Signal Graph: %s" % self.mac)
 		
-		self.graph = gtk.DrawingArea()
-		self.graph.connect("expose_event", self.on_expose_event)
+		self.graph = Gtk.DrawingArea()
+		self.graph.connect("draw", self.on_draw_event)
 		
-		button_box = gtk.HButtonBox()
+		button_box = Gtk.HButtonBox()
 		
-		signal_button = gtk.RadioButton(None, 'Signal strength')
+		signal_button = Gtk.RadioButton(label='Signal strength')
 		signal_button.connect("clicked", self.on_graph_type, "signal")
 		signal_button.clicked()
 		button_box.add(signal_button)
 		
-		packets_button = gtk.RadioButton(signal_button, 'Packets per second')
+		packets_button = Gtk.RadioButton(group=signal_button, label='Packets per second')
 		packets_button.connect("clicked", self.on_graph_type, "packets")
 		button_box.add(packets_button)
 		
-		self.sources_list = gtk.TreeView()
+		self.sources_list = Gtk.TreeView()
 		
-		tvcolumn = gtk.TreeViewColumn("Color")
-		pixbuf = gtk.CellRendererPixbuf()
-		tvcolumn.pack_start(pixbuf)
-		tvcolumn.add_attribute(pixbuf, "pixbuf", 0)
+		tvcolumn = Gtk.TreeViewColumn("Color")
+		cell = Gtk.CellRendererText()
+		tvcolumn.pack_start(cell, True)
+		cell.set_property('background-set' , True)
+		tvcolumn.set_attributes(cell,text=0, background=8)
+		
 		self.sources_list.append_column(tvcolumn)
 		
 		num=1
 		for column in ("Name", "Type", "Signal (dbm)", "Min", "Max", "Packets/sec", "Packets"):
-			tvcolumn = gtk.TreeViewColumn(column)
+			tvcolumn = Gtk.TreeViewColumn(column)
 			self.sources_list.append_column(tvcolumn)
-			cell = gtk.CellRendererText()
+			cell = Gtk.CellRendererText()
 			tvcolumn.pack_start(cell, True)
 			tvcolumn.add_attribute(cell, 'text', num)
 			num += 1
 		
-		self.sources_list_store = gtk.ListStore(
-			gtk.gdk.Pixbuf,
-			gobject.TYPE_STRING,
-			gobject.TYPE_STRING,
-			gobject.TYPE_INT,
-			gobject.TYPE_INT,
-			gobject.TYPE_INT,
-			gobject.TYPE_INT,
-			gobject.TYPE_INT,
+		self.sources_list_store = Gtk.ListStore(
+			GObject.TYPE_STRING,
+			GObject.TYPE_STRING,
+			GObject.TYPE_STRING,
+			GObject.TYPE_INT,
+			GObject.TYPE_INT,
+			GObject.TYPE_INT,
+			GObject.TYPE_INT,
+			GObject.TYPE_INT,
+			GObject.TYPE_STRING, # bg color
 			)
 		self.sources_list.set_model(self.sources_list_store)
 		
-		expander = gtk.Expander("Sources")
+		expander = Gtk.Expander()
+		expander.set_label("Sources")
 		expander.set_expanded(True)
 		expander.add(self.sources_list)
 		
-		vbox = gtk.VBox()
+		vbox = Gtk.VBox()
 		vbox.pack_start(button_box, expand=False, fill=False, padding=0)
 		vbox.add(self.graph)
 		vbox.pack_end(expander, expand=False, fill=False, padding=0)
@@ -89,43 +95,27 @@ class SignalWindow:
 		self.graph_type = graph_type
 		self.graph.queue_draw()
 		
-	def on_expose_event(self, widget, event):
-		width = event.area.width
-		height = event.area.height
-		self.draw_graph(width, height)
+	def on_draw_event(self, widget, context):
+		width = self.graph.get_allocated_width()
+		height = self.graph.get_allocated_height()
+		self.draw_graph(width, height, context)
 		
 		for uuid in self.sources:
 			source = self.sources[uuid]
 			
-			line = [source["username"], source["type"],
+			line = ['#' , source["username"], source["type"],
 				source["signal"], source["signal_min"], source["signal_max"],
-				source["pps"], source["packets"]]
+				source["pps"], source["packets"], self.get_color(uuid, hex=True)]
 			if "iter" in source:
 				source_iter = source["iter"]
-				num = 1
+				num = 0
 				for value in line:
 					self.sources_list_store.set_value(source_iter, num, value)
 					num += 1
 			else:
-				width = 36
-				height = 12
-				
-				pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8, width, height)
-				drawable = gtk.gdk.Pixmap(None, width, height, 24)
-				ctx = drawable.cairo_create()
-				color = self.get_color(uuid)
-				ctx.set_source_rgb(*color)
-				ctx.rectangle(0, 0, width, height)
-				ctx.fill()
-				ctx.stroke()
-				cmap = gtk.gdk.colormap_get_system()
-				pixbuf.get_from_drawable(drawable, cmap, 0, 0, 0, 0, width, height)
-				line.insert(0, pixbuf)
 				source["iter"] = self.sources_list_store.append(line)
 		
-	def draw_graph(self, width, height):
-		ctx=self.graph.window.cairo_create()
-		
+	def draw_graph(self, width, height, ctx):
 		border_left = 60
 		border_right = 0
 		border_bottom = 30
@@ -239,11 +229,15 @@ class SignalWindow:
 		
 		return False
 		
-	def get_color(self, uuid):
+	def get_color(self, uuid, hex=False):
 		try:
 			color = self.colors[self.sources[uuid]["number"]]
 		except ValueError:
 			color = (1, 1, 1)
+		
+		if hex:
+			color = "#%0.2X%0.2X%0.2X" % (color[0] * 255, color[1] * 255, color[2] * 255)
+		
 		return color
 		
 	def add_value(self, source_data, bssidsrc, value):
