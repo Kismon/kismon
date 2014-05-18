@@ -32,7 +32,7 @@ from gi.repository import Gdk, GdkPixbuf
 from gi.repository import GObject
 from gi.repository import OsmGpsMap
 import cairo
-from PIL import Image
+import StringIO
 
 import os
 import hashlib
@@ -124,8 +124,13 @@ class Map:
 				ctx.fill()
 			ctx.stroke()
 			
-			buffer = Image.frombuffer('RGBA', (size, size), drawable.get_data(), 'raw', 'BGRA', 0, 1)
-			pixbuf = GdkPixbuf.Pixbuf.new_from_data(buffer.tostring(), GdkPixbuf.Colorspace.RGB, True, 8, size, size, drawable.get_stride())
+			buffer = StringIO.StringIO()
+			drawable.write_to_png(buffer)
+			loader = GdkPixbuf.PixbufLoader.new_with_type('png')
+			loader.write(buffer.getvalue())
+			buffer.close()
+			pixbuf = loader.get_pixbuf()
+			loader.close()
 			self.textures[color] = pixbuf.add_alpha(True , 255, 255, 255)
 		
 	def set_zoom(self, zoom):
