@@ -527,7 +527,6 @@ class MainWindow(KismonWindows):
 		dialog = Gtk.Dialog("Connect", parent=self.gtkwin)
 		entry = Gtk.Entry()
 		entry.set_text(self.config["kismet"]["server"])
-		dialog.set_has_separator(False)
 		dialog.add_action_widget(entry, 1)
 		dialog.add_button(Gtk.STOCK_CONNECT, 1)
 		dialog.show_all()
