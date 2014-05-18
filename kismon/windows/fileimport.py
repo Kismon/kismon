@@ -175,7 +175,7 @@ class FileImportWindow:
 		
 		main_box.pack_end(button_box, expand=False, fill=True, padding=0)
 		self.gtkwin.show_all()
-		self.parser_queue = self.files.keys()
+		self.parser_queue = list(self.files.keys())
 		if len(self.parser_queue) == 0:
 			self.close_button.set_sensitive(True)
 		else:
@@ -185,7 +185,7 @@ class FileImportWindow:
 	def parse_file(self):
 		filename = self.parser_queue.pop()
 		filetype = self.files[filename]["filetype"]
-		print "Reading %s" % filename
+		print("Reading %s" % filename)
 		num_new = 0 - len(self.networks.networks)
 		if filetype != "unknown":
 			try:
@@ -194,7 +194,7 @@ class FileImportWindow:
 			except:
 				status = "failed"
 				num_networks = 0
-				print "%s: %s" % (filename, sys.exc_info()[1])
+				print("%s: %s" % (filename, sys.exc_info()[1]))
 		else:
 			num_networks = 0
 			status = "skiped"
@@ -209,7 +209,7 @@ class FileImportWindow:
 		self.progress_bar.set_text("%s of %s Files" % (pos, num_files))
 		self.progress_bar.set_fraction(1.0 / num_files * pos)
 		
-		print "Parsing done"
+		print("Parsing done")
 		if len(self.parser_queue) == 0:
 			self.close_button.set_sensitive(True)
 		else:

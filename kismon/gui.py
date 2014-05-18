@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Copyright (c) 2010, Patrick Salecker
 All rights reserved.
@@ -28,7 +28,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
 
-import client
+from client import Client, decode_cryptset
 
 import time
 import os
@@ -175,7 +175,7 @@ class MainWindow(KismonWindows):
 			self.on_map_hide(None)
 	
 	def on_destroy(self, widget):
-		print "Window destroyed"
+		print("Window destroyed")
 		self.gtkwin = None
 		Gtk.main_quit()
 		
@@ -810,7 +810,7 @@ class NetworkList:
 		try:
 			crypt = self.crypt_cache[network["cryptset"]]
 		except KeyError:
-			crypt = client.decode_cryptset(network["cryptset"], True)
+			crypt = decode_cryptset(network["cryptset"], True)
 			self.crypt_cache[network["cryptset"]] = crypt
 		
 		if network["ssid"] == "":
@@ -923,5 +923,5 @@ def show_timestamp(timestamp):
 	return time.strftime(time_format, time.localtime(timestamp))
 	
 if __name__ == "__main__":
-	import core
+	from . import core
 	core.main()

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Copyright (c) 2010, Patrick Salecker
 All rights reserved.
@@ -58,12 +58,12 @@ class Client:
 	def enable_dump(self):
 		time_format = "%Y%m%d-%H%M%S"
 		filename = "~/kismet-rawdump-%s.dump" % time.strftime(time_format)
-		print "Client: Dump %s" % filename
+		print("Client: Dump %s" % filename)
 		self.dump = open(os.path.expanduser(filename), "w")
 		return filename
 		
 	def load_dump(self, filename):
-		print "Client: replay dump %s" % filename
+		print("Client: replay dump %s" % filename)
 		self.replay_dump = open(filename, "r")
 		self.stop()
 		
@@ -71,13 +71,13 @@ class Client:
 		"""Open connection to the server
 		"""
 		self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		print "Client: start %s" % self.server
+		print("Client: start %s" % self.server)
 		try:
 			host, port = self.server.split(":")
 			port = int(port)
 		except ValueError:
 			self.error.append("Invalid server %s" % self.server)
-			print "Client: %s" % self.error[-1]
+			print("Client: %s" % self.error[-1])
 			self.stop()
 			return False
 		try:
@@ -88,14 +88,14 @@ class Client:
 			error_message = "Open connection to %s failed: %s\nkismet_server must be running to get live data"
 			self.error.append(error_message % \
 				(self.server, sys.exc_info()[1]))
-			print "Client: %s" % self.error[-1]
+			print("Client: %s" % self.error[-1])
 			self.stop()
 			return False
 	
 	def stop(self):
 		"""Close connection to the server
 		"""
-		print "Client: stop"
+		print("Client: stop")
 		self.connected = False
 		if self.s is not None:
 			self.s.close()
@@ -109,9 +109,9 @@ class Client:
 		if self.connected is False:
 			return
 		
-		self.s.send(msg)
+		self.s.send(msg.encode('utf-8'))
 		if self.debug is True:
-			print "Send: %s" % msg
+			print("Send: %s" % msg)
 		
 	def set_channel(self, uuid, mode, value):
 		self.send("!%s HOPSOURCE %s %s %s\n" % (self.response_id, uuid, mode.upper(), value))
@@ -129,7 +129,7 @@ class Client:
 				if result is False:
 					break
 				elif result is not None and self.debug is True:
-					print '("%s", %s),' % (result[0], result[1])
+					print('("%s", %s),' % (result[0], result[1]))
 	
 	def receive_data(self):
 		if self.replay_dump is not None:
@@ -140,14 +140,14 @@ class Client:
 				return False
 			return data.split("\n")
 		
-		data = self.s.recv(0x10000)
+		data = self.s.recv(0x10000).decode('utf-8')
 		if data == "":
-			print "Client: no data recieved from kismet server"
+			print("Client: no data recieved from kismet server")
 			self.stop()
 			return False
 		
 		while not data.endswith("\n") and self.connected is True:
-			data += self.s.recv(0x10000)
+			data += self.s.recv(0x10000).decode('utf-8')
 		
 		if self.dump is not None:
 			self.dump.write(data)
@@ -200,15 +200,15 @@ class Client:
 				try:
 					data[cap_columns[y]] = column
 				except:
-					print "Parser error:", cap, y, len(columns), \
-						len(cap_columns), data
-					print repr(line)
+					print("Parser error:", cap, y, len(columns), \
+						len(cap_columns), data)
+					print(repr(line))
 				y += 1
 			
 			return cap, data
 				
 		elif line[0] == "*TERMINATE":
-			print "Client: Server shutdown"
+			print("Client: Server shutdown")
 			return "stop", True
 			
 		elif line[0] == "*PROTOCOLS":
@@ -270,7 +270,7 @@ class ClientThread(threading.Thread):
 					self.stop()
 					continue
 				if self.debug is True:
-					print "%s: %s" % (result[0], result[1])
+					print("%s: %s" % (result[0], result[1]))
 				self.queue[result[0]].append(result[1])
 
 def get_crypt_list():
@@ -337,4 +337,4 @@ if __name__ == "__main__":
 		client.loop()
 	except KeyboardInterrupt:
 		client.stop()
-		print "Client: dump %s" % dumpfile
+		print("Client: dump %s" % dumpfile)

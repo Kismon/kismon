@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Copyright (c) 2010, Patrick Salecker
 All rights reserved.
@@ -50,7 +50,7 @@ class Core:
 	def __init__(self):
 		user_dir = "%s%s.kismon%s" % (os.path.expanduser("~"), os.sep, os.sep)
 		if not os.path.isdir(user_dir):
-			print "Creating Kismon user directory %s" % user_dir
+			print("Creating Kismon user directory %s" % user_dir)
 			os.mkdir(user_dir)
 		config_file = "%skismon.conf" % user_dir
 		self.config_handler = Config(config_file)
@@ -80,7 +80,7 @@ Last seen: %s"""
 		
 		if self.map_error is not None:
 			self.map_error =  "%s\nMap disabled" % self.map_error
-			print self.map_error, "\n"
+			print(self.map_error, "\n")
 		
 		self.init_map()
 		
@@ -101,7 +101,7 @@ Last seen: %s"""
 				self.networks.load(self.networks_file)
 			except:
 				error = sys.exc_info()[1]
-				print error
+				print(error)
 				dialog_message = "Could not read the networks file '%s':\n%s\n\nDo you want to continue?" % (self.networks_file, error)
 				dialog = Gtk.MessageDialog(self.main_window.gtkwin, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.ERROR, Gtk.ButtonsType.YES_NO, dialog_message)
 				def dialog_response(dialog, response_id):
@@ -110,7 +110,7 @@ Last seen: %s"""
 				dialog.run()
 				dialog.destroy()
 				if self.dialog_response == -9:
-					print "exit"
+					print("exit")
 					self.client_thread.stop()
 					self.main_window.gtkwin = None
 					return

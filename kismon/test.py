@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Copyright (c) 2010, Patrick Salecker
 All rights reserved.
@@ -111,14 +111,14 @@ def client():
 	for line in test_lines:
 		result = client.split_line(line.split(":", 1)[1])
 		if result != result_split_line[pos]:
-			print "split_line error %s" % pos
-			print "%s\n!=\n%s" % (result, result_split_line[pos])
+			print("split_line error %s" % pos)
+			print("%s\n!=\n%s" % (result, result_split_line[pos]))
 			errors += 1
 		
 		result = client.parse_line(line)
 		if result != result_parse_line[pos]:
-			print "parse_line error %s" % pos
-			print "%s\n!=\n%s" % (result, result_parse_line[pos])
+			print("parse_line error %s" % pos)
+			print("%s\n!=\n%s" % (result, result_parse_line[pos]))
 			errors += 1
 		pos += 1
 		test_dump.write(line)
@@ -133,11 +133,11 @@ def client():
 	for cryptset, result in crypt_test:
 		crypt_str = decode_cryptset(cryptset, True)
 		if crypt_str != result:
-			print "decode_cryptset error: %s\n%s!=%s" % (cryptset, crypt_str, result)
+			print("decode_cryptset error: %s\n%s!=%s" % (cryptset, crypt_str, result))
 		
 		test_cryptset = encode_cryptset(crypt_str.lower().split(","))
 		if test_cryptset != cryptset:
-			print "encode_cryptset error: %s\n%s!=%s" % (crypt_str, test_cryptset, cryptset)
+			print("encode_cryptset error: %s\n%s!=%s" % (crypt_str, test_cryptset, cryptset))
 	
 	if errors != 0:
 		sys.exit("client test failed, %s errors" % errors)
@@ -184,7 +184,7 @@ def core_tests(test_core):
 	test_core.queue_handler()
 	test_core.queue_handler_networks()
 	task = test_core.networks.notify_add_queue_process()
-	while task.next():
+	while next(task):
 		continue
 
 class TestWidget:

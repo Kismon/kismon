@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Copyright (c) 2010, Patrick Salecker
 All rights reserved.
@@ -32,7 +32,7 @@ from gi.repository import Gdk, GdkPixbuf
 from gi.repository import GObject
 from gi.repository import OsmGpsMap
 import cairo
-import StringIO
+import io
 
 import os
 import hashlib
@@ -80,7 +80,7 @@ class Map:
 		self.osm.set_keyboard_shortcut(OsmGpsMap.MapKey_t.ZOOMOUT, Gdk.keyval_from_name("Page_Down"))
 		
 		self.coordinates = {}
-		for mac in self.markers.keys():
+		for mac in list(self.markers.keys()):
 			marker = self.markers[mac]
 			del self.markers[mac]
 			self.add_marker(marker.key, marker.color, marker.lat, marker.lon)
@@ -124,7 +124,7 @@ class Map:
 				ctx.fill()
 			ctx.stroke()
 			
-			buffer = StringIO.StringIO()
+			buffer = io.BytesIO()
 			drawable.write_to_png(buffer)
 			loader = GdkPixbuf.PixbufLoader.new_with_type('png')
 			loader.write(buffer.getvalue())
@@ -257,7 +257,7 @@ class Map:
 		
 	def locate_marker(self, key):
 		if key not in self.markers:
-			print "marker %s not found" % key
+			print("marker %s not found" % key)
 			return
 			
 		marker = self.markers[key]

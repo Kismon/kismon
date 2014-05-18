@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Copyright (c) 2010, Patrick Salecker
 All rights reserved.
@@ -28,7 +28,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
 
-import ConfigParser
+import configparser
 
 class Config:
 	def __init__(self, config_file):
@@ -83,7 +83,7 @@ class Config:
 	def read(self):
 		#print "reading config %s" % self.config_file
 		self.config = self.default_config
-		config = ConfigParser.RawConfigParser()
+		config = configparser.RawConfigParser()
 		config.read(self.config_file)
 		config_sections = config.sections()
 		
@@ -96,7 +96,7 @@ class Config:
 					try:
 						valtype = type(self.config[section][key])
 					except KeyError:
-						print "Old config entry: %s" % key
+						print("Old config entry: %s" % key)
 						continue
 					if valtype == bool:
 						if value in ("True", "true"):
@@ -109,14 +109,14 @@ class Config:
 	
 	def write(self):
 		#print "writing config %s" % self.config_file
-		config = ConfigParser.SafeConfigParser()
+		config = configparser.SafeConfigParser()
 		
 		for section in self.config:
 			config.add_section(section)
 			for key in self.config[section]:
 				config.set(section, key, str(self.config[section][key]))
 		
-		configfile = open(self.config_file, 'wb')
+		configfile = open(self.config_file, 'w')
 		config.write(configfile)
 		
 	def show(self):
@@ -128,5 +128,5 @@ class Config:
 		return txt
 	
 if __name__ == "__main__":
-	import test
+	from . import test
 	test.config()

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Copyright (c) 2010-2012, Patrick Salecker
 All rights reserved.
@@ -64,7 +64,7 @@ class Networks:
 		
 	def save(self, filename, notify=None):
 		msg = "saving %s networks to %s" % (len(self.networks), filename)
-		print msg
+		print(msg)
 		if notify is not None:
 			notify(msg)
 		
@@ -207,7 +207,7 @@ class Networks:
 		counter = 0
 		
 		while self.queue_running:
-			for mac in self.notify_add_queue.keys():
+			for mac in list(self.notify_add_queue.keys()):
 				for target in self.notify_add_queue[mac]:
 					self.notify_add_list[target](mac)
 				
@@ -215,7 +215,7 @@ class Networks:
 				
 				counter += 1
 				if time.time()-start_time > 0.9:
-					print "%s networks added in %ssec, %s networks left" % (counter, round(time.time()-start_time,3), len(self.notify_add_queue))
+					print("%s networks added in %ssec, %s networks left" % (counter, round(time.time()-start_time,3), len(self.notify_add_queue)))
 					yield True
 					start_time = time.time()
 					counter = 0
@@ -235,7 +235,7 @@ class Networks:
 		if self.queue_task is not None or self.block_queue_start:
 			return
 		task = self.notify_add_queue_process()
-		self.queue_task = GObject.idle_add(task.next)
+		self.queue_task = GObject.idle_add(task.__next__)
 		
 	def stop_queue(self):
 		self.queue_running = False
@@ -597,14 +597,13 @@ class Netxml:
 		
 		p = xml.parsers.expat.ParserCreate()
 		p.buffer_text = True #avoid chunked data
-		p.returns_unicode = False #disabled Unicode support is much faster
 		p.StartElementHandler = self.parse_start_element
 		p.EndElementHandler = self.parse_end_element
 		p.CharacterDataHandler = self.parse_char_data
 		if os.path.isfile(filename):
-			p.ParseFile(open(filename))
+			p.ParseFile(open(filename, 'rb'))
 		else:
-			print "Parser: filename is not a file (%s)" % filename
+			print("Parser: filename is not a file (%s)" % filename)
 		
 		locale.setlocale(locale.LC_TIME, '')
 	
@@ -724,5 +723,5 @@ def timestamp2timestring(timestamp):
 	return time.strftime("%a %b %d %H:%M:%S %Y", time.gmtime(timestamp))
 
 if __name__ == "__main__":
-	import test
+	from . import test
 	test.networks()
