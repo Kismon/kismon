@@ -7,8 +7,9 @@ Dependencies
 ------------
 * python-osmgpsmap (>=0.7.2)
 * python 2.6
-* pygtk
-* pyclutter
+* python-gi
+* libgtk-3
+* python-cairo
 * python-simplejson
 
 Installation
