@@ -279,7 +279,8 @@ class Networks:
 			
 			if bssid["lasttime"] > network["lasttime"]:
 				if bssid["gpsfixed"] == 1 and \
-					network["signal_dbm"]["max"] < bssid["maxsignal_dbm"]:
+					((network["signal_dbm"]["max"] < bssid["maxsignal_dbm"]) or \
+					(network["lat"] == 0 and network["lon"] == 0)):
 						network["lat"] = bssid["bestlat"]
 						network["lon"] = bssid["bestlon"]
 				
