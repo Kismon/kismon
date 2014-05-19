@@ -6,11 +6,11 @@ a live map of the networks.
 Dependencies
 ------------
 * python-osmgpsmap (>=0.7.2)
-* python 2.6
-* python-gi
+* python3
+* python3-gi
 * libgtk-3
-* python-cairo
-* python-simplejson
+* python3-cairo
+* python3-simplejson
 
 Installation
 ------------
