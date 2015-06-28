@@ -14,7 +14,10 @@ Dependencies
 
 Installation
 ------------
-$ git clone git://gitorious.org/kismon/mainline.git kismon
+$ sudo apt-get install git python3 python3-gi gir1.2-gtk-3.0 \
+ gir1.2-gdkpixbuf-2.0 python3-cairo python3-simplejson \
+ python-osmgpsmap gir1.2-osmgpsmap-1.0
+$ git clone https://github.com/Kismon/kismon.git kismon
 $ cd kismon
 $ python setup.py build
 # python setup.py install
@@ -27,8 +30,8 @@ instead of the python commands.
 
 Create Debian/Ubuntu package
 ----------------------------
-# apt-get install make debhelper python-support cdbs
-# make builddeb
+$ sudo apt-get install make debhelper dh-python python3
+$ make builddeb
 
 Usage
 -----
