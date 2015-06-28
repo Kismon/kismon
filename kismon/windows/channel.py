@@ -31,7 +31,7 @@ class ChannelWindow:
 			
 			table = Gtk.Table(3, 3)
 			frame.add(table)
-			hop_button = Gtk.RadioButton(None, 'Hop')
+			hop_button = Gtk.RadioButton.new_with_label_from_widget(None, 'Hop')
 			if source["hop"] > 0:
 				hop_button.clicked()
 			hop_button.connect("clicked", self.on_change_mode, uuid, "hop")
@@ -55,7 +55,7 @@ class ChannelWindow:
 			label.set_alignment(0.1,0.5)
 			table.attach(label, 2, 3, 0, 1, xoptions=Gtk.AttachOptions.FILL)
 			
-			lock_button = Gtk.RadioButton(hop_button, "Lock")
+			lock_button = Gtk.RadioButton.new_with_label_from_widget(hop_button, "Lock")
 			if source["hop"] == 0:
 				lock_button.clicked()
 			lock_button.connect("clicked", self.on_change_mode, uuid, "lock")
