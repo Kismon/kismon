@@ -28,7 +28,12 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
 
-from client import Client, decode_cryptset
+try:
+	from .client import Client, decode_cryptset
+	from .windows import *
+except SystemError:
+	from client import Client, decode_cryptset
+	from windows import *
 
 import time
 import os
@@ -37,8 +42,6 @@ import sys
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GObject
-
-from windows import *
 
 class KismonWindows:
 	def __init__(self):
@@ -923,5 +926,8 @@ def show_timestamp(timestamp):
 	return time.strftime(time_format, time.localtime(timestamp))
 	
 if __name__ == "__main__":
-	from . import core
+	try:
+		from . import core
+	except SystemError:
+		import core
 	core.main()

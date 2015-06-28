@@ -28,12 +28,20 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
 
-from core import *
-from config import Config
-from map import *
-from gui import *
-from client import *
-from networks import *
+try:
+	from .core import *
+	from .config import Config
+	from .map import *
+	from .gui import *
+	from .client import *
+	from .networks import *
+except SystemError:
+	from core import *
+	from config import Config
+	from map import *
+	from gui import *
+	from client import *
+	from networks import *
 
 from gi.repository import GObject
 GObject.threads_init()

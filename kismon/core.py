@@ -28,14 +28,20 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
 
-from client import *
-from gui import MainWindow, MapWindow, show_timestamp
-from config import Config
-from networks import Networks
-
 import os
 import sys
 import subprocess
+
+try:
+	from .client import *
+	from .gui import MainWindow, MapWindow, show_timestamp
+	from .config import Config
+	from .networks import Networks
+except SystemError:
+	from client import *
+	from gui import MainWindow, MapWindow, show_timestamp
+	from config import Config
+	from networks import Networks
 
 from gi.repository import Gtk
 from gi.repository import GObject
@@ -147,7 +153,10 @@ Last seen: %s"""
 		if self.map_error is not None:
 			self.map = None
 		else:
-			from map import Map
+			try:
+				from .map import Map
+			except SystemError:
+				from map import Map
 			self.map = Map(self.config["map"])
 			self.map.set_zoom(16)
 			pos = self.config["map"]["last_position"].split("/")

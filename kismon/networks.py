@@ -36,8 +36,12 @@ from gi.repository import GObject
 import zipfile
 import re
 
-from client import *
-from gui import show_timestamp
+try:
+	from .client import *
+	from .gui import show_timestamp
+except SystemError:
+	from client import *
+	from gui import show_timestamp
 
 class Networks:
 	def __init__(self, config):
