@@ -121,7 +121,7 @@ class MainWindow(KismonWindows):
 		vpaned_main.add1(hbox)
 		hbox.pack_start(self.network_list.widget, expand=True, fill=True, padding=0)
 		
-		right_table = Gtk.Table(rows=3, columns=1)
+		right_table = Gtk.Table(n_rows=3, n_columns=1)
 		right_scrolled = Gtk.ScrolledWindow()
 		right_scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
 		right_scrolled.add_with_viewport(right_table)
@@ -186,18 +186,18 @@ class MainWindow(KismonWindows):
 		menubar = Gtk.MenuBar()
 		
 		file_menu = Gtk.Menu()
-		file_menuitem = Gtk.MenuItem("File")
+		file_menuitem = Gtk.MenuItem.new_with_label("File")
 		file_menuitem.set_submenu(file_menu)
 		
-		connect = Gtk.ImageMenuItem.new_from_stock(Gtk.STOCK_CONNECT)
+		connect = Gtk.MenuItem.new_with_label('Connect')
 		connect.connect("activate", self.on_client_connect)
 		file_menu.append(connect)
 		
-		disconnect = Gtk.ImageMenuItem.new_from_stock(Gtk.STOCK_DISCONNECT)
+		disconnect = Gtk.MenuItem.new_with_label('Disconnect')
 		disconnect.connect("activate", self.on_client_disconnect)
 		file_menu.append(disconnect)
 		
-		channel_config = Gtk.ImageMenuItem.new_from_stock(Gtk.STOCK_PREFERENCES)
+		channel_config = Gtk.MenuItem.new_with_mnemonic('_Preferences')
 		channel_config.set_label("Configure Channels")
 		channel_config.connect("activate", self.on_channel_config)
 		file_menu.append(channel_config)
@@ -205,13 +205,13 @@ class MainWindow(KismonWindows):
 		sep = Gtk.SeparatorMenuItem()
 		file_menu.append(sep)
 		
-		file_import = Gtk.ImageMenuItem.new_from_stock(Gtk.STOCK_OPEN)
+		file_import = Gtk.MenuItem.new_with_mnemonic('_Open')
 		file_import.set_label("Import Networks")
 		file_import.connect("activate", self.on_file_import)
 		file_menu.append(file_import)
 		
 		export_menu = Gtk.Menu()
-		export_menuitem = Gtk.ImageMenuItem.new_from_stock(Gtk.STOCK_SAVE_AS)
+		export_menuitem = Gtk.MenuItem.new_with_mnemonic('Save _As')
 		export_menuitem.set_label("Export Networks")
 		export_menuitem.set_submenu(export_menu)
 		file_menu.append(export_menuitem)
@@ -220,38 +220,38 @@ class MainWindow(KismonWindows):
 				("Google Earth KMZ", "kmz"), ("MapPoint csv", "csv")):
 			
 			menu = Gtk.Menu()
-			menuitem = Gtk.MenuItem(Gtk.STOCK_SAVE_AS)
+			menuitem = Gtk.MenuItem.new_with_mnemonic('Save _As')
 			menuitem.set_label(export_format)
 			menuitem.set_submenu(menu)
 			export_menu.append(menuitem)
 			
 			for amount in ("All", "Filtered"):
-				item = Gtk.MenuItem(amount)
+				item = Gtk.MenuItem.new_with_label(amount)
 				item.connect("activate", self.on_file_export, export_format.lower(), extension, amount)
 				menu.append(item)
 		
 		sep = Gtk.SeparatorMenuItem()
 		file_menu.append(sep)
 		
-		exit = Gtk.ImageMenuItem.new_from_stock(Gtk.STOCK_QUIT)
+		exit = Gtk.MenuItem.new_with_mnemonic('_Quit')
 		exit.connect("activate", self.on_destroy)
 		file_menu.append(exit)
 		
 		menubar.append(file_menuitem)
 		
 		view_menu = Gtk.Menu()
-		view_menuitem = Gtk.MenuItem("View")
+		view_menuitem = Gtk.MenuItem.new_with_label("View")
 		view_menuitem.set_submenu(view_menu)
 		menubar.append(view_menuitem)
 		
 		networks_menu = Gtk.Menu()
-		networks_menuitem = Gtk.MenuItem("Amount of networks")
+		networks_menuitem = Gtk.MenuItem.new_with_label("Amount of networks")
 		networks_menuitem.set_submenu(networks_menu)
 		view_menu.append(networks_menuitem)
 		
 		for name, key in (("Network List", "network_list"), ("Map", "map"), ("Export", "export")):
 			menu = Gtk.Menu()
-			menuitem = Gtk.MenuItem(name)
+			menuitem = Gtk.MenuItem.new_with_label(name)
 			menuitem.set_submenu(menu)
 			networks_menu.append(menuitem)
 			
@@ -275,47 +275,47 @@ class MainWindow(KismonWindows):
 			show_all.connect("activate", self.on_network_filter_networks, key, "all")
 		
 		network_type_menu = Gtk.Menu()
-		network_menuitem = Gtk.MenuItem("Network Type")
+		network_menuitem = Gtk.MenuItem.new_with_label("Network Type")
 		network_menuitem.set_submenu(network_type_menu)
 		view_menu.append(network_menuitem)
 		
 		for network_type, key in (("Infrastructure", "infrastructure"),("Data", "data"), ("Probe", "probe"), ("Ad-Hoc", "ad-hoc")):
-			item = Gtk.CheckMenuItem('%s Networks' % network_type)
+			item = Gtk.CheckMenuItem.new_with_label('%s Networks' % network_type)
 			if self.config["filter_type"][key]:
 				item.set_active(True)
 			item.connect("activate", self.on_network_filter_type)
 			network_type_menu.append(item)
 		
 		crypt_menu = Gtk.Menu()
-		crypt_menuitem = Gtk.MenuItem("Encryption")
+		crypt_menuitem = Gtk.MenuItem.new_with_label("Encryption")
 		crypt_menuitem.set_submenu(crypt_menu)
 		view_menu.append(crypt_menuitem)
 		
 		for crypt in ("None", "WEP", "WPA", "Other"):
-			crypt_item = Gtk.CheckMenuItem(crypt)
+			crypt_item = Gtk.CheckMenuItem.new_with_label(crypt)
 			if self.config["filter_crypt"][crypt.lower()]:
 				crypt_item.set_active(True)
 			crypt_item.connect("activate", self.on_network_filter_crypt)
 			crypt_menu.append(crypt_item)
 		
 		for key in ("ssid", "bssid"):
-			regexpr_menuitem = Gtk.MenuItem("%s (regular expression)" % key.upper())
+			regexpr_menuitem = Gtk.MenuItem.new_with_label("%s (regular expression)" % key.upper())
 			regexpr_menuitem.connect("activate", self.on_network_filter_regexpr, key)
 			view_menu.append(regexpr_menuitem)
 		
 		sep = Gtk.SeparatorMenuItem()
 		view_menu.append(sep)
 		
-		config_menuitem = Gtk.ImageMenuItem.new_from_stock(Gtk.STOCK_PREFERENCES)
+		config_menuitem = Gtk.MenuItem.new_with_mnemonic('_Preferences')
 		config_menuitem.connect("activate", self.on_config_window)
 		view_menu.append(config_menuitem)
 		
 		help_menu = Gtk.Menu()
-		help_menuitem = Gtk.MenuItem("Help")
+		help_menuitem = Gtk.MenuItem.new_with_label("Help")
 		help_menuitem.set_submenu(help_menu)
 		menubar.append(help_menuitem)
 		
-		about = Gtk.ImageMenuItem.new_from_stock(Gtk.STOCK_ABOUT)
+		about = Gtk.MenuItem.new_with_mnemonic('_About')
 		about.connect("activate", self.on_about_dialog)
 		help_menu.append(about)
 		
@@ -402,7 +402,7 @@ class MainWindow(KismonWindows):
 		self.progress_bar_win = None
 		
 	def init_info_table(self):
-		table = Gtk.Table(2, 2)
+		table = Gtk.Table(n_rows=2, n_columns=2)
 		
 		networks_label = Gtk.Label(label="Networks: ")
 		networks_label.set_alignment(xalign=0, yalign=0)
@@ -431,7 +431,7 @@ class MainWindow(KismonWindows):
 		self.info_table_packets.set_text("%s" % data["packets"])
 	
 	def init_gps_table(self):
-		table = Gtk.Table(3, 2)
+		table = Gtk.Table(n_rows=3, n_columns=2)
 		
 		fix_label = Gtk.Label(label="Fix: ")
 		fix_label.set_alignment(xalign=0, yalign=0)
@@ -481,7 +481,7 @@ class MainWindow(KismonWindows):
 		if self.sources_table is not None:
 			self.sources_expander.remove(self.sources_table)
 			
-		table = Gtk.Table(len(sources)*5-1, 2)
+		table = Gtk.Table(n_rows=(len(sources)*5-1), n_columns=2)
 		for uuid in sources:
 			self.init_sources_table_source(sources[uuid], table)
 		
@@ -794,11 +794,11 @@ class NetworkList:
 		self.store.set_sort_column_id(6, Gtk.SortType.DESCENDING)
 		
 		network_popup = Gtk.Menu()
-		locate_item = Gtk.MenuItem('Locate on map')
+		locate_item = Gtk.MenuItem.new_with_label('Locate on map')
 		network_popup.append(locate_item)
 		locate_item.connect("activate", self.on_locate_marker)
 		
-		signal_item = Gtk.MenuItem('Signal graph')
+		signal_item = Gtk.MenuItem.new_with_label('Signal graph')
 		network_popup.append(signal_item)
 		signal_item.connect("activate", self.on_signal_graph)
 		

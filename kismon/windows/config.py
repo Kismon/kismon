@@ -16,12 +16,12 @@ class ConfigWindow:
 		self.notebook = Gtk.Notebook()
 		self.gtkwin.add(self.notebook)
 		
-		general_page = Gtk.Table(rows=2, columns=1)
+		general_page = Gtk.Table(n_rows=2, n_columns=1)
 		self.notebook.append_page(general_page)
 		self.notebook.set_tab_label_text(general_page, "General")
 		self.init_general_page(general_page)
 		
-		map_page = Gtk.Table(rows=2, columns=1)
+		map_page = Gtk.Table(n_rows=2, n_columns=1)
 		self.notebook.append_page(map_page)
 		self.notebook.set_tab_label_text(map_page, "Map")
 		
@@ -177,7 +177,7 @@ class ConfigWindow:
 			hbox.pack_start(field, False, False, 5)
 			x += 1
 		
-		apply_button = Gtk.Button(stock=Gtk.STOCK_APPLY)
+		apply_button = Gtk.Button.new_with_mnemonic('_Apply')
 		apply_button.connect("clicked", self.on_map_source, "custom")
 		hbox.pack_start(apply_button, False, False, 5)
 		
@@ -187,7 +187,7 @@ class ConfigWindow:
 		perf_frame.add(perf_vbox)
 		map_page.attach(perf_frame, 0, 1, 4, 5, yoptions=Gtk.AttachOptions.SHRINK)
 		
-		perf_marker_positions = Gtk.CheckButton("Update marker positions")
+		perf_marker_positions = Gtk.CheckButton.new_with_label("Update marker positions")
 		if self.config["map"]["update_marker_positions"] is True:
 			perf_marker_positions.clicked()
 		perf_marker_positions.connect("clicked", self.on_update_marker_positions)

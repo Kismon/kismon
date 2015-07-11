@@ -26,13 +26,13 @@ class FileImportWindow:
 		self.main_box.add(file_list_scroll)
 		
 		button_box = Gtk.HBox()
-		add_file_button = Gtk.Button("Add files")
+		add_file_button = Gtk.Button.new_with_label("Add files")
 		add_file_button.connect("clicked", self.on_add, "file")
 		button_box.pack_start(add_file_button, expand=False, fill=False, padding=0)
-		add_dir_button = Gtk.Button("Add directories")
+		add_dir_button = Gtk.Button.new_with_label("Add directories")
 		add_dir_button.connect("clicked", self.on_add, "dir")
 		button_box.pack_start(add_dir_button, expand=False, fill=False, padding=0)
-		self.start_button = Gtk.Button("Start")
+		self.start_button = Gtk.Button.new_with_label("Start")
 		self.start_button.connect("clicked", self.on_start)
 		button_box.pack_end(self.start_button, expand=False, fill=False, padding=0)
 		

@@ -29,7 +29,7 @@ class ChannelWindow:
 			frame.set_label(source["username"])
 			self.sources_list.pack_start(frame, False, False, 0)
 			
-			table = Gtk.Table(3, 3)
+			table = Gtk.Table(n_rows=3, n_columns=3)
 			frame.add(table)
 			hop_button = Gtk.RadioButton.new_with_label_from_widget(None, 'Hop')
 			if source["hop"] > 0:
@@ -85,11 +85,11 @@ class ChannelWindow:
 		button_box = Gtk.HButtonBox()
 		vbox.pack_end(button_box, False, False, 0)
 		
-		cancel_button = Gtk.Button(stock=Gtk.STOCK_CANCEL)
+		cancel_button = Gtk.Button.new_with_mnemonic('_Cancel')
 		cancel_button.connect("clicked", self.on_cancel)
 		button_box.add(cancel_button)
 		
-		apply_button = Gtk.Button(stock=Gtk.STOCK_APPLY)
+		apply_button = Gtk.Button.new_with_mnemonic('_Apply')
 		apply_button.connect("clicked", self.on_apply)
 		button_box.add(apply_button)
 		
