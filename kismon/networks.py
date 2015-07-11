@@ -32,7 +32,7 @@ import simplejson as json
 import xml.parsers.expat
 import time
 import locale
-from gi.repository import GObject
+from gi.repository import GLib
 import zipfile
 import re
 
@@ -127,10 +127,10 @@ class Networks:
 			self.autosave_notify = notify
 		
 		if self.autosave_task is not None:
-			GObject.source_remove(self.autosave_task)
+			GLib.source_remove(self.autosave_task)
 		
 		if minutes > 0:
-			self.autosave_task = GObject.timeout_add(minutes * 60 * 1000, self.save, self.autosave_filename, self.autosave_notify)
+			self.autosave_task = GLib.timeout_add(minutes * 60 * 1000, self.save, self.autosave_filename, self.autosave_notify)
 		
 	def load(self, filename):
 		f = open(filename)
@@ -239,12 +239,12 @@ class Networks:
 		if self.queue_task is not None or self.block_queue_start:
 			return
 		task = self.notify_add_queue_process()
-		self.queue_task = GObject.idle_add(task.__next__)
+		self.queue_task = GLib.idle_add(task.__next__)
 		
 	def stop_queue(self):
 		self.queue_running = False
 		if self.queue_task is not None:
-			GObject.source_remove(self.queue_task)
+			GLib.source_remove(self.queue_task)
 			self.queue_task = None
 		self.notify_add_queue = {}
 		
@@ -727,5 +727,5 @@ def timestamp2timestring(timestamp):
 	return time.strftime("%a %b %d %H:%M:%S %Y", time.gmtime(timestamp))
 
 if __name__ == "__main__":
-	from . import test
-	test.networks()
+	from test import networks
+	networks()

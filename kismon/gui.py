@@ -42,6 +42,7 @@ import sys
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GObject
+from gi.repository import GLib
 
 class KismonWindows:
 	def __init__(self):
@@ -387,7 +388,7 @@ class MainWindow(KismonWindows):
 			self.progress_bar_win.connect("delete-event",on_delete_event)
 			self.progress_bar_win.connect("destroy", self.on_destroy_progress_bar_win)
 			
-			GObject.idle_add(self.networks_queue_progress_update)
+			GLib.idle_add(self.networks_queue_progress_update)
 			
 	def networks_queue_progress_update(self):
 		if self.networks.queue_task is None:
@@ -858,7 +859,7 @@ class NetworkList:
 			adj = self.treeview.get_vadjustment()
 			self.scroll_value = int(adj.get_value())
 			if self.scroll_value == 0:
-				GObject.idle_add(self.treeview.scroll_to_point, -1, 0)
+				GLib.idle_add(self.treeview.scroll_to_point, -1, 0)
 		
 	def remove_network(self, mac):
 		try:

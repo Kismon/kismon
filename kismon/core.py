@@ -44,7 +44,7 @@ except SystemError:
 	from networks import Networks
 
 from gi.repository import Gtk
-from gi.repository import GObject
+from gi.repository import GLib
 
 def check_osmgpsmap():
 	try:
@@ -144,10 +144,9 @@ Last seen: %s"""
 				break
 		self.update_battery_bar()
 		
-		GObject.threads_init()
-		GObject.timeout_add(500, self.queue_handler)
-		GObject.timeout_add(300, self.queue_handler_networks)
-		GObject.idle_add(self.networks.apply_filters)
+		GLib.timeout_add(500, self.queue_handler)
+		GLib.timeout_add(300, self.queue_handler_networks)
+		GLib.idle_add(self.networks.apply_filters)
 		
 	def init_map(self):
 		if self.map_error is not None:

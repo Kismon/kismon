@@ -2,7 +2,7 @@ import os
 import sys
 
 from gi.repository import Gtk
-from gi.repository import GObject
+from gi.repository import GLib
 
 class FileImportWindow:
 	def __init__(self, networks, networks_queue_progress):
@@ -180,7 +180,7 @@ class FileImportWindow:
 			self.close_button.set_sensitive(True)
 		else:
 			self.networks.block_queue_start = True
-			GObject.idle_add(self.parse_file)
+			GLib.idle_add(self.parse_file)
 		
 	def parse_file(self):
 		filename = self.parser_queue.pop()
