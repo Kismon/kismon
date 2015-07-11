@@ -109,7 +109,7 @@ class Config:
 	
 	def write(self):
 		#print "writing config %s" % self.config_file
-		config = configparser.SafeConfigParser()
+		config = configparser.ConfigParser()
 		
 		for section in self.config:
 			config.add_section(section)
@@ -118,6 +118,7 @@ class Config:
 		
 		configfile = open(self.config_file, 'w')
 		config.write(configfile)
+		configfile.close()
 		
 	def show(self):
 		txt="\n"
@@ -128,5 +129,5 @@ class Config:
 		return txt
 	
 if __name__ == "__main__":
-	from . import test
-	test.config()
+	from test import TestKismon
+	TestKismon.test_config(True)
