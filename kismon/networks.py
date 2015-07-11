@@ -605,7 +605,9 @@ class Netxml:
 		p.EndElementHandler = self.parse_end_element
 		p.CharacterDataHandler = self.parse_char_data
 		if os.path.isfile(filename):
-			p.ParseFile(open(filename, 'rb'))
+			f = open(filename, 'rb')
+			p.ParseFile(f)
+			f.close()
 		else:
 			print("Parser: filename is not a file (%s)" % filename)
 		
@@ -719,6 +721,7 @@ class CSV:
 				"cryptset": encode_cryptset(crypts)
 			}
 		locale.setlocale(locale.LC_TIME, '')
+		f.close()
 
 def timestring2timestamp(timestring):
 	return int(time.mktime(time.strptime(timestring)))
