@@ -145,8 +145,13 @@ def gui_file_import_window():
 	file_import_window.on_close(None)
 
 def networks():
-	from config import Config
-	from networks import Networks
+	try:
+		from .config import Config
+		from .networks import Networks
+	except SystemError:
+		from config import Config
+		from networks import Networks
+
 	def dummy(bla):
 		return
 	test_data = get_client_test_data()[2]
