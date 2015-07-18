@@ -112,7 +112,8 @@ class Networks:
 				f.write('      "min": %s\n' % network["signal_dbm"]["min"])
 				f.write('    }, \n')
 			f.write('    "ssid": %s, \n' % enc.encode(network["ssid"]))
-			f.write('    "type": "%s"\n' % network["type"])
+			f.write('    "type": "%s",\n' % network["type"])
+			f.write('    "comment": "%s"\n' % network["comment"])
 			if mac != macs[-1]:
 				f.write('  }, \n')
 			else:
@@ -135,6 +136,9 @@ class Networks:
 	def load(self, filename):
 		f = open(filename)
 		self.networks = json.load(f)
+		for network in self.networks:
+			if 'comment' not in self.networks[network]:
+				self.networks[network]['comment'] = ""
 		f.close()
 		
 	def apply_filters(self):
@@ -265,7 +269,8 @@ class Networks:
 					"min": bssid["minsignal_dbm"],
 					"max": bssid["maxsignal_dbm"],
 					"last": bssid["signal_dbm"]
-				}
+				},
+				"comment": '',
 			}
 			self.networks[mac] = network
 			if mac in self.temp_ssid_data:
@@ -280,6 +285,8 @@ class Networks:
 					"max": bssid["maxsignal_dbm"],
 					"last": bssid["signal_dbm"]
 					}
+			if 'comment' not in network:
+				network['comment'] = ''
 			
 			if bssid["lasttime"] > network["lasttime"]:
 				if bssid["gpsfixed"] == 1 and \
@@ -315,6 +322,8 @@ class Networks:
 			return
 		
 		if mac not in self.networks:
+			if 'comment' not in data:
+				data['comment'] = data
 			self.networks[mac] = data
 			self.notify_add(mac)
 			return

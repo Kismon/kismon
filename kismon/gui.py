@@ -753,13 +753,17 @@ class NetworkList:
 		num=0
 		columns=("BSSID", "Type", "SSID", "Ch", "Crypt",
 			"First Seen", "Last Seen", "Latitude", "Longitude",
-			"Signal dbm")
+			"Signal dbm", "Comment")
 		for column in columns:
-			tvcolumn = Gtk.TreeViewColumn(column)
+			renderer = Gtk.CellRendererText()
+			if column == "Comment":
+				renderer.set_property('editable', True)
+				renderer.connect("editing-started", self.on_comment_editing_started)
+				
+			tvcolumn = Gtk.TreeViewColumn(column, renderer, text=num)
 			self.treeview.append_column(tvcolumn)
 			cell = Gtk.CellRendererText()
 			tvcolumn.pack_start(cell, True)
-			tvcolumn.add_attribute(cell, 'text', num)
 			tvcolumn.set_sort_column_id(num)
 			tvcolumn.set_clickable(True)
 			tvcolumn.set_resizable(True)
@@ -779,6 +783,7 @@ class NetworkList:
 			GObject.TYPE_FLOAT, #lat
 			GObject.TYPE_FLOAT, #lon
 			GObject.TYPE_INT, #signal dbm
+			GObject.TYPE_STRING, #comment
 			)
 		self.treeview.set_model(self.store)
 		
@@ -809,6 +814,14 @@ class NetworkList:
 	def on_column_clicked(self, widget):
 		self.treeview.set_search_column(widget.num)
 	
+	def on_comment_editing_started(self, widget, editable, path):
+		editable.connect("editing-done", self.on_comment_editing_done)
+	
+	def on_comment_editing_done(self, widget):
+		network = self.networks.get_network(self.network_selected)
+		network['comment'] = widget.get_text()
+		self.add_network(self.network_selected)
+		
 	def add_network(self, mac):
 		network = self.networks.get_network(mac)
 		try:
@@ -836,7 +849,8 @@ class NetworkList:
 				show_timestamp(network["lasttime"]),
 				network["lat"],
 				network["lon"],
-				signal
+				signal,
+				network['comment'],
 				]
 		try:
 			old_line = self.network_lines[mac]
