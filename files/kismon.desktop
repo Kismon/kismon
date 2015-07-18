@@ -1,8 +1,8 @@
 [Desktop Entry]
 Version=1.0
-Encoding=UTF-8
 Name=Kismon
 Comment=PyGTK Kismet Client
+Keywords=kismet;wireless;wifi;
 Exec=kismon
 Icon=network-wireless
 Terminal=false

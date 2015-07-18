@@ -2,13 +2,16 @@ Source: kismon
 Section: net
 Priority: extra
 Maintainer: Patrick Salecker <mail@salecker.org>
+Homepage: http://www.salecker.org/software/kismon/en
+Vcs-Git: https://github.com/Kismon/kismon.git
+Vcs-Browser: https://github.com/Kismon/kismon
 Build-Depends: debhelper (>= 7), python3, dh-python
 X-Python3-Version: >= 3.4
-Standards-Version: 3.9
+Standards-Version: 3.9.6
 
 Package: kismon
 Architecture: all
-Depends: ${python3:Depends}, python3-gi, gir1.2-gtk-3.0, gir1.2-gdkpixbuf-2.0, python3-cairo, python3-simplejson, python-osmgpsmap (>=0.7.2), gir1.2-osmgpsmap-1.0
+Depends: ${misc:Depends}, ${python3:Depends}, python3-gi, gir1.2-gtk-3.0, gir1.2-gdkpixbuf-2.0, python3-cairo, python3-simplejson, python-osmgpsmap (>=0.7.2), gir1.2-osmgpsmap-1.0
 Description: PyGTK based Kismet Newcore Client
  Kismon is a PyGTK based Kismet Newcore (since 2009-05-RC1) Client with
  a live map of the networks.

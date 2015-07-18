@@ -1,3 +1,9 @@
+kismon (0.7-1) unstable; urgency=low
+
+  * make package more compliant according to Debian policy
+
+ -- Patrick Salecker <mail@salecker.org>  Sat, 18 Jul 2015 12:00:00 +0200
+
 kismon (0.7) unstable; urgency=low
 
   * Version 0.7
