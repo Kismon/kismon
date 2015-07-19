@@ -17,7 +17,7 @@ class ChannelWindow:
 		
 		self.sources_list = Gtk.VBox()
 		sources_list_scroll = Gtk.ScrolledWindow()
-		sources_list_scroll.add_with_viewport(self.sources_list)
+		sources_list_scroll.add(self.sources_list)
 		sources_list_scroll.get_children()[0].set_shadow_type(Gtk.ShadowType.NONE)
 		sources_list_scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
 		vbox.pack_start(sources_list_scroll, True, True, 0)

@@ -20,7 +20,7 @@ class FileImportWindow:
 		
 		self.file_list = Gtk.VBox()
 		file_list_scroll = Gtk.ScrolledWindow()
-		file_list_scroll.add_with_viewport(self.file_list)
+		file_list_scroll.add(self.file_list)
 		file_list_scroll.get_children()[0].set_shadow_type(Gtk.ShadowType.NONE)
 		file_list_scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
 		self.main_box.add(file_list_scroll)
