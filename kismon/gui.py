@@ -759,7 +759,9 @@ class NetworkList:
 			if column == "Comment":
 				renderer.set_property('editable', True)
 				renderer.connect("editing-started", self.on_comment_editing_started)
-				
+			elif column == "Signal dbm":
+				renderer = Gtk.CellRendererProgress()
+			
 			tvcolumn = Gtk.TreeViewColumn(column, renderer, text=num)
 			self.treeview.append_column(tvcolumn)
 			cell = Gtk.CellRendererText()
@@ -769,6 +771,8 @@ class NetworkList:
 			tvcolumn.set_resizable(True)
 			tvcolumn.connect("clicked", self.on_column_clicked)
 			tvcolumn.num = num
+			if column == "Signal dbm":
+				tvcolumn.add_attribute(renderer, "value", 11)
 			num+=1
 		self.treeview.show()
 		
@@ -784,6 +788,7 @@ class NetworkList:
 			GObject.TYPE_FLOAT, #lon
 			GObject.TYPE_INT, #signal dbm
 			GObject.TYPE_STRING, #comment
+			GObject.TYPE_INT, #signal dbm + 100 (progressbar)
 			)
 		self.treeview.set_model(self.store)
 		
@@ -851,6 +856,7 @@ class NetworkList:
 				network["lon"],
 				signal,
 				network['comment'],
+				signal+100
 				]
 		try:
 			old_line = self.network_lines[mac]
