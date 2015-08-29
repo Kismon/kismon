@@ -751,10 +751,10 @@ class NetworkList:
 		self.treeview = Gtk.TreeView()
 		self.treeview.connect("button-press-event", self.on_treeview_clicked)
 		num=0
-		columns=("BSSID", "Type", "SSID", "Ch", "Crypt",
+		self.columns=("BSSID", "Type", "SSID", "Ch", "Crypt",
 			"First Seen", "Last Seen", "Latitude", "Longitude",
 			"Signal dbm", "Comment")
-		for column in columns:
+		for column in self.columns:
 			renderer = Gtk.CellRendererText()
 			if column == "Comment":
 				renderer.set_property('editable', True)
@@ -805,6 +805,13 @@ class NetworkList:
 		self.store.set_sort_column_id(6, Gtk.SortType.DESCENDING)
 		
 		network_popup = Gtk.Menu()
+		locate_item = Gtk.MenuItem.new_with_label('Copy field')
+		network_popup.append(locate_item)
+		locate_item.connect("activate", self.on_copy_field)
+		locate_item = Gtk.MenuItem.new_with_label('Copy network')
+		network_popup.append(locate_item)
+		locate_item.connect("activate", self.on_copy_network)
+		
 		locate_item = Gtk.MenuItem.new_with_label('Locate on map')
 		network_popup.append(locate_item)
 		locate_item.connect("activate", self.on_locate_marker)
@@ -815,6 +822,8 @@ class NetworkList:
 		
 		network_popup.show_all()
 		self.network_popup = network_popup
+		
+		self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
 	
 	def on_column_clicked(self, widget):
 		self.treeview.set_search_column(widget.num)
@@ -911,6 +920,7 @@ class NetworkList:
 		network_iter = self.store.get_iter(path)
 		mac = self.store.get_value(network_iter, 0)
 		self.network_selected = mac
+		self.column_selected = self.columns.index(col.get_title())
 		
 		if event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS: # double click
 			self.on_locate_marker(None)
@@ -921,7 +931,22 @@ class NetworkList:
 		if self.locate_network_on_map is not None:
 			self.locate_network_on_map(self.network_selected)
 		
+	def on_copy_field(self, widget):
+		selected_text = self.network_lines[self.network_selected][self.column_selected]
+		self.set_clipboard(selected_text)
 		
+	def on_copy_network(self, widget):
+		text = []
+		num = 0
+		for column in self.columns:
+			text.append("%s: %s" % (column, self.network_lines[self.network_selected][num]))
+			num += 1
+		self.set_clipboard('\n'.join(text))
+		
+	def set_clipboard(self, text):
+		self.clipboard.set_text("%s" % text, -1)
+		self.clipboard.store()
+
 class MapWindow(KismonWindows):
 	def __init__(self, map_widget):
 		KismonWindows.__init__(self)

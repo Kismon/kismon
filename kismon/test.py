@@ -124,6 +124,10 @@ class TestWidget:
 		
 	def get_label(self):
 		return self.text
+	
+	def get_text(self):
+		return self.text
+
 class TestEvent:
 	def __init__(self):
 		from gi.repository import Gdk
@@ -175,7 +179,7 @@ def networks():
 	tmp_csv_file = "%s%stest-%s.csv" % (tempfile.gettempdir(), os.sep, int(time.time()))
 	tmp_csv = open(tmp_csv_file, "w")
 	tmp_csv.write("""Network;NetType;ESSID;BSSID;Info;Channel;Cloaked;Encryption;Decrypted;MaxRate;MaxSeenRate;Beacon;LLC;Data;Crypt;Weak;Total;Carrier;Encoding;FirstTime;LastTime;BestQuality;BestSignal;BestNoise;GPSMinLat;GPSMinLon;GPSMinAlt;GPSMinSpd;GPSMaxLat;GPSMaxLon;GPSMaxAlt;GPSMaxSpd;GPSBestLat;GPSBestLon;GPSBestAlt;DataSize;IPType;IP;
-1;infrastructure;WsF;00:18:84:15:18:A5;;3;No;WEP,WPA,PSK,AES-CCM;No;18.0;1000;25600;148;0;0;0;148;IEEE 802.11g;;Thu Jan 22 05:48:23 2009;Thu Jan 22 05:51:46 2009;0;65;-98;52.549381;13.141430;120.120003;0.000000;52.549652;13.141682;120.120003;2.934490;0.000000;0.000000;0.000000;0;None;0.0.0.0;""")
+1;infrastructure;asd;11:22:33:44:55:66;;3;No;WEP,WPA,PSK,AES-CCM;No;18.0;1000;25600;148;0;0;0;148;IEEE 802.11g;;Thu Jan 22 05:48:23 2009;Thu Jan 22 05:51:46 2009;0;65;-98;52.123456;13.123456;120.120003;0.000000;52.123456;13.123456;120.120003;2.934490;0.000000;0.000000;0.000000;0;None;0.0.0.0;""")
 	tmp_csv.close()
 	for x in range(2):
 		networks.import_networks("csv", tmp_csv_file)
@@ -305,6 +309,8 @@ class TestKismon(unittest.TestCase):
 		def dummy():
 			return
 		
+		test_widget = TestWidget()
+		
 		test_config = Config(None).default_config
 		test_map = Map(test_config["map"])
 		test_networks =  networks()
@@ -313,9 +319,14 @@ class TestKismon(unittest.TestCase):
 		main_window.network_list.crypt_cache = {}
 		
 		main_window.log_list.add("test")
-		main_window.network_list.network_selected = "11:22:33:44:55:66"
+		main_window.network_list.add_network('11:22:33:44:55:66')
+		main_window.network_list.network_selected = '11:22:33:44:55:66'
 		main_window.network_list.add_network('00:12:2A:03:B9:12')
 		main_window.network_list.add_network('00:12:2A:03:B9:12')
+		main_window.network_list.column_selected = 2
+		main_window.network_list.on_copy_field(None)
+		main_window.network_list.on_copy_network(None)
+		main_window.network_list.on_comment_editing_done(test_widget)
 		main_window.network_list.remove_network('00:12:2A:03:B9:12')
 		main_window.update_info_table({"networks":100, "packets":200})
 		main_window.update_gps_table({"fix": 3, "lat": 52.0, "lon": 13.0})
@@ -337,7 +348,6 @@ class TestKismon(unittest.TestCase):
 		test_event = TestEvent()
 		main_window.on_window_state(None, test_event)
 		
-		test_widget = TestWidget()
 		config_window = main_window.config_window
 		
 		main_window.on_file_import(None)
