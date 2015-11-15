@@ -281,8 +281,8 @@ class Map:
 			self.set_zoom(zoom)
 			self.start_moving()
 		
-		if id == "openstreetmap-renderer":
-			self.osm.set_property("map-source", OsmGpsMap.MapSource_t.OPENSTREETMAP_RENDERER)
+		if id == "opencyclemap":
+			self.osm.set_property("map-source", OsmGpsMap.MapSource_t.OPENCYCLEMAP)
 		elif id == "custom":
 			zoom = self.osm.get_property("zoom")
 			self.init_osm()
@@ -301,6 +301,7 @@ class Marker:
 		self.color = color
 	
 if __name__ == "__main__":
-	import test
-	test.map()
+	from test import TestKismon
+	bla = TestKismon()
+	bla.test_map()
 	Gtk.main()

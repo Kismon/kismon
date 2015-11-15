@@ -128,7 +128,7 @@ class ConfigWindow:
 		
 		first = None
 		for name, source in (("Openstreetmap (default)", "openstreetmap"),
-				("Openstreetmap Renderer", "openstreetmap-renderer"),
+				("OpenCycleMap", "opencyclemap"),
 				("Custom tile source", "custom")):
 			map_source = Gtk.RadioButton(group=first, label=name)
 			if first is None:
