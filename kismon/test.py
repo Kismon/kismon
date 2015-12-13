@@ -436,8 +436,8 @@ class TestKismon(unittest.TestCase):
 		test_map.zoom_out()
 		test_map.zoom_in()
 		test_map.on_map_pressed(None, None)
-		test_map.set_source("openstreetmap")
-		test_map.set_source("openstreetmap-renderer")
+		test_map.change_source("openstreetmap")
+		test_map.change_source("openstreetmap-renderer")
 		test_map.remove_marker("333")
 		
 		test_window = Gtk.Window()

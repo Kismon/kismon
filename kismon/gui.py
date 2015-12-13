@@ -568,8 +568,10 @@ class MainWindow(KismonWindows):
 		if (widget is not None and widget.get_active()) or override is True:
 			self.config["window"]["map_position"] = "widget"
 			self.notebook.append_page(map_widget)
+			page_num = self.notebook.page_num(map_widget)
 			self.notebook.set_tab_label_text(map_widget, "Map")
 			map_widget.show_all()
+			self.notebook.set_current_page(page_num)
 		else:
 			page = self.notebook.page_num(map_widget)
 			if page >= 0:

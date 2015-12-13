@@ -157,7 +157,6 @@ Last seen: %s"""
 			except SystemError:
 				from map import Map
 			self.map = Map(self.config["map"])
-			self.map.set_zoom(16)
 			pos = self.config["map"]["last_position"].split("/")
 			self.map.set_position(float(pos[0]), float(pos[1]), True)
 		

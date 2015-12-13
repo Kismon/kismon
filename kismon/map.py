@@ -63,6 +63,7 @@ class Map:
 	def init_osm(self):
 		if self.config["source"] != "custom":
 			self.osm = OsmGpsMap.Map()
+			self.set_source(self.config["source"])
 		else:
 			self.osm = OsmGpsMap.Map(repo_uri=self.config["custom_source_url"],
 				min_zoom=self.config["custom_source_min"],
@@ -86,6 +87,16 @@ class Map:
 			self.add_marker(marker.key, marker.color, marker.lat, marker.lon)
 		
 		self.widget = self.osm
+		
+	def reinit_osm(self):
+		# Create a new map widget with the config settings
+		latitude = self.osm.get_property("latitude")
+		longitude = self.osm.get_property("longitude")
+		zoom = self.osm.get_property("zoom")
+		self.init_osm()
+		self.set_zoom(zoom)
+		self.osm.set_center(latitude, longitude)
+		self.start_moving()
 		
 	def apply_config(self):
 		pass
@@ -142,7 +153,14 @@ class Map:
 	def zoom_out(self, actor=None, event=None, view=None):
 		self.osm.zoom_out()
 		
+	def is_position_invalid(self, lat, lon):
+		if lat == 0.0 and lon == 0.0:
+			return True
+		return False
+		
 	def set_position(self, lat, lon, force=False):
+		if self.is_position_invalid(lat, lon):
+			return
 		self.osm.gps_clear()
 		self.osm.gps_add(lat, lon, heading=OsmGpsMap.MAP_INVALID);
 		
@@ -156,7 +174,7 @@ class Map:
 		lat: latitude
 		lon: longitude
 		"""
-		if lat == 0.0 and lon == 0.0:
+		if self.is_position_invalid(lat, lon):
 			return
 		try:
 			marker = self.markers[key]
@@ -247,6 +265,8 @@ class Map:
 	def start_moving(self):
 		self.osm.set_property("auto-center", True)
 		lat, lon = self.config["last_position"].split("/")
+		if self.is_position_invalid(lat, lon):
+			return
 		self.set_position(float(lat), float(lon))
 		
 	def on_map_pressed(self, actor, event):
@@ -269,30 +289,28 @@ class Map:
 		self.markers[crosshair_key] = Marker(key, marker.lat, marker.lon, "crosshair")
 		self.markers[crosshair_key].image = self.osm.image_add(marker.lat, marker.lon, self.textures["crosshair"])
 		
-	def set_source(self, id):
+	def change_source(self, id):
 		self.osm.download_cancel_all()
 		old_id = self.config["source"]
 		self.config["source"] = id
 		if self.widget.get_parent():
 			self.widget.get_parent().remove(self.widget)
 		if old_id == "custom" and id != "custom":
-			zoom = self.osm.get_property("zoom")
-			self.init_osm()
-			self.set_zoom(zoom)
-			self.start_moving()
+			self.reinit_osm()
 		
+		self.set_source(id)
+		
+	def set_source(self, id):
+		print("set source %s" % id)
 		if id == "opencyclemap":
 			self.osm.set_property("map-source", OsmGpsMap.MapSource_t.OPENCYCLEMAP)
 		elif id == "custom":
-			zoom = self.osm.get_property("zoom")
-			self.init_osm()
-			self.set_zoom(zoom)
-			self.start_moving()
+			self.reinit_osm()
 		else:
 			id = "openstreetmap"
 			self.osm.set_property("map-source", OsmGpsMap.MapSource_t.OPENSTREETMAP)
 			self.config["source"] = id
-		
+
 class Marker:
 	def __init__(self, key, lat, lon, color):
 		self.key = key

@@ -198,7 +198,7 @@ class ConfigWindow:
 		
 	def on_map_source(self, widget, source):
 		if (type(widget) == Gtk.RadioButton and widget.get_active()) or type(widget) == Gtk.Button:
-			self.map.set_source(source)
+			self.map.change_source(source)
 			if self.config["window"]["map_position"] == "widget":
 				self.main_window.on_map_widget(None, True)
 			elif self.config["window"]["map_position"] == "window":
