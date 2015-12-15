@@ -101,48 +101,66 @@ class Map:
 	def apply_config(self):
 		pass
 		
-	def create_dots(self):
-		for color in ("red", "orange", "green", "crosshair"):
-			if color == "crosshair":
-				size = 32
-			else:
-				size = 16
-			drawable = cairo.ImageSurface(cairo.FORMAT_RGB24, size, size)
-			ctx = cairo.Context(drawable)
-			ctx.set_source_rgba(1, 1, 1, 1)
-			ctx.rectangle(0, 0, size, size)
+	def create_dot(self, name, color=None, size=16, number=None):
+		if color is None:
+			color = name
+		drawable = cairo.ImageSurface(cairo.FORMAT_RGB24, size, size)
+		ctx = cairo.Context(drawable)
+		ctx.set_source_rgba(1, 1, 1, 1)
+		ctx.rectangle(0, 0, size, size)
+		ctx.fill()
+		ctx.stroke()
+		
+		if color == "red":
+			ctx.set_source_rgb(1, 0, 0)
+		elif color == "orange":
+			ctx.set_source_rgb(1, 1, 0)
+		elif color == "gray":
+			num = 1/255*190
+			ctx.set_source_rgb(num, num, num)
+		elif color == "black":
+			ctx.set_source_rgb(0, 0, 0)
+		else:
+			ctx.set_source_rgb(0, 1, 0)
+		
+		if name == "crosshair":
+			ctx.set_line_width(2)
+			ctx.arc(size/2, size/2, size/4, 0, 3.14*2)
+			ctx.move_to(3, size/2)
+			ctx.line_to(size-3, size/2)
+			ctx.move_to(size/2, 3)
+			ctx.line_to(size/2, size-3)
+		else:
+			ctx.arc(size/2, size/2, size/2-1, 0, 3.14*2)
 			ctx.fill()
-			ctx.stroke()
-			
-			if color == "red":
-				ctx.set_source_rgb(1, 0, 0)
-			elif color == "orange":
-				ctx.set_source_rgb(1, 1, 0)
-			elif color == "crosshair":
-				ctx.set_source_rgb(0, 0, 0)
-			else:
-				ctx.set_source_rgb(0, 1, 0)
-			
-			if color == "crosshair":
-				ctx.set_line_width(2)
-				ctx.arc(size/2, size/2, size/4, 0, 3.14*2)
-				ctx.move_to(3, size/2)
-				ctx.line_to(size-3, size/2)
-				ctx.move_to(size/2, 3)
-				ctx.line_to(size/2, size-3)
-			else:
-				ctx.arc(size/2, size/2, size/2-1, 0, 3.14*2)
-				ctx.fill()
-			ctx.stroke()
-			
-			buffer = io.BytesIO()
-			drawable.write_to_png(buffer)
-			loader = GdkPixbuf.PixbufLoader.new_with_type('png')
-			loader.write(buffer.getvalue())
-			buffer.close()
-			pixbuf = loader.get_pixbuf()
-			loader.close()
-			self.textures[color] = pixbuf.add_alpha(True , 255, 255, 255)
+		
+		if number is not None:
+			# draw a black arc
+			ctx.set_source_rgb(0, 0, 0)
+			ctx.arc(size/2, size/2, size/2-1, 0, 3.14*2)
+			# draw the number in the center
+			ctx.set_font_size(14)
+			ctx.move_to(size/3, size/3*2)
+			ctx.show_text(str(number))
+		
+		ctx.stroke()
+		
+		buffer = io.BytesIO()
+		drawable.write_to_png(buffer)
+		loader = GdkPixbuf.PixbufLoader.new_with_type('png')
+		loader.write(buffer.getvalue())
+		buffer.close()
+		pixbuf = loader.get_pixbuf()
+		loader.close()
+		self.textures[name] = pixbuf.add_alpha(True , 255, 255, 255)
+		
+	def create_dots(self):
+		self.create_dot("red")
+		self.create_dot("orange")
+		self.create_dot("green")
+		self.create_dot("crosshair", color='black', size=32)
+		for number in range(1,9):
+			self.create_dot("server%s" % number, color='gray', number=number, size=24)
 		
 	def set_zoom(self, zoom):
 		self.osm.set_zoom(zoom)

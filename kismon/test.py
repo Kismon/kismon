@@ -104,9 +104,9 @@ def core_tests(test_core):
 	for line in test_data:
 		if line is None:
 			continue
-		test_core.client_thread.queue[line[0]].append(line[1])
-	test_core.queue_handler()
-	test_core.queue_handler_networks()
+		test_core.client_threads[0].queue[line[0]].append(line[1])
+	test_core.queue_handler(0)
+	test_core.queue_handler_networks(0)
 	task = test_core.networks.notify_add_queue_process()
 	while next(task):
 		continue
@@ -285,7 +285,7 @@ class TestKismon(unittest.TestCase):
 		test_core = Core()
 		core_tests(test_core)
 		test_core.add_network_to_map("00:12:2A:03:B9:12")
-		test_core.client_stop()
+		test_core.clients_stop()
 		
 		arg = "--disable-map"
 		sys.argv.append(arg)
@@ -293,7 +293,7 @@ class TestKismon(unittest.TestCase):
 		core_tests(test_core)
 		sys.argv.remove(arg)
 		
-		test_core.client_stop()
+		test_core.clients_stop()
 	
 	@unittest.skipUnless(gi_available, "gi module not available")
 	def test_gui_main_window(self):
@@ -315,10 +315,10 @@ class TestKismon(unittest.TestCase):
 		test_map = Map(test_config["map"])
 		test_networks =  networks()
 		
-		main_window = MainWindow(test_config, dummy, dummy, test_map, test_networks, None, None)
+		main_window = MainWindow(test_config, dummy, dummy, test_map, test_networks, {0: None, 1: None}, {0: None, 1: None})
 		main_window.network_list.crypt_cache = {}
 		
-		main_window.log_list.add("test")
+		main_window.log_list.add("Kismon", "test")
 		main_window.network_list.add_network('11:22:33:44:55:66')
 		main_window.network_list.network_selected = '11:22:33:44:55:66'
 		main_window.network_list.add_network('00:12:2A:03:B9:12')
@@ -328,11 +328,11 @@ class TestKismon(unittest.TestCase):
 		main_window.network_list.on_copy_network(None)
 		main_window.network_list.on_comment_editing_done(test_widget)
 		main_window.network_list.remove_network('00:12:2A:03:B9:12')
-		main_window.update_info_table({"networks":100, "packets":200})
-		main_window.update_gps_table({"fix": 3, "lat": 52.0, "lon": 13.0})
+		main_window.update_info_table(0, {"networks":100, "packets":200} )
+		main_window.update_gps_table(0, {"fix": 3, "lat": 52.0, "lon": 13.0})
 		sources = {"1": {"uuid": "1", "username": "test", "type": "bla",
 			"channel": 11, "packets": 100}}
-		main_window.update_sources_table(sources)
+		main_window.update_sources_table(0, sources)
 		main_window.on_configure_event(None, None)
 		main_window.on_config_window(None)
 		main_window.on_config_window(None)
@@ -344,7 +344,7 @@ class TestKismon(unittest.TestCase):
 		main_window.on_map_window(None, False)
 		main_window.on_map_widget(None, True)
 		main_window.on_map_widget(None, False)
-		main_window.on_client_disconnect(None)
+		#main_window.on_server_disconnect(None, 0)
 		test_event = TestEvent()
 		main_window.on_window_state(None, test_event)
 		
@@ -431,6 +431,7 @@ class TestKismon(unittest.TestCase):
 		test_map.add_marker("222", "red", 52.510, 13.321)
 		test_map.add_marker("333", "orange", 52.511, 13.322)
 		test_map.add_marker("444", "green", 52.511, 13.322)
+		test_map.add_marker("server1", "server1", 52.511, 13.321)
 		
 		test_map.set_position(52.513,13.323)
 		test_map.zoom_out()

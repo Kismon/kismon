@@ -70,7 +70,7 @@ class Networks:
 		msg = "saving %s networks to %s" % (len(self.networks), filename)
 		print(msg)
 		if notify is not None:
-			notify(msg)
+			notify("Kismon", msg)
 		
 		tmpfilename = filename + ".new"
 		self.save_networks(tmpfilename, self.networks)

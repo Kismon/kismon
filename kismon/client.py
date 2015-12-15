@@ -76,7 +76,7 @@ class Client:
 			host, port = self.server.split(":")
 			port = int(port)
 		except ValueError:
-			self.error.append("Invalid server %s" % self.server)
+			self.error.append("Invalid server '%s'" % self.server)
 			print("Client: %s" % self.error[-1])
 			self.stop()
 			return False
@@ -85,7 +85,7 @@ class Client:
 			self.connected = True
 			return True
 		except socket.error:
-			error_message = "Open connection to %s failed: %s\nkismet_server must be running to get live data"
+			error_message = "Open connection to '%s' failed: %s\nkismet_server must be running to get live data"
 			self.error.append(error_message % \
 				(self.server, sys.exc_info()[1]))
 			print("Client: %s" % self.error[-1])

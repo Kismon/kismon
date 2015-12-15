@@ -36,7 +36,7 @@ class Config:
 		
 		self.default_config={
 			"kismet": {
-				"server": "127.0.0.1:2501",
+				"servers": ["127.0.0.1:2501", "server2:2501", "server3:2501"],
 				"connect": True
 				},
 			"window": {
@@ -105,6 +105,8 @@ class Config:
 							value = False
 					elif valtype == int:
 						value = int(value)
+					elif valtype == list:
+						value = [v.strip() for v in value.split(",")]
 					self.config[section][key] = value
 	
 	def write(self):
@@ -114,7 +116,12 @@ class Config:
 		for section in self.config:
 			config.add_section(section)
 			for key in self.config[section]:
-				config.set(section, key, str(self.config[section][key]))
+				value = self.config[section][key]
+				if type(value) == list:
+					config_value = ",".join(value)
+				else:
+					config_value = str(value)
+				config.set(section, key, config_value)
 		
 		configfile = open(self.config_file, 'w')
 		config.write(configfile)

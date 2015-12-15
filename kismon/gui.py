@@ -73,7 +73,7 @@ class KismonWindows:
 					self.map.zoom_out()
 
 class MainWindow(KismonWindows):
-	def __init__(self, config, client_start, client_stop, map, networks, sources, client):
+	def __init__(self, config, client_start, client_stop, map, networks, sources, client_threads):
 		KismonWindows.__init__(self)
 		self.config = config
 		self.config_window = None
@@ -107,7 +107,7 @@ class MainWindow(KismonWindows):
 		self.network_filter = {}
 		self.signal_graphs = {}
 		self.sources = sources
-		self.client = client
+		self.client_threads = client_threads
 		
 		self.notebook = Gtk.Notebook()
 		
@@ -122,39 +122,25 @@ class MainWindow(KismonWindows):
 		vpaned_main.add1(hbox)
 		hbox.pack_start(self.network_list.widget, expand=True, fill=True, padding=0)
 		
-		right_table = Gtk.Table(n_rows=3, n_columns=1)
-		right_scrolled = Gtk.ScrolledWindow()
-		right_scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-		right_scrolled.add(right_table)
-		right_scrolled.set_size_request(160, -1)
-		right_scrolled.get_children()[0].set_shadow_type(Gtk.ShadowType.NONE)
-		hbox.pack_end(right_scrolled, expand=False, fill=False, padding=2)
+		self.server_notebook = Gtk.Notebook()
+		frame = Gtk.Frame()
+		frame.set_label("Servers")
+		frame.add(self.server_notebook)
+		hbox.pack_end(frame, expand=False, fill=False, padding=2)
 		
-		self.info_expander = Gtk.Expander()
-		self.info_expander.set_label("Infos")
-		self.info_expander.set_expanded(True)
-		right_table.attach(self.info_expander, 0, 1, 0, 1, yoptions=Gtk.AttachOptions.SHRINK)
-		self.init_info_table()
-		
-		self.gps_expander = Gtk.Expander()
-		self.gps_expander.set_label("GPS Data")
-		self.gps_expander.set_expanded(True)
-		right_table.attach(self.gps_expander, 0, 1, 1, 2, yoptions=Gtk.AttachOptions.SHRINK)
-		self.init_gps_table()
-		
-		self.sources_expander = Gtk.Expander()
-		self.sources_expander.set_label("Sources")
-		self.sources_expander.set_expanded(True)
-		right_table.attach(self.sources_expander, 0, 1, 2, 3, yoptions=Gtk.AttachOptions.SHRINK)
-		self.sources_table = None
+		self.info_expanders = {}
+		self.gps_expanders = {}
+		self.sources_expanders = {}
+		self.info_table_networks = {}
+		self.info_table_packets = {}
+		self.gps_table_fix = {}
+		self.gps_table_lat = {}
+		self.gps_table_lon = {}
 		self.sources_table_sources = {}
-		
-		battery_expander = Gtk.Expander()
-		battery_expander.set_label("Battery")
-		right_table.attach(battery_expander, 0, 1, 3, 4, yoptions=Gtk.AttachOptions.SHRINK)
-		self.battery_bar = Gtk.ProgressBar()
-		battery_expander.add(self.battery_bar)
-		self.set_battery_bar(100.0)
+		self.sources_tables = {}
+		self.server_switches = {}
+		for server_id in self.client_threads:
+			self.init_server_tab(server_id)
 		
 		self.log_list = LogList(self.config["window"])
 		vpaned_main.add2(self.notebook)
@@ -189,14 +175,6 @@ class MainWindow(KismonWindows):
 		file_menu = Gtk.Menu()
 		file_menuitem = Gtk.MenuItem.new_with_label("File")
 		file_menuitem.set_submenu(file_menu)
-		
-		connect = Gtk.MenuItem.new_with_label('Connect')
-		connect.connect("activate", self.on_client_connect)
-		file_menu.append(connect)
-		
-		disconnect = Gtk.MenuItem.new_with_label('Disconnect')
-		disconnect.connect("activate", self.on_client_disconnect)
-		file_menu.append(disconnect)
 		
 		channel_config = Gtk.MenuItem.new_with_mnemonic('_Preferences')
 		channel_config.set_label("Configure Channels")
@@ -402,36 +380,106 @@ class MainWindow(KismonWindows):
 	def on_destroy_progress_bar_win(self, window):
 		self.progress_bar_win = None
 		
-	def init_info_table(self):
-		table = Gtk.Table(n_rows=2, n_columns=2)
+	def init_server_tab(self, server_id):
+		right_table = Gtk.Table(n_rows=3, n_columns=1)
+		right_scrolled = Gtk.ScrolledWindow()
+		right_scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+		right_scrolled.add(right_table)
+		right_scrolled.set_size_request(160, -1)
+		right_scrolled.get_children()[0].set_shadow_type(Gtk.ShadowType.NONE)
+		self.server_notebook.append_page(right_scrolled)
+		self.server_notebook.set_tab_label_text(right_scrolled, "%s" % (server_id + 1))
+		row = 0
+		
+		hbox = Gtk.HBox()
+		switch = Gtk.Switch()
+		switch.connect("notify::active", self.on_server_switch, server_id)
+		hbox.add(switch)
+		self.server_switches[server_id] = switch
+		switch.set_active(True)
+		
+		image = Gtk.Image(stock=Gtk.STOCK_PREFERENCES)
+		button = Gtk.Button(image=image)
+		button.connect("clicked", self.on_server_edit, server_id)
+		hbox.add(button)
+		right_table.attach(hbox, 0, 1, row, row+1, yoptions=Gtk.AttachOptions.SHRINK)
+		row += 1
+		
+		info_expander = Gtk.Expander()
+		info_expander.set_label("Infos")
+		info_expander.set_expanded(True)
+		right_table.attach(info_expander, 0, 1, row, row+1, yoptions=Gtk.AttachOptions.SHRINK)
+		row += 1
+		self.info_expanders[server_id] = info_expander
+		self.init_info_table(server_id)
+		
+		gps_expander = Gtk.Expander()
+		gps_expander.set_label("GPS Data")
+		gps_expander.set_expanded(True)
+		right_table.attach(gps_expander, 0, 1, row, row+1, yoptions=Gtk.AttachOptions.SHRINK)
+		row += 1
+		self.gps_expanders[server_id] = gps_expander
+		self.init_gps_table(server_id)
+		
+		sources_expander = Gtk.Expander()
+		sources_expander.set_label("Sources")
+		sources_expander.set_expanded(True)
+		right_table.attach(sources_expander, 0, 1, row, row+1, yoptions=Gtk.AttachOptions.SHRINK)
+		row += 1
+		self.sources_expanders[server_id] = sources_expander
+		self.sources_tables[server_id] = None
+		self.sources_table_sources[server_id] = {}
+		
+	def init_info_table(self, server_id):
+		table = Gtk.Table(n_rows=4, n_columns=2)
+		row = 0
+		
+		server_host, server_port = self.config['kismet']['servers'][server_id].split(':')
+		label = Gtk.Label(label="Host: ")
+		label.set_alignment(xalign=0, yalign=0)
+		table.attach(label, 0, 1, row, row+1)
+		value_label = Gtk.Label(label="%s" % server_host)
+		value_label.set_alignment(xalign=0, yalign=0)
+		table.attach(value_label, 1, 2, row, row+1)
+		row += 1
+		
+		label = Gtk.Label(label="Port: ")
+		label.set_alignment(xalign=0, yalign=0)
+		table.attach(label, 0, 1, row, row+1)
+		value_label = Gtk.Label(label="%s" % server_port)
+		value_label.set_alignment(xalign=0, yalign=0)
+		table.attach(value_label, 1, 2, row, row+1)
+		row += 1
 		
 		networks_label = Gtk.Label(label="Networks: ")
 		networks_label.set_alignment(xalign=0, yalign=0)
-		table.attach(networks_label, 0, 1, 0, 1)
+		table.attach(networks_label, 0, 1, row, row+1)
 		
 		networks_value_label = Gtk.Label()
 		networks_value_label.set_alignment(xalign=0, yalign=0)
-		table.attach(networks_value_label, 1, 2, 0, 1)
-		self.info_table_networks = networks_value_label
+		table.attach(networks_value_label, 1, 2, row, row+1)
+		self.info_table_networks[server_id] = networks_value_label
+		row += 1
 		
 		packets_label = Gtk.Label(label="Packets: ")
 		packets_label.set_alignment(xalign=0, yalign=0)
-		table.attach(packets_label, 0, 1, 1, 2)
+		table.attach(packets_label, 0, 1, row, row+1)
 		
 		packets_value_label = Gtk.Label()
 		packets_value_label.set_alignment(xalign=0, yalign=0)
-		table.attach(packets_value_label, 1, 2, 1, 2)
-		self.info_table_packets = packets_value_label
+		table.attach(packets_value_label, 1, 2, row, row+1)
+		self.info_table_packets[server_id] = packets_value_label
+		row += 1
 		
 		table.show_all()
 		self.info_table = table
-		self.info_expander.add(self.info_table)
+		self.info_expanders[server_id].add(self.info_table)
 		
-	def update_info_table(self, data):
-		self.info_table_networks.set_text("%s" % data["networks"])
-		self.info_table_packets.set_text("%s" % data["packets"])
+	def update_info_table(self, server_id, data):
+		self.info_table_networks[server_id].set_text("%s" % data["networks"])
+		self.info_table_packets[server_id].set_text("%s" % data["packets"])
 	
-	def init_gps_table(self):
+	def init_gps_table(self, server_id):
 		table = Gtk.Table(n_rows=3, n_columns=2)
 		
 		fix_label = Gtk.Label(label="Fix: ")
@@ -441,7 +489,7 @@ class MainWindow(KismonWindows):
 		fix_value_label = Gtk.Label()
 		fix_value_label.set_alignment(xalign=0, yalign=0)
 		table.attach(fix_value_label, 1, 2, 0, 1)
-		self.gps_table_fix = fix_value_label
+		self.gps_table_fix[server_id] = fix_value_label
 		
 		lat_label = Gtk.Label(label="Latitude: ")
 		lat_label.set_alignment(xalign=0, yalign=0)
@@ -450,7 +498,7 @@ class MainWindow(KismonWindows):
 		lat_value_label = Gtk.Label()
 		lat_value_label.set_alignment(xalign=0, yalign=0)
 		table.attach(lat_value_label, 1, 2, 1, 2)
-		self.gps_table_lat = lat_value_label
+		self.gps_table_lat[server_id] = lat_value_label
 		
 		lon_label = Gtk.Label(label="Longitude: ")
 		lon_label.set_alignment(xalign=0, yalign=0)
@@ -459,13 +507,13 @@ class MainWindow(KismonWindows):
 		lon_value_label = Gtk.Label()
 		lon_value_label.set_alignment(xalign=0, yalign=0)
 		table.attach(lon_value_label, 1, 2, 2, 3)
-		self.gps_table_lon = lon_value_label
+		self.gps_table_lon[server_id] = lon_value_label
 		
 		table.show_all()
 		self.gps_table = table
-		self.gps_expander.add(self.gps_table)
+		self.gps_expanders[server_id].add(self.gps_table)
 		
-	def update_gps_table(self, data):
+	def update_gps_table(self, server_id, data):
 		if data["fix"] == -1:
 			data["fix"] = "None"
 		elif data["fix"] == 2:
@@ -473,35 +521,35 @@ class MainWindow(KismonWindows):
 		elif data["fix"] == 3:
 			data["fix"] = "3D"
 		
-		self.gps_table_fix.set_text("%s" % data["fix"])
-		self.gps_table_lat.set_text("%s" % data["lat"])
-		self.gps_table_lon.set_text("%s" % data["lon"])
+		self.gps_table_fix[server_id].set_text("%s" % data["fix"])
+		self.gps_table_lat[server_id].set_text("%s" % data["lat"])
+		self.gps_table_lon[server_id].set_text("%s" % data["lon"])
 		
-	def init_sources_table(self, sources):
-		self.sources_table_sources = {}
-		if self.sources_table is not None:
-			self.sources_expander.remove(self.sources_table)
+	def init_sources_table(self, server_id, sources):
+		self.sources_table_sources[server_id] = {}
+		if self.sources_tables[server_id] is not None:
+			self.sources_expanders[server_id].remove(self.sources_tables[server_id])
 			
 		table = Gtk.Table(n_rows=(len(sources)*5-1), n_columns=2)
 		for uuid in sources:
-			self.init_sources_table_source(sources[uuid], table)
+			self.init_sources_table_source(server_id, sources[uuid], table)
 		
 		table.show_all()
-		self.sources_table = table
-		self.sources_expander.add(self.sources_table)
+		self.sources_tables[server_id] = table
+		self.sources_expanders[server_id].add(table)
 	
-	def init_sources_table_source(self, source, table):
-		self.sources_table_sources[source["uuid"]] = {}
+	def init_sources_table_source(self, server_id, source, table):
+		self.sources_table_sources[server_id][source["uuid"]] = {}
 		
 		rows = []
-		if len(self.sources_table_sources) != 1:
+		if len(self.sources_table_sources[server_id]) != 1:
 			rows.append((None, None))
 		rows.append((source["username"], ""))
 		rows.append(("Type", source["type"]))
 		rows.append(("Channel", source["channel"]))
 		rows.append(("Packets", source["packets"]))
 		
-		row = len(self.sources_table_sources) * 5
+		row = len(self.sources_table_sources[server_id]) * 5
 		for title, value in rows:
 			if title is not None:
 				label = Gtk.Label(label="%s: "%title)
@@ -511,37 +559,50 @@ class MainWindow(KismonWindows):
 			label = Gtk.Label(label=value)
 			label.set_alignment(xalign=0, yalign=0)
 			table.attach(label, 1, 2, row, row+1)
-			self.sources_table_sources[source["uuid"]][title] = label
+			self.sources_table_sources[server_id][source["uuid"]][title] = label
 			row += 1
 			
-	def update_sources_table(self, sources):
+	def update_sources_table(self, server_id, sources):
 		for source in sources:
 			if source not in self.sources_table_sources:
-				self.init_sources_table(sources)
+				self.init_sources_table(server_id, sources)
 				break
 			
 		for uuid in sources:
 			source = sources[uuid]
-			sources_table_source = self.sources_table_sources[uuid]
+			sources_table_source = self.sources_table_sources[server_id][uuid]
 			sources_table_source["Type"].set_text("%s" % source["type"])
 			sources_table_source["Channel"].set_text("%s" % source["channel"])
 			sources_table_source["Packets"].set_text("%s" % source["packets"])
 		
-	def on_client_connect(self, widget):
+	def on_server_edit(self, widget, server_id):
 		dialog = Gtk.Dialog("Connect", parent=self.gtkwin)
 		entry = Gtk.Entry()
-		entry.set_text(self.config["kismet"]["server"])
+		entry.set_text(self.config["kismet"]["servers"][server_id])
 		dialog.add_action_widget(entry, 1)
 		dialog.add_button(Gtk.STOCK_CONNECT, 1)
 		dialog.show_all()
 		dialog.run()
 		server = entry.get_text()
 		dialog.destroy()
-		self.config["kismet"]["server"] = server
-		self.client_start()
+		self.config["kismet"]["servers"][server_id] = server
+		self.on_server_connect(None, server_id, True)
 		
-	def on_client_disconnect(self, widget):
-		self.client_stop()
+	def on_server_connect(self, widget, server_id, force_connect=False):
+		if self.client_threads[server_id].is_running and not force_connect:
+			return
+		self.client_start(server_id)
+		
+	def on_server_disconnect(self, widget, server_id):
+		if not self.client_threads[server_id].is_running:
+			return
+		self.client_stop(server_id)
+		
+	def on_server_switch(self, widget, data, server_id):
+		if widget.get_active():
+			self.on_server_connect(None, server_id)
+		else:
+			self.on_server_disconnect(None, server_id)
 		
 	def on_map_hide(self, widget):
 		self.config["window"]["map_position"] = "hide"
@@ -617,14 +678,6 @@ class MainWindow(KismonWindows):
 	def on_signal_graph_destroy(self, window, mac):
 		del self.signal_graphs[mac]
 		
-	def set_battery_bar(self, percent):
-		if percent is not False:
-			self.battery_bar.set_text("%s%%" % percent)
-			self.battery_bar.set_fraction(percent / 100)
-		else:
-			self.battery_bar.set_text("-")
-			self.battery_bar.set_fraction(0)
-	
 	def on_file_import(self, widget):
 		file_import_window = FileImportWindow(self.networks, self.networks_queue_progress)
 		file_import_window.gtkwin.set_transient_for(self.gtkwin)
@@ -671,8 +724,8 @@ class MainWindow(KismonWindows):
 			(len(self.networks.recent_networks), len(self.networks.networks), len(self.network_list.network_iter), on_map)
 		self.statusbar.push(self.statusbar_context, text)
 		
-	def on_channel_config(self, widget):
-		win = ChannelWindow(self.sources, self.client)
+	def on_channel_config(self, widget, server_id):
+		win = ChannelWindow(self.sources[server_id], self.client_threads[server_id])
 		
 class LogList:
 	def __init__(self, config):
@@ -680,7 +733,7 @@ class LogList:
 		self.config = config
 		self.treeview = Gtk.TreeView()
 		num=0
-		for column in ("Time", "Message"):
+		for column in ("Time", "From", "Message"):
 			tvcolumn = Gtk.TreeViewColumn(column)
 			self.treeview.append_column(tvcolumn)
 			cell = Gtk.CellRendererText()
@@ -692,6 +745,7 @@ class LogList:
 		
 		self.store = Gtk.ListStore(
 			GObject.TYPE_STRING, #time
+			GObject.TYPE_STRING, #origin
 			GObject.TYPE_STRING, #message
 			)
 		self.treeview.set_model(self.store)
@@ -703,11 +757,10 @@ class LogList:
 		
 		self.widget = log_scrolled
 		
-	def add(self, message):
+	def add(self, origin, message):
 		if not self.cleanup():
 			return
-		
-		row = self.store.append([show_timestamp(time.time()), message])
+		row = self.store.append([show_timestamp(time.time()), origin, message])
 		path = self.store.get_path(row)
 		self.treeview.scroll_to_cell(path)
 		self.rows.append(row)

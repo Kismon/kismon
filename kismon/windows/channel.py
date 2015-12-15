@@ -1,9 +1,9 @@
 from gi.repository import Gtk
 
 class ChannelWindow:
-	def __init__(self, sources, client):
+	def __init__(self, sources, client_thread):
 		self.sources = sources
-		self.client = client
+		self.client_thread = client_thread
 		self.changes = {}
 		self.widgets = {}
 		
@@ -113,7 +113,7 @@ class ChannelWindow:
 		for uuid in self.changes:
 			mode = self.changes[uuid]
 			value = int(self.widgets[uuid][mode].get_value())
-			self.client.set_channel(uuid, mode, value)
+			self.client_thread.set_channel(uuid, mode, value)
 		
 		self.gtkwin.destroy()
 		

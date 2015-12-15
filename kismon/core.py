@@ -74,10 +74,8 @@ Last seen: %s"""
 		self.sources = {}
 		self.crypt_cache = {}
 		self.networks = Networks(self.config)
-		
-		self.init_client_thread()
-		if self.config["kismet"]["connect"] is True:
-			self.client_start()
+		self.client_threads = {}
+		self.init_client_threads()
 		
 		if "--disable-map" in sys.argv:
 			self.map_error = "--disable-map used"
@@ -96,10 +94,10 @@ Last seen: %s"""
 			self.map,
 			self.networks,
 			self.sources,
-			self.client_thread.client)
-		self.main_window.log_list.add("Kismon started")
+			self.client_threads)
+		self.main_window.log_list.add("Kismon", "started")
 		if self.map_error is not None:
-			self.main_window.log_list.add(self.map_error)
+			self.main_window.log_list.add("Kismon", self.map_error)
 		
 		self.networks_file = "%snetworks.json" % user_dir
 		if os.path.isfile(self.networks_file):
@@ -117,7 +115,7 @@ Last seen: %s"""
 				dialog.destroy()
 				if self.dialog_response == -9:
 					print("exit")
-					self.client_thread.stop()
+					self.clients_stop()
 					self.main_window.gtkwin = None
 					return
 		self.networks.set_autosave(self.config["networks"]["autosave"], self.networks_file, self.main_window.log_list.add)
@@ -128,24 +126,8 @@ Last seen: %s"""
 		
 		self.main_window.network_list.crypt_cache = self.crypt_cache
 		
-		self.battery_max = None
-		self.battery = None
-		path = "/proc/acpi/battery/"
-		if os.path.exists(path):
-			for name in os.listdir(path):
-				self.battery = name
-				f = open("%s%s/info" % (path, name))
-				for line in f.readlines():
-					if line.startswith("last full capacity:"):
-						max = line.split(":")[1].strip()
-						self.battery_max = int(max.split()[0])
-						break
-				GObject.timeout_add(30000, self.update_battery_bar)
-				break
-		self.update_battery_bar()
-		
-		GLib.timeout_add(500, self.queue_handler)
-		GLib.timeout_add(300, self.queue_handler_networks)
+		GLib.timeout_add(500, self.queues_handler)
+		GLib.timeout_add(300, self.queues_handler_networks)
 		GLib.idle_add(self.networks.apply_filters)
 		
 	def init_map(self):
@@ -160,38 +142,52 @@ Last seen: %s"""
 			pos = self.config["map"]["last_position"].split("/")
 			self.map.set_position(float(pos[0]), float(pos[1]), True)
 		
-	def init_client_thread(self):
-		self.client_thread = ClientThread(self.config["kismet"]["server"])
-		self.client_thread.client.set_capabilities(
+	def init_client_thread(self, server_id):
+		self.client_threads[server_id] = ClientThread(self.config["kismet"]["servers"][server_id])
+		self.client_threads[server_id].client.set_capabilities(
 			('status', 'source', 'info', 'gps', 'bssid', 'bssidsrc', 'ssid'))
 		if "--create-kismet-dump" in sys.argv:
-			self.client_thread.client.enable_dump()
+			self.client_threads[server_id].client.enable_dump()
 		
-	def client_start(self):
-		if self.client_thread.is_running is True:
-			self.client_stop()
-		self.sources = {}
-		self.init_client_thread()
+	def init_client_threads(self):
+		server_id=0
+		for server in self.config["kismet"]["servers"]:
+			self.init_client_thread(server_id)
+			server_id += 1
+		
+	def client_start(self, server_id):
+		if self.client_threads[server_id].is_running:
+			self.client_stop(server_id)
+		self.sources[server_id] = {}
+		self.init_client_thread(server_id)
 		if "--load-kismet-dump" in sys.argv:
-			self.client_thread.client.load_dump(sys.argv[2])
-		self.client_thread.start()
+			self.client_threads[server_id].client.load_dump(sys.argv[2])
+		self.client_threads[server_id].start()
 		
-	def client_stop(self):
-		self.client_thread.stop()
+	def client_stop(self, server_id):
+		self.client_threads[server_id].stop()
 		
-	def queue_handler(self):
+	def clients_stop(self):
+		for server_id in self.client_threads:
+			self.client_stop(server_id)
+		return True
+		
+	def queue_handler(self, server_id):
+		server_name = self.config['kismet']['servers'][server_id]
 		if self.main_window.gtkwin is None:
 			return False
-			
-		if len(self.client_thread.client.error) > 0:
-			for error in self.client_thread.client.error:
-				self.main_window.log_list.add(error)
-			self.client_thread.client.error = []
+		
+		thread = self.client_threads[server_id]
+		if len(thread.client.error) > 0:
+			for error in thread.client.error:
+				self.main_window.log_list.add(server_name, error)
+			thread.client.error = []
+			self.main_window.server_switches[server_id].set_active(False)
 		
 		#gps
 		gps = None
 		fix = None
-		gps_queue = self.client_thread.get_queue("gps")
+		gps_queue = thread.get_queue("gps")
 		while True:
 			try:
 				data = gps_queue.pop()
@@ -203,53 +199,61 @@ Last seen: %s"""
 			except IndexError:
 				break
 		if gps is not None:
-			self.main_window.update_gps_table(gps)
+			self.main_window.update_gps_table(server_id, gps)
 			if fix is not None and self.map is not None:
-				self.map.set_position(fix[0], fix[1])
+				if server_id == 0:
+					self.map.set_position(fix[0], fix[1])
+				else:
+					self.map.add_marker(server_name, "server%s" % (server_id + 1), fix[0], fix[1])
 		
 		#status
-		for data in self.client_thread.get_queue("status"):
-			self.main_window.log_list.add(data["text"])
+		for data in thread.get_queue("status"):
+			self.main_window.log_list.add(server_name, data["text"])
 		
 		#info
-		info_queue = self.client_thread.get_queue("info")
+		info_queue = thread.get_queue("info")
 		try:
 			data = info_queue.pop()
-			self.main_window.update_info_table(data)
+			self.main_window.update_info_table(server_id, data)
 		except IndexError:
 			pass
 			
 		#source
 		update = False
-		for data in self.client_thread.get_queue("source"):
+		for data in thread.get_queue("source"):
 			uuid = data["uuid"]
 			if uuid == "00000000-0000-0000-0000-000000000000":
 				continue
-			self.sources[uuid] = data
+			self.sources[server_id][uuid] = data
 			
 			update = True
 		if update is True:
-			self.main_window.update_sources_table(self.sources)
+			self.main_window.update_sources_table(server_id, self.sources[server_id])
 		
+	def queues_handler(self):
+		for server_id in self.client_threads:
+			self.queue_handler(server_id)
 		return True
 		
-	def queue_handler_networks(self):
+	def queue_handler_networks(self, server_id):
+		thread = self.client_threads[server_id]
+		
 		#ssid
-		for data in self.client_thread.get_queue("ssid"):
+		for data in thread.get_queue("ssid"):
 			self.networks.add_ssid_data(data)
 		
 		#bssid
 		bssids = {}
-		for data in self.client_thread.get_queue("bssid"):
+		for data in thread.get_queue("bssid"):
 			mac = data["bssid"]
 			self.networks.add_bssid_data(data)
-			if mac in self.main_window.signal_graphs and "signal_dbm" not in self.client_thread.client.capabilities["bssidsrc"]:
+			if mac in self.main_window.signal_graphs and "signal_dbm" not in thread.client.capabilities["bssidsrc"]:
 				self.main_window.signal_graphs[mac].add_value(None, None, data["signal_dbm"])
 			
 			bssids[mac] = True
 			
 		#bssidsrc
-		for data in self.client_thread.get_queue("bssidsrc"):
+		for data in thread.get_queue("bssidsrc"):
 			if "signal_dbm" not in data or data["uuid"] not in self.sources:
 				continue
 			
@@ -264,29 +268,16 @@ Last seen: %s"""
 				self.main_window.networks_queue_progress()
 		
 		self.main_window.update_statusbar()
+		
+	def queues_handler_networks(self):
+		for server_id in self.client_threads:
+			self.queue_handler_networks(server_id)
 		return True
 		
 	def quit(self):
-		self.client_thread.stop()
+		self.clients_stop()
 		self.config_handler.write()
 		self.networks.save(self.networks_file)
-		
-	def get_battery_capacity(self):
-		filename = "/proc/acpi/battery/%s/state" % self.battery
-		if not os.path.isfile(filename):
-			return False
-		f = open(filename)
-		for line in f.readlines():
-			if line.startswith("remaining capacity:"):
-				current = line.split(":")[1].strip()
-				current = int(current.split()[0])
-				return round(100.0 / self.battery_max * current, 1)
-		return False
-		
-	def update_battery_bar(self):
-		battery = self.get_battery_capacity()
-		self.main_window.set_battery_bar(battery)
-		return True
 		
 	def add_network_to_map(self, mac):
 		network = self.networks.get_network(mac)
