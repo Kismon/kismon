@@ -143,7 +143,8 @@ Last seen: %s"""
 			self.map.set_position(float(pos[0]), float(pos[1]), True)
 		
 	def init_client_thread(self, server_id):
-		self.client_threads[server_id] = ClientThread(self.config["kismet"]["servers"][server_id])
+		server = self.config["kismet"]["servers"][server_id]
+		self.client_threads[server_id] = ClientThread(server)
 		self.client_threads[server_id].client.set_capabilities(
 			('status', 'source', 'info', 'gps', 'bssid', 'bssidsrc', 'ssid'))
 		if "--create-kismet-dump" in sys.argv:
@@ -156,7 +157,7 @@ Last seen: %s"""
 			server_id += 1
 		
 	def client_start(self, server_id):
-		if self.client_threads[server_id].is_running:
+		if server_id in self.client_threads and self.client_threads[server_id].is_running:
 			self.client_stop(server_id)
 		self.sources[server_id] = {}
 		self.init_client_thread(server_id)
@@ -276,6 +277,8 @@ Last seen: %s"""
 		
 	def quit(self):
 		self.clients_stop()
+		while None in self.config['kismet']['servers']:
+			self.config['kismet']['servers'].remove(None)
 		self.config_handler.write()
 		self.networks.save(self.networks_file)
 		

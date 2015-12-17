@@ -128,6 +128,15 @@ class MainWindow(KismonWindows):
 		frame.add(self.server_notebook)
 		hbox.pack_end(frame, expand=False, fill=False, padding=2)
 		
+		image = Gtk.Image.new_from_stock(Gtk.STOCK_ADD, Gtk.IconSize.MENU)
+		button = Gtk.Button()
+		button.props.focus_on_click = False
+		button.add(image)
+		button.show_all()
+		button.set_tooltip_text('Add server')
+		button.connect("clicked", self.on_add_server_clicked)
+		self.server_notebook.set_action_widget(button, Gtk.PackType.END)
+		
 		self.info_expanders = {}
 		self.gps_expanders = {}
 		self.sources_expanders = {}
@@ -398,12 +407,19 @@ class MainWindow(KismonWindows):
 		self.server_switches[server_id] = switch
 		switch.set_active(True)
 		
-		image = Gtk.Image(stock=Gtk.STOCK_PREFERENCES)
+		image = Gtk.Image.new_from_stock(Gtk.STOCK_EDIT, size=Gtk.IconSize.MENU)
 		button = Gtk.Button(image=image)
 		button.connect("clicked", self.on_server_edit, server_id)
+		button.set_tooltip_text('Edit connection')
 		hbox.add(button)
 		right_table.attach(hbox, 0, 1, row, row+1, yoptions=Gtk.AttachOptions.SHRINK)
 		row += 1
+		
+		image = Gtk.Image.new_from_stock(Gtk.STOCK_REMOVE, size=Gtk.IconSize.MENU)
+		button = Gtk.Button(image=image)
+		button.set_tooltip_text('Remove server')
+		button.connect("clicked", self.on_server_remove_clicked, server_id)
+		hbox.add(button)
 		
 		info_expander = Gtk.Expander()
 		info_expander.set_label("Infos")
@@ -429,6 +445,7 @@ class MainWindow(KismonWindows):
 		self.sources_expanders[server_id] = sources_expander
 		self.sources_tables[server_id] = None
 		self.sources_table_sources[server_id] = {}
+		right_scrolled.show_all()
 		
 	def init_info_table(self, server_id):
 		table = Gtk.Table(n_rows=4, n_columns=2)
@@ -603,6 +620,33 @@ class MainWindow(KismonWindows):
 			self.on_server_connect(None, server_id)
 		else:
 			self.on_server_disconnect(None, server_id)
+		
+	def on_server_remove_clicked(self, widget, server_id):
+		if self.server_notebook.get_n_pages() == 1:
+			# last connection
+			dialog = Gtk.Dialog("Info", parent=self.gtkwin)
+			label = Gtk.Label("You can't remove the last connection!")
+			area = dialog.get_content_area()
+			area.add(label)
+			dialog.add_button(Gtk.STOCK_CANCEL, 1)
+			dialog.show_all()
+			dialog.run()
+			dialog.destroy()
+			return
+		
+		# HBox -> Table -> Viewport -> ScrolledWindow
+		table = self.server_switches[server_id].get_parent().get_parent().get_parent().get_parent()
+		page_num = self.server_notebook.page_num(table)
+		self.server_notebook.remove_page(page_num)
+		self.client_stop(server_id)
+		self.config['kismet']['servers'][server_id] = None
+		
+	def on_add_server_clicked(self, widget):
+		server_id = len(self.client_threads)
+		print("adding server", server_id+1)
+		self.config['kismet']['servers'].append("server%s:2501" % (server_id+1))
+		self.client_start(server_id)
+		self.init_server_tab(server_id)
 		
 	def on_map_hide(self, widget):
 		self.config["window"]["map_position"] = "hide"
