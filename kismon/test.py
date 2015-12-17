@@ -169,7 +169,7 @@ def networks():
 	for x in range(2):
 		for data in test_data:
 			if data is not None and data[0] == "bssid":
-				networks.add_bssid_data(data[1])
+				networks.add_bssid_data(data[1], 0)
 				data[1]["lasttime"] = data[1]["lasttime"] + 1
 		for data in test_data:
 			if data is not None and data[0] == "ssid":

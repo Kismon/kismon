@@ -247,7 +247,7 @@ Last seen: %s"""
 		bssids = {}
 		for data in thread.get_queue("bssid"):
 			mac = data["bssid"]
-			self.networks.add_bssid_data(data)
+			self.networks.add_bssid_data(data, server_id)
 			if mac in self.main_window.signal_graphs and "signal_dbm" not in thread.client.capabilities["bssidsrc"]:
 				self.main_window.signal_graphs[mac].add_value(None, None, data["signal_dbm"])
 			

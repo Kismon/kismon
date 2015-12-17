@@ -139,6 +139,8 @@ class Networks:
 		for network in self.networks:
 			if 'comment' not in self.networks[network]:
 				self.networks[network]['comment'] = ""
+			if 'servers' not in self.networks[network]:
+				self.networks[network]['servers'] = []
 		f.close()
 		
 	def apply_filters(self):
@@ -252,7 +254,7 @@ class Networks:
 			self.queue_task = None
 		self.notify_add_queue = {}
 		
-	def add_bssid_data(self, bssid):
+	def add_bssid_data(self, bssid, server_id):
 		mac = bssid["bssid"]
 		if mac not in self.networks:
 			network = {
@@ -271,6 +273,7 @@ class Networks:
 					"last": bssid["signal_dbm"]
 				},
 				"comment": '',
+				"servers": [],
 			}
 			self.networks[mac] = network
 			if mac in self.temp_ssid_data:
@@ -302,6 +305,9 @@ class Networks:
 			network["firsttime"] = min(network["firsttime"], bssid["firsttime"])
 			network["signal_dbm"]["min"] = min(network["signal_dbm"]["min"], bssid["minsignal_dbm"])
 			network["signal_dbm"]["max"] = min(network["signal_dbm"]["max"], bssid["maxsignal_dbm"])
+			server = self.config['kismet']['servers'][server_id]
+			if server not in network['servers']:
+				network['servers'].append(server)
 		
 		self.notify_add(mac)
 		
@@ -324,6 +330,8 @@ class Networks:
 		if mac not in self.networks:
 			if 'comment' not in data:
 				data['comment'] = data
+			if 'servers' not in data:
+				data['servers'] = []
 			self.networks[mac] = data
 			self.notify_add(mac)
 			return

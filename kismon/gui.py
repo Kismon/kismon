@@ -852,7 +852,7 @@ class NetworkList:
 		num=0
 		self.columns=("BSSID", "Type", "SSID", "Ch", "Crypt",
 			"First Seen", "Last Seen", "Latitude", "Longitude",
-			"Signal dbm", "Comment")
+			"Signal dbm", "Comment", "Servers")
 		for column in self.columns:
 			renderer = Gtk.CellRendererText()
 			if column == "Comment":
@@ -871,7 +871,7 @@ class NetworkList:
 			tvcolumn.connect("clicked", self.on_column_clicked)
 			tvcolumn.num = num
 			if column == "Signal dbm":
-				tvcolumn.add_attribute(renderer, "value", 11)
+				tvcolumn.add_attribute(renderer, "value", 12)
 			num+=1
 		self.treeview.show()
 		
@@ -887,6 +887,7 @@ class NetworkList:
 			GObject.TYPE_FLOAT, #lon
 			GObject.TYPE_INT, #signal dbm
 			GObject.TYPE_STRING, #comment
+			GObject.TYPE_STRING, #servers
 			GObject.TYPE_INT, #signal dbm + 100 (progressbar)
 			)
 		self.treeview.set_model(self.store)
@@ -953,6 +954,12 @@ class NetworkList:
 		else:
 			signal = 0
 		
+		servers = []
+		for server in network["servers"]:
+			if server.endswith(':2501'):
+				server = server.rsplit(':', 1)[0]
+			servers.append(server)
+		
 		line = [mac,
 				network["type"],
 				ssid_str,
@@ -964,6 +971,7 @@ class NetworkList:
 				network["lon"],
 				signal,
 				network['comment'],
+				", ".join(servers),
 				signal+100
 				]
 		try:
