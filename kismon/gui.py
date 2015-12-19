@@ -428,12 +428,13 @@ class MainWindow(KismonWindows):
 		self.gps_expanders[server_id] = gps_expander
 		self.init_gps_table(server_id)
 		
-		track_expander = Gtk.Expander()
-		track_expander.set_label("GPS Track")
-		table = self.init_track_table(server_id)
-		track_expander.add(table)
-		right_table.attach(track_expander, 0, 1, row, row+1, yoptions=Gtk.AttachOptions.SHRINK)
-		row += 1
+		if self.map != None:
+			track_expander = Gtk.Expander()
+			track_expander.set_label("GPS Track")
+			table = self.init_track_table(server_id)
+			track_expander.add(table)
+			right_table.attach(track_expander, 0, 1, row, row+1, yoptions=Gtk.AttachOptions.SHRINK)
+			row += 1
 		
 		sources_expander = Gtk.Expander()
 		sources_expander.set_label("Sources")
