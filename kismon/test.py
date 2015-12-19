@@ -302,11 +302,13 @@ class TestKismon(unittest.TestCase):
 			from .config import Config
 			from .map import Map
 			from .gui import MainWindow
+			from .client import ClientThread
 		except SystemError:
 			from config import Config
 			from map import Map
 			from gui import MainWindow
-		def dummy():
+			from client import ClientThread
+		def dummy(server_id):
 			return
 		
 		test_widget = TestWidget()
@@ -314,8 +316,8 @@ class TestKismon(unittest.TestCase):
 		test_config = Config(None).default_config
 		test_map = Map(test_config["map"])
 		test_networks =  networks()
-		
-		main_window = MainWindow(test_config, dummy, dummy, test_map, test_networks, {0: None, 1: None}, {0: None, 1: None})
+		test_client_threads = {0: ClientThread(), 1: ClientThread()}
+		main_window = MainWindow(test_config, dummy, dummy, test_map, test_networks, {0: None, 1: None}, test_client_threads)
 		main_window.network_list.crypt_cache = {}
 		
 		main_window.log_list.add("Kismon", "test")

@@ -128,7 +128,7 @@ class MainWindow(KismonWindows):
 		frame.add(self.server_notebook)
 		hbox.pack_end(frame, expand=False, fill=False, padding=2)
 		
-		image = Gtk.Image.new_from_stock(Gtk.STOCK_ADD, Gtk.IconSize.MENU)
+		image = Gtk.Image.new_from_icon_name(Gtk.STOCK_ADD, Gtk.IconSize.MENU)
 		button = Gtk.Button()
 		button.props.focus_on_click = False
 		button.add(image)
@@ -406,7 +406,7 @@ class MainWindow(KismonWindows):
 		self.server_switches[server_id] = switch
 		switch.set_active(True)
 		
-		image = Gtk.Image.new_from_stock(Gtk.STOCK_EDIT, size=Gtk.IconSize.MENU)
+		image = Gtk.Image.new_from_icon_name(Gtk.STOCK_EDIT, size=Gtk.IconSize.MENU)
 		button = Gtk.Button(image=image)
 		button.connect("clicked", self.on_server_edit, server_id)
 		button.set_tooltip_text('Edit connection')
@@ -414,7 +414,7 @@ class MainWindow(KismonWindows):
 		right_table.attach(hbox, 0, 1, row, row+1, yoptions=Gtk.AttachOptions.SHRINK)
 		row += 1
 		
-		image = Gtk.Image.new_from_stock(Gtk.STOCK_REMOVE, size=Gtk.IconSize.MENU)
+		image = Gtk.Image.new_from_icon_name(Gtk.STOCK_REMOVE, size=Gtk.IconSize.MENU)
 		button = Gtk.Button(image=image)
 		button.set_tooltip_text('Remove server')
 		button.connect("clicked", self.on_server_remove_clicked, server_id)
