@@ -676,6 +676,7 @@ class MainWindow(KismonWindows):
 			page_num = self.notebook.page_num(map_widget)
 			self.notebook.set_tab_label_text(map_widget, "Map")
 			map_widget.show_all()
+			self.map.set_last_from_config()
 			self.notebook.set_current_page(page_num)
 		else:
 			page = self.notebook.page_num(map_widget)

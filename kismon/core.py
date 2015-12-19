@@ -123,6 +123,7 @@ Last seen: %s"""
 		if self.map is not None:
 			self.networks.notify_add_list["map"] = self.add_network_to_map
 			self.networks.notify_remove_list["map"] = self.map.remove_marker
+			GLib.timeout_add(100, self.map.set_last_from_config)
 		
 		self.main_window.network_list.crypt_cache = self.crypt_cache
 		
@@ -139,8 +140,7 @@ Last seen: %s"""
 			except SystemError:
 				from map import Map
 			self.map = Map(self.config["map"])
-			pos = self.config["map"]["last_position"].split("/")
-			self.map.set_position(float(pos[0]), float(pos[1]), True)
+			self.map.set_last_from_config()
 		
 	def init_client_thread(self, server_id):
 		server = self.config["kismet"]["servers"][server_id]
@@ -202,10 +202,11 @@ Last seen: %s"""
 		if gps is not None:
 			self.main_window.update_gps_table(server_id, gps)
 			if fix is not None and self.map is not None:
+				server = "server%s" % (server_id + 1)
 				if server_id == 0:
 					self.map.set_position(fix[0], fix[1])
 				else:
-					self.map.add_marker(server_name, "server%s" % (server_id + 1), fix[0], fix[1])
+					self.map.add_marker(server, server, fix[0], fix[1])
 		
 		#status
 		for data in thread.get_queue("status"):

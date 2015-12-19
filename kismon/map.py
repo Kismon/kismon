@@ -79,6 +79,7 @@ class Map:
 		self.osm.set_keyboard_shortcut(OsmGpsMap.MapKey_t.RIGHT, Gdk.keyval_from_name("Right"))
 		self.osm.set_keyboard_shortcut(OsmGpsMap.MapKey_t.ZOOMIN, Gdk.keyval_from_name("Page_Up"))
 		self.osm.set_keyboard_shortcut(OsmGpsMap.MapKey_t.ZOOMOUT, Gdk.keyval_from_name("Page_Down"))
+		self.osm.connect('changed', self.on_changed)
 		
 		self.coordinates = {}
 		for mac in list(self.markers.keys()):
@@ -94,9 +95,7 @@ class Map:
 		longitude = self.osm.get_property("longitude")
 		zoom = self.osm.get_property("zoom")
 		self.init_osm()
-		self.set_zoom(zoom)
-		self.osm.set_center(latitude, longitude)
-		self.start_moving()
+		self.set_center_and_zoom(latitude, longitude, zoom)
 		
 	def apply_config(self):
 		pass
@@ -164,12 +163,19 @@ class Map:
 		
 	def set_zoom(self, zoom):
 		self.osm.set_zoom(zoom)
+		self.save_zoom()
 		
 	def zoom_in(self, actor=None, event=None, view=None):
 		self.osm.zoom_in()
+		self.save_zoom()
 		
 	def zoom_out(self, actor=None, event=None, view=None):
 		self.osm.zoom_out()
+		self.save_zoom()
+		
+	def save_zoom(self):
+		zoom = self.osm.get_property('zoom')
+		self.config["last_zoom"] = zoom
 		
 	def is_position_invalid(self, lat, lon):
 		if lat == 0.0 and lon == 0.0:
@@ -183,6 +189,15 @@ class Map:
 		self.osm.gps_add(lat, lon, heading=OsmGpsMap.MAP_INVALID);
 		
 		self.config["last_position"] = "%s/%s" % (lat, lon)
+		
+	def set_center_and_zoom(self, lat, lon, zoom):
+		self.osm.set_center_and_zoom(lat, lon, zoom)
+		self.start_moving()
+		
+	def set_last_from_config(self):
+		lat, lon = self.config["last_position"].split("/")
+		zoom = self.config["last_zoom"]
+		self.set_center_and_zoom(float(lat), float(lon), zoom)
 		
 	def add_marker(self, key, color, lat, lon):
 		"""add a new marker to the marker_layer
@@ -328,6 +343,9 @@ class Map:
 			id = "openstreetmap"
 			self.osm.set_property("map-source", OsmGpsMap.MapSource_t.OPENSTREETMAP)
 			self.config["source"] = id
+		
+	def on_changed(self, osm):
+		self.save_zoom()
 
 class Marker:
 	def __init__(self, key, lat, lon, color):
