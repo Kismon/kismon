@@ -544,7 +544,7 @@ class MainWindow(KismonWindows):
 		for uuid in sources:
 			row = self.init_sources_table_source(server_id, sources[uuid], table)
 		
-		button = Gtk.Button('Channel Settings')
+		button = Gtk.Button(label='Channel Settings')
 		button.connect('clicked', self.on_channel_config, server_id)
 		table.attach(button, 0, 2, row, row+1)
 		
