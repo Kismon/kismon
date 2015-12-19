@@ -116,7 +116,7 @@ class MainWindow(KismonWindows):
 		vbox.pack_start(self.init_menu(), False, False, 0)
 		
 		vpaned_main = Gtk.VPaned()
-		vpaned_main.set_position(320)
+		vpaned_main.set_position(400)
 		vbox.add(vpaned_main)
 		hbox = Gtk.HBox()
 		vpaned_main.add1(hbox)
@@ -183,14 +183,6 @@ class MainWindow(KismonWindows):
 		file_menu = Gtk.Menu()
 		file_menuitem = Gtk.MenuItem.new_with_label("File")
 		file_menuitem.set_submenu(file_menu)
-		
-		channel_config = Gtk.MenuItem.new_with_mnemonic('_Preferences')
-		channel_config.set_label("Configure Channels")
-		channel_config.connect("activate", self.on_channel_config)
-		file_menu.append(channel_config)
-		
-		sep = Gtk.SeparatorMenuItem()
-		file_menu.append(sep)
 		
 		file_import = Gtk.MenuItem.new_with_mnemonic('_Open')
 		file_import.set_label("Import Networks")
@@ -548,9 +540,13 @@ class MainWindow(KismonWindows):
 		if self.sources_tables[server_id] is not None:
 			self.sources_expanders[server_id].remove(self.sources_tables[server_id])
 			
-		table = Gtk.Table(n_rows=(len(sources)*5-1), n_columns=2)
+		table = Gtk.Table(n_rows=(len(sources)*5)+1, n_columns=2)
 		for uuid in sources:
-			self.init_sources_table_source(server_id, sources[uuid], table)
+			row = self.init_sources_table_source(server_id, sources[uuid], table)
+		
+		button = Gtk.Button('Channel Settings')
+		button.connect('clicked', self.on_channel_config, server_id)
+		table.attach(button, 0, 2, row, row+1)
 		
 		table.show_all()
 		self.sources_tables[server_id] = table
@@ -579,7 +575,8 @@ class MainWindow(KismonWindows):
 			table.attach(label, 1, 2, row, row+1)
 			self.sources_table_sources[server_id][source["uuid"]][title] = label
 			row += 1
-			
+		return row
+		
 	def update_sources_table(self, server_id, sources):
 		for source in sources:
 			if source not in self.sources_table_sources:

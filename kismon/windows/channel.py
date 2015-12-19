@@ -113,7 +113,7 @@ class ChannelWindow:
 		for uuid in self.changes:
 			mode = self.changes[uuid]
 			value = int(self.widgets[uuid][mode].get_value())
-			self.client_thread.set_channel(uuid, mode, value)
+			self.client_thread.client.set_channel(uuid, mode, value)
 		
 		self.gtkwin.destroy()
 		
