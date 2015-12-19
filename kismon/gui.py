@@ -404,7 +404,6 @@ class MainWindow(KismonWindows):
 		switch.connect("notify::active", self.on_server_switch, server_id)
 		hbox.add(switch)
 		self.server_switches[server_id] = switch
-		switch.set_active(True)
 		
 		image = Gtk.Image.new_from_icon_name(Gtk.STOCK_EDIT, size=Gtk.IconSize.MENU)
 		button = Gtk.Button(image=image)
@@ -412,6 +411,7 @@ class MainWindow(KismonWindows):
 		button.set_tooltip_text('Edit connection')
 		hbox.add(button)
 		right_table.attach(hbox, 0, 1, row, row+1, yoptions=Gtk.AttachOptions.SHRINK)
+		switch.set_active(True)
 		row += 1
 		
 		image = Gtk.Image.new_from_icon_name(Gtk.STOCK_REMOVE, size=Gtk.IconSize.MENU)
@@ -622,8 +622,30 @@ class MainWindow(KismonWindows):
 	def on_server_switch(self, widget, data, server_id):
 		if widget.get_active():
 			self.on_server_connect(None, server_id)
+			state = 'on'
+			icon = Gtk.STOCK_CONNECT
 		else:
 			self.on_server_disconnect(None, server_id)
+			state = 'off'
+			icon = Gtk.STOCK_DISCONNECT
+		
+		self.set_server_tab_label(server_id, icon)
+		
+	def set_server_tab_label(self, server_id, icon):
+		table = self.get_server_table(server_id)
+		hbox = Gtk.HBox()
+		label = Gtk.Label()
+		image = Gtk.Image.new_from_icon_name(icon, Gtk.IconSize.MENU)
+		hbox.add(label)
+		hbox.add(image)
+		hbox.show_all()
+		label.set_text("%s " % (server_id + 1))
+		notebook = table.get_parent()
+		notebook.set_tab_label(table, hbox)
+		
+	def get_server_table(self, server_id):
+		# HBox -> Table -> Viewport -> ScrolledWindow
+		return self.server_switches[server_id].get_parent().get_parent().get_parent().get_parent()
 		
 	def on_server_remove_clicked(self, widget, server_id):
 		if self.server_notebook.get_n_pages() == 1:
@@ -638,8 +660,7 @@ class MainWindow(KismonWindows):
 			dialog.destroy()
 			return
 		
-		# HBox -> Table -> Viewport -> ScrolledWindow
-		table = self.server_switches[server_id].get_parent().get_parent().get_parent().get_parent()
+		table = self.get_server_table(server_id)
 		page_num = self.server_notebook.page_num(table)
 		self.server_notebook.remove_page(page_num)
 		self.client_stop(server_id)
