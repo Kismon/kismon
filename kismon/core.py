@@ -207,6 +207,7 @@ Last seen: %s"""
 					self.map.set_position(fix[0], fix[1])
 				else:
 					self.map.add_marker(server, server, fix[0], fix[1])
+				self.map.add_track(fix[0], fix[1], server_id)
 		
 		#status
 		for data in thread.get_queue("status"):

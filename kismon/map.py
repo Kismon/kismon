@@ -45,6 +45,7 @@ class Map:
 		self.markers = {}
 		self.networks_label_count = 0
 		self.coordinates = {}
+		self.tracks = {}
 		
 		self.init_osm()
 		
@@ -226,6 +227,25 @@ class Map:
 		image = self.osm.image_add(lat, lon, self.textures[color])
 		self.coordinates[lat][lon]["image"] = image
 		
+	def add_track(self, lat, lon, key, color=None):
+		if key not in self.tracks:
+			track = OsmGpsMap.MapTrack()
+			self.osm.track_add(track)
+			self.tracks[key] = track
+		else:
+			track = self.tracks[key]
+		
+		point = OsmGpsMap.MapPoint.new_degrees(lat, lon)
+		track.add_point(point)
+		if color is not None:
+			self.set_track_color(key, color)
+			
+	def set_track_color(self, key, rgb):
+		r, g, b = rgb
+		track = self.tracks[key]
+		color = Gdk.Color(r, g, b)
+		track.set_property('color', color)
+		
 	def clear_position(self, lat, lon, key):
 		self.coordinates[lat][lon]["markers"].remove(key)
 		renew = False
@@ -291,6 +311,10 @@ class Map:
 		
 		self.clear_position(marker.lat, marker.lon, key)
 		del self.markers[key]
+		
+	def remove_track(self, key):
+		if key in self.tracks:
+			self.osm.track_remove(self.tracks[key])
 		
 	def stop_moving(self):
 		self.osm.set_property("auto-center", False)

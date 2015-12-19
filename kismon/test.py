@@ -441,6 +441,11 @@ class TestKismon(unittest.TestCase):
 		test_map.change_source("openstreetmap-renderer")
 		test_map.remove_marker("333")
 		
+		test_map.add_track(52.513, 13.323,'server1', color=(0,16621,19455))
+		test_map.add_track(52.510, 13.321,'server1')
+		test_map.add_track(52.511, 13.321,'server1')
+		test_map.set_track_color('server1', (65535,1,65535))
+		
 		test_window = Gtk.Window()
 		test_window.set_title("Kismon Test Map")
 		test_window.connect("destroy", Gtk.main_quit)

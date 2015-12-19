@@ -640,6 +640,8 @@ class MainWindow(KismonWindows):
 		self.server_notebook.remove_page(page_num)
 		self.client_stop(server_id)
 		self.config['kismet']['servers'][server_id] = None
+		self.map.remove_track(server_id)
+		self.map.remove_marker("server%s" % (server_id + 1))
 		
 	def on_add_server_clicked(self, widget):
 		server_id = len(self.client_threads)
