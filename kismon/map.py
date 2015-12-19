@@ -230,8 +230,8 @@ class Map:
 	def add_track(self, lat, lon, key, color=None):
 		if key not in self.tracks:
 			track = OsmGpsMap.MapTrack()
-			self.osm.track_add(track)
 			self.tracks[key] = track
+			self.show_track(key)
 		else:
 			track = self.tracks[key]
 		
@@ -314,7 +314,18 @@ class Map:
 		
 	def remove_track(self, key):
 		if key in self.tracks:
-			self.osm.track_remove(self.tracks[key])
+			self.hide_track(key)
+			del self.tracks[key]
+		
+	def hide_track(self, key):
+		if key not in self.tracks:
+			return
+		self.osm.track_remove(self.tracks[key])
+		
+	def show_track(self, key):
+		if key not in self.tracks:
+			return
+		self.osm.track_add(self.tracks[key])
 		
 	def stop_moving(self):
 		self.osm.set_property("auto-center", False)

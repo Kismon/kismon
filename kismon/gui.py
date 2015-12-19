@@ -428,6 +428,13 @@ class MainWindow(KismonWindows):
 		self.gps_expanders[server_id] = gps_expander
 		self.init_gps_table(server_id)
 		
+		track_expander = Gtk.Expander()
+		track_expander.set_label("GPS Track")
+		table = self.init_track_table(server_id)
+		track_expander.add(table)
+		right_table.attach(track_expander, 0, 1, row, row+1, yoptions=Gtk.AttachOptions.SHRINK)
+		row += 1
+		
 		sources_expander = Gtk.Expander()
 		sources_expander.set_label("Sources")
 		sources_expander.set_expanded(True)
@@ -534,6 +541,24 @@ class MainWindow(KismonWindows):
 		self.gps_table_fix[server_id].set_text("%s" % data["fix"])
 		self.gps_table_lat[server_id].set_text("%s" % data["lat"])
 		self.gps_table_lon[server_id].set_text("%s" % data["lon"])
+		
+	def init_track_table(self, server_id):
+		table = Gtk.Table(n_rows=3, n_columns=2)
+		row = 0
+		
+		hbox = Gtk.HBox()
+		switch = Gtk.Switch()
+		switch.connect("notify::active", self.on_track_switch, server_id)
+		switch.set_active(True)
+		table.attach(switch, 0, 1, row, row+1)
+		
+		button = Gtk.Button(label='Reset')
+		button.connect('clicked', self.on_track_reset_clicked, server_id)
+		table.attach(button, 1, 2, row, row+1)
+		row += 1
+		
+		table.show_all()
+		return table
 		
 	def init_sources_table(self, server_id, sources):
 		self.sources_table_sources[server_id] = {}
@@ -795,6 +820,15 @@ class MainWindow(KismonWindows):
 		
 	def on_channel_config(self, widget, server_id):
 		win = ChannelWindow(self.sources[server_id], self.client_threads[server_id])
+		
+	def on_track_switch(self, widget, data, server_id):
+		if widget.get_active():
+			self.map.show_track(server_id)
+		else:
+			self.map.hide_track(server_id)
+		
+	def on_track_reset_clicked(self, widget, server_id):
+		self.map.remove_track(server_id)
 		
 class LogList:
 	def __init__(self, config):
