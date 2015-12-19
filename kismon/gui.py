@@ -140,8 +140,7 @@ class MainWindow(KismonWindows):
 		self.info_expanders = {}
 		self.gps_expanders = {}
 		self.sources_expanders = {}
-		self.info_table_networks = {}
-		self.info_table_packets = {}
+		self.info_table = {}
 		self.gps_table_fix = {}
 		self.gps_table_lat = {}
 		self.gps_table_lon = {}
@@ -448,6 +447,7 @@ class MainWindow(KismonWindows):
 		right_scrolled.show_all()
 		
 	def init_info_table(self, server_id):
+		self.info_table[server_id] = {}
 		table = Gtk.Table(n_rows=4, n_columns=2)
 		row = 0
 		
@@ -458,6 +458,7 @@ class MainWindow(KismonWindows):
 		value_label = Gtk.Label(label="%s" % server_host)
 		value_label.set_alignment(xalign=0, yalign=0)
 		table.attach(value_label, 1, 2, row, row+1)
+		self.info_table[server_id]['host'] = value_label
 		row += 1
 		
 		label = Gtk.Label(label="Port: ")
@@ -466,6 +467,7 @@ class MainWindow(KismonWindows):
 		value_label = Gtk.Label(label="%s" % server_port)
 		value_label.set_alignment(xalign=0, yalign=0)
 		table.attach(value_label, 1, 2, row, row+1)
+		self.info_table[server_id]['port'] = value_label
 		row += 1
 		
 		networks_label = Gtk.Label(label="Networks: ")
@@ -475,7 +477,7 @@ class MainWindow(KismonWindows):
 		networks_value_label = Gtk.Label()
 		networks_value_label.set_alignment(xalign=0, yalign=0)
 		table.attach(networks_value_label, 1, 2, row, row+1)
-		self.info_table_networks[server_id] = networks_value_label
+		self.info_table[server_id]['networks'] = networks_value_label
 		row += 1
 		
 		packets_label = Gtk.Label(label="Packets: ")
@@ -485,16 +487,15 @@ class MainWindow(KismonWindows):
 		packets_value_label = Gtk.Label()
 		packets_value_label.set_alignment(xalign=0, yalign=0)
 		table.attach(packets_value_label, 1, 2, row, row+1)
-		self.info_table_packets[server_id] = packets_value_label
+		self.info_table[server_id]['packets'] = packets_value_label
 		row += 1
 		
 		table.show_all()
-		self.info_table = table
-		self.info_expanders[server_id].add(self.info_table)
+		self.info_expanders[server_id].add(table)
 		
 	def update_info_table(self, server_id, data):
-		self.info_table_networks[server_id].set_text("%s" % data["networks"])
-		self.info_table_packets[server_id].set_text("%s" % data["packets"])
+		self.info_table[server_id]['networks'].set_text("%s" % data["networks"])
+		self.info_table[server_id]['packets'].set_text("%s" % data["packets"])
 	
 	def init_gps_table(self, server_id):
 		table = Gtk.Table(n_rows=3, n_columns=2)
@@ -604,6 +605,9 @@ class MainWindow(KismonWindows):
 		dialog.destroy()
 		self.config["kismet"]["servers"][server_id] = server
 		self.on_server_connect(None, server_id, True)
+		host, port = server.split(':')
+		self.info_table[server_id]['host'].set_text(host)
+		self.info_table[server_id]['port'].set_text(port)
 		
 	def on_server_connect(self, widget, server_id, force_connect=False):
 		if self.client_threads[server_id].is_running and not force_connect:
