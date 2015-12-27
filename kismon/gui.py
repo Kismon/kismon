@@ -147,6 +147,7 @@ class MainWindow(KismonWindows):
 		self.sources_table_sources = {}
 		self.sources_tables = {}
 		self.server_switches = {}
+		self.server_tabs = {}
 		for server_id in self.client_threads:
 			self.init_server_tab(server_id)
 		
@@ -387,30 +388,18 @@ class MainWindow(KismonWindows):
 		right_scrolled.add(right_table)
 		right_scrolled.set_size_request(160, -1)
 		right_scrolled.get_children()[0].set_shadow_type(Gtk.ShadowType.NONE)
+		self.server_tabs[server_id] = right_scrolled
 		self.server_notebook.append_page(right_scrolled)
 		self.server_notebook.set_tab_label_text(right_scrolled, "%s" % (server_id + 1))
 		row = 0
 		
-		hbox = Gtk.HBox()
-		switch = Gtk.Switch()
-		switch.connect("notify::active", self.on_server_switch, server_id)
-		hbox.add(switch)
-		self.server_switches[server_id] = switch
-		
-		image = Gtk.Image.new_from_icon_name(Gtk.STOCK_EDIT, size=Gtk.IconSize.MENU)
-		button = Gtk.Button(image=image)
-		button.connect("clicked", self.on_server_edit, server_id)
-		button.set_tooltip_text('Edit connection')
-		hbox.add(button)
-		right_table.attach(hbox, 0, 1, row, row+1, yoptions=Gtk.AttachOptions.SHRINK)
-		switch.set_active(True)
+		connection_expander = Gtk.Expander()
+		connection_expander.set_label("Connection")
+		connection_expander.set_expanded(True)
+		right_table.attach(connection_expander, 0, 1, row, row+1, yoptions=Gtk.AttachOptions.SHRINK)
+		connection_table = self.init_connection_table(server_id)
+		connection_expander.add(connection_table)
 		row += 1
-		
-		image = Gtk.Image.new_from_icon_name(Gtk.STOCK_REMOVE, size=Gtk.IconSize.MENU)
-		button = Gtk.Button(image=image)
-		button.set_tooltip_text('Remove server')
-		button.connect("clicked", self.on_server_remove_clicked, server_id)
-		hbox.add(button)
 		
 		info_expander = Gtk.Expander()
 		info_expander.set_label("Infos")
@@ -445,6 +434,36 @@ class MainWindow(KismonWindows):
 		self.sources_tables[server_id] = None
 		self.sources_table_sources[server_id] = {}
 		right_scrolled.show_all()
+		
+	def init_connection_table(self, server_id):
+		table = Gtk.Table(n_rows=4, n_columns=2)
+		row = 0
+		
+		label = Gtk.Label('Active:')
+		label.set_alignment(xalign=0, yalign=0)
+		table.attach(label, 0, 1, row, row+1)
+		
+		switch = Gtk.Switch()
+		switch.connect("notify::active", self.on_server_switch, server_id)
+		table.attach(switch, 1, 2, row, row+1)
+		self.server_switches[server_id] = switch
+		row += 1
+		
+		image = Gtk.Image.new_from_icon_name(Gtk.STOCK_EDIT, size=Gtk.IconSize.MENU)
+		button = Gtk.Button(label='Edit', image=image)
+		button.connect("clicked", self.on_server_edit, server_id)
+		button.set_tooltip_text('Edit connection')
+		table.attach(button, 0, 1, row, row+1)
+		switch.set_active(True)
+		
+		image = Gtk.Image.new_from_icon_name(Gtk.STOCK_REMOVE, size=Gtk.IconSize.MENU)
+		button = Gtk.Button(label='Remove')
+		button.set_tooltip_text('Remove server')
+		button.connect("clicked", self.on_server_remove_clicked, server_id)
+		table.attach(button, 1, 2, row, row+1)
+		row += 1
+		
+		return table
 		
 	def init_info_table(self, server_id):
 		self.info_table[server_id] = {}
@@ -645,30 +664,33 @@ class MainWindow(KismonWindows):
 	def on_server_switch(self, widget, data, server_id):
 		if widget.get_active():
 			self.on_server_connect(None, server_id)
-			state = 'on'
+			state = 'connected'
 			icon = Gtk.STOCK_CONNECT
+			widget.set_tooltip_text('Disconnect')
 		else:
 			self.on_server_disconnect(None, server_id)
-			state = 'off'
+			state = 'disconnected'
 			icon = Gtk.STOCK_DISCONNECT
+			widget.set_tooltip_text('Connect')
 		
-		self.set_server_tab_label(server_id, icon)
+		self.set_server_tab_label(server_id, icon, "Server %s %s" %((server_id+1), state))
 		
-	def set_server_tab_label(self, server_id, icon):
-		table = self.get_server_table(server_id)
+	def set_server_tab_label(self, server_id, icon, tooltip):
+		table = self.get_server_tab(server_id)
 		hbox = Gtk.HBox()
 		label = Gtk.Label()
 		image = Gtk.Image.new_from_icon_name(icon, Gtk.IconSize.MENU)
+		image.set_tooltip_text(tooltip)
 		hbox.add(label)
 		hbox.add(image)
 		hbox.show_all()
 		label.set_text("%s " % (server_id + 1))
+		label.set_tooltip_text(tooltip)
 		notebook = table.get_parent()
 		notebook.set_tab_label(table, hbox)
 		
-	def get_server_table(self, server_id):
-		# HBox -> Table -> Viewport -> ScrolledWindow
-		return self.server_switches[server_id].get_parent().get_parent().get_parent().get_parent()
+	def get_server_tab(self, server_id):
+		return self.server_tabs[server_id]
 		
 	def on_server_remove_clicked(self, widget, server_id):
 		if self.server_notebook.get_n_pages() == 1:
@@ -683,7 +705,7 @@ class MainWindow(KismonWindows):
 			dialog.destroy()
 			return
 		
-		table = self.get_server_table(server_id)
+		table = self.get_server_tab(server_id)
 		page_num = self.server_notebook.page_num(table)
 		self.server_notebook.remove_page(page_num)
 		self.client_stop(server_id)
