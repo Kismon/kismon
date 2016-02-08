@@ -73,6 +73,7 @@ class Config:
 				"none": True,
 				"wep": True,
 				"wpa": True,
+				"wpa2": True,
 				"other": True,
 				},
 			"filter_regexpr": {

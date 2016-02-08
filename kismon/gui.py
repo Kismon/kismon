@@ -271,7 +271,7 @@ class MainWindow(KismonWindows):
 		crypt_menuitem.set_submenu(crypt_menu)
 		view_menu.append(crypt_menuitem)
 		
-		for crypt in ("None", "WEP", "WPA", "Other"):
+		for crypt in ("None", "WEP", "WPA", "WPA2", "Other"):
 			crypt_item = Gtk.CheckMenuItem.new_with_label(crypt)
 			if self.config["filter_crypt"][crypt.lower()]:
 				crypt_item.set_active(True)

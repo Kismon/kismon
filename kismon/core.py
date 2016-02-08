@@ -293,10 +293,12 @@ Last seen: %s"""
 			crypt = decode_cryptset(network["cryptset"], True)
 			self.crypt_cache[network["cryptset"]] = crypt
 		
-		if "WPA" in crypt:
+		if "AES_CCM" in crypt or "AES_OCB" in crypt:
 			color = "red"
-		elif "WEP" in crypt:
+		elif "WPA" in crypt:
 			color = "orange"
+		elif "WEP" in crypt:
+			color = "yellow"
 		else:
 			color = "green"
 		
