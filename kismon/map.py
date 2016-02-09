@@ -114,6 +114,8 @@ class Map:
 		if color == "red":
 			ctx.set_source_rgb(1, 0, 0)
 		elif color == "orange":
+			ctx.set_source_rgb(1, 0.5, 0)
+		elif color == "yellow":
 			ctx.set_source_rgb(1, 1, 0)
 		elif color == "gray":
 			num = 1/255*190
@@ -157,6 +159,7 @@ class Map:
 	def create_dots(self):
 		self.create_dot("red")
 		self.create_dot("orange")
+		self.create_dot("yellow")
 		self.create_dot("green")
 		self.create_dot("crosshair", color='black', size=32)
 		for number in range(1,9):

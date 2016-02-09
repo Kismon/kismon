@@ -156,6 +156,8 @@ class Networks:
 		crypts = decode_cryptset(network["cryptset"])
 		if crypts == ["none"]:
 			crypt = "none"
+		elif "aes_ccm" in crypts or "aes_ocb" in crypts:
+			crypt = "wpa2"
 		elif "wpa" in crypts:
 			crypt = "wpa"
 		elif "wep" in crypts:
@@ -492,7 +494,7 @@ class Networks:
 <Folder>
 <name>%s: %s APs</name>
 <Style id="%s"><IconStyle><scale>0.5</scale>
-<Icon>")
+<Icon>
 <href>http://files.salecker.org/kismon/images/%s.gif</href>
 </Icon></IconStyle></Style>
 %s
@@ -505,11 +507,13 @@ class Networks:
 		data.append("<name>Kismon</name>\r\n")
 		data.append("<open>1</open>")
 		
-		count = {"WPA":0, "WEP":0, "None":0, "Other":0}
+		count = {"WPA2":0, "WPA":0, "WEP":0, "None":0, "Other":0}
 		folders = self.export_networks_kmz_folders(count, networks)
-		
-		for crypt in ("WPA", "WEP", "None", "Other"):
-			if crypt == "WPA":
+
+		for crypt in ("WPA2", "WPA", "WEP", "None", "Other"):
+			if crypt == "WPA2":
+				pic = "WPA2"
+			elif crypt == "WPA":
 				pic = "WPA"
 			elif crypt == "WEP":
 				pic = "WEP"
@@ -543,8 +547,8 @@ Encryption: <FONT color=%s>%s</FONT><br />
 Last time: %s<br />
 GPS: %s,%s]]></description></Placemark>"""
 		
-		folders = {"WPA":[], "WEP":[], "None":[], "Other":[]}
-		colors = {"WPA":"red", "WEP":"orange", "None":"green", "Other":"grey"}
+		folders = {"WPA2":[], "WPA":[], "WEP":[], "None":[], "Other":[]}
+		colors = {"WPA2":"red", "WPA":"orange", "WEP":"yellow", "None":"green", "Other":"grey"}
 		for mac in networks:
 			network = self.networks[mac]
 			if network["lat"] == 0 and network["lon"] == 0:
@@ -553,12 +557,12 @@ GPS: %s,%s]]></description></Placemark>"""
 			ssid = network["ssid"].replace("<","&lt;").replace(">","&gt;").replace("&","&amp;")
 			
 			crypts = decode_cryptset(network["cryptset"])
+
 			crypt = "Other"
-			for c in crypts:
-				if c.startswith("wpa"):
-					crypt = "WPA"
-			if crypt != "Other":
-				pass
+			if "aes_ccm" in crypts or "aes_ocb" in crypts:
+				crypt = "WPA2"
+			elif "wpa" in crypts:
+				crypt = "WPA"
 			elif "wep" in crypts:
 				crypt = "WEP"
 			elif "none" in crypts:
