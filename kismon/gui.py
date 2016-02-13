@@ -382,7 +382,7 @@ class MainWindow(KismonWindows):
 		self.progress_bar_win = None
 		
 	def init_server_tab(self, server_id):
-		right_table = Gtk.Table(n_rows=3, n_columns=1)
+		right_table = Gtk.VBox()
 		right_scrolled = Gtk.ScrolledWindow()
 		right_scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
 		right_scrolled.add(right_table)
@@ -394,17 +394,17 @@ class MainWindow(KismonWindows):
 		row = 0
 		
 		connection_expander = Gtk.Expander()
-		connection_expander.set_label("Connection")
+		connection_expander.set_label("Control")
 		connection_expander.set_expanded(True)
-		right_table.attach(connection_expander, 0, 1, row, row+1, yoptions=Gtk.AttachOptions.SHRINK)
-		connection_table = self.init_connection_table(server_id)
+		right_table.pack_start(connection_expander, False, False, 0)
+		connection_table = self.init_control_table(server_id)
 		connection_expander.add(connection_table)
 		row += 1
 		
 		info_expander = Gtk.Expander()
 		info_expander.set_label("Infos")
 		info_expander.set_expanded(True)
-		right_table.attach(info_expander, 0, 1, row, row+1, yoptions=Gtk.AttachOptions.SHRINK)
+		right_table.pack_start(info_expander, False, False, 0)
 		row += 1
 		self.info_expanders[server_id] = info_expander
 		self.init_info_table(server_id)
@@ -412,7 +412,7 @@ class MainWindow(KismonWindows):
 		gps_expander = Gtk.Expander()
 		gps_expander.set_label("GPS Data")
 		gps_expander.set_expanded(True)
-		right_table.attach(gps_expander, 0, 1, row, row+1, yoptions=Gtk.AttachOptions.SHRINK)
+		right_table.pack_start(gps_expander, False, False, 0)
 		row += 1
 		self.gps_expanders[server_id] = gps_expander
 		self.init_gps_table(server_id)
@@ -422,45 +422,60 @@ class MainWindow(KismonWindows):
 			track_expander.set_label("GPS Track")
 			table = self.init_track_table(server_id)
 			track_expander.add(table)
-			right_table.attach(track_expander, 0, 1, row, row+1, yoptions=Gtk.AttachOptions.SHRINK)
+			right_table.pack_start(track_expander, False, False, 0)
 			row += 1
 		
 		sources_expander = Gtk.Expander()
 		sources_expander.set_label("Sources")
 		sources_expander.set_expanded(True)
-		right_table.attach(sources_expander, 0, 1, row, row+1, yoptions=Gtk.AttachOptions.SHRINK)
+		right_table.pack_start(sources_expander, False, False, 0)
 		row += 1
 		self.sources_expanders[server_id] = sources_expander
 		self.sources_tables[server_id] = None
 		self.sources_table_sources[server_id] = {}
 		right_scrolled.show_all()
 		
-	def init_connection_table(self, server_id):
+	def init_control_table(self, server_id):
 		table = Gtk.Table(n_rows=4, n_columns=2)
 		row = 0
 		
 		label = Gtk.Label('Active:')
-		label.set_alignment(xalign=0, yalign=0)
+		label.set_alignment(xalign=0, yalign=0.5)
 		table.attach(label, 0, 1, row, row+1)
 		
-		switch = Gtk.Switch()
-		switch.connect("notify::active", self.on_server_switch, server_id)
-		table.attach(switch, 1, 2, row, row+1)
-		self.server_switches[server_id] = switch
+		checkbutton = Gtk.CheckButton()
+		checkbutton.connect("toggled", self.on_server_switch, server_id)
+		table.attach(checkbutton, 1, 2, row, row+1)
+		self.server_switches[server_id] = checkbutton
+		checkbutton.set_active(True)
 		row += 1
 		
+		box = Gtk.Box()
+		label = Gtk.Label('Edit:')
+		label.set_alignment(xalign=0, yalign=0.5)
+		box.pack_start(label, True, True, 0)
+		table.attach(box, 0, 1, row, row+1)
+		
+		box = Gtk.Box()
 		image = Gtk.Image.new_from_icon_name(Gtk.STOCK_EDIT, size=Gtk.IconSize.MENU)
-		button = Gtk.Button(label='Edit', image=image)
+		button = Gtk.Button(image=image)
 		button.connect("clicked", self.on_server_edit, server_id)
 		button.set_tooltip_text('Edit connection')
-		table.attach(button, 0, 1, row, row+1)
-		switch.set_active(True)
+		box.pack_start(button, False, False, 0)
+		table.attach(box, 1, 2, row, row+1)
+		row += 1
 		
+		label = Gtk.Label('Remove:')
+		label.set_alignment(xalign=0, yalign=0.5)
+		table.attach(label, 0, 1, row, row+1)
+		
+		box = Gtk.Box()
 		image = Gtk.Image.new_from_icon_name(Gtk.STOCK_REMOVE, size=Gtk.IconSize.MENU)
-		button = Gtk.Button(label='Remove')
+		button = Gtk.Button(image=image)
 		button.set_tooltip_text('Remove server')
 		button.connect("clicked", self.on_server_remove_clicked, server_id)
-		table.attach(button, 1, 2, row, row+1)
+		box.pack_start(button, False, False, 0)
+		table.attach(box, 1, 2, row, row+1)
 		row += 1
 		
 		return table
@@ -563,18 +578,29 @@ class MainWindow(KismonWindows):
 		self.gps_table_lon[server_id].set_text("%s" % data["lon"])
 		
 	def init_track_table(self, server_id):
-		table = Gtk.Table(n_rows=3, n_columns=2)
+		table = Gtk.Table(n_rows=2, n_columns=2)
 		row = 0
 		
-		hbox = Gtk.HBox()
-		switch = Gtk.Switch()
-		switch.connect("notify::active", self.on_track_switch, server_id)
-		switch.set_active(True)
-		table.attach(switch, 0, 1, row, row+1)
+		label = Gtk.Label('Show:')
+		label.set_alignment(xalign=0, yalign=0.5)
+		table.attach(label, 0, 1, row, row+1)
 		
-		button = Gtk.Button(label='Reset')
+		checkbutton = Gtk.CheckButton()
+		checkbutton.connect("toggled", self.on_track_switch, server_id)
+		checkbutton.set_active(True)
+		table.attach(checkbutton, 1, 2, row, row+1)
+		row += 1
+		
+		label = Gtk.Label('Reset:')
+		label.set_alignment(xalign=0, yalign=0.5)
+		table.attach(label, 0, 1, row, row+1)
+		
+		box = Gtk.Box()
+		image = Gtk.Image.new_from_icon_name(Gtk.STOCK_CANCEL, size=Gtk.IconSize.MENU)
+		button = Gtk.Button(image=image)
 		button.connect('clicked', self.on_track_reset_clicked, server_id)
-		table.attach(button, 1, 2, row, row+1)
+		box.pack_start(button, False, False, 0)
+		table.attach(box, 1, 2, row, row+1)
 		row += 1
 		
 		table.show_all()
@@ -661,7 +687,7 @@ class MainWindow(KismonWindows):
 			return
 		self.client_stop(server_id)
 		
-	def on_server_switch(self, widget, data, server_id):
+	def on_server_switch(self, widget, server_id):
 		if widget.get_active():
 			self.on_server_connect(None, server_id)
 			state = 'connected'
@@ -844,7 +870,7 @@ class MainWindow(KismonWindows):
 	def on_channel_config(self, widget, server_id):
 		win = ChannelWindow(self.sources[server_id], self.client_threads[server_id])
 		
-	def on_track_switch(self, widget, data, server_id):
+	def on_track_switch(self, widget, server_id):
 		if widget.get_active():
 			self.map.show_track(server_id)
 		else:
