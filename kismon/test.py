@@ -270,9 +270,14 @@ class TestKismon(unittest.TestCase):
 			from .config import Config
 		except SystemError:
 			from config import Config
-		conf=Config(tempfile.gettempdir() + os.sep + "testconfig.conf")
+		config_file = tempfile.gettempdir() + os.sep + "testconfig.conf"
+		conf=Config(config_file)
 		conf.read()
+		conf.config['emtyp-section'] = []
+		conf.config['kismet']['old-entry'] = 1
 		conf.write()
+		conf.read()
+		conf=Config(config_file)
 		conf.read()
 		conf.show()
 	
@@ -362,15 +367,22 @@ class TestKismon(unittest.TestCase):
 	def test_gui_channel_window(self):
 		try:
 			from .gui import ChannelWindow
+			from .client import ClientThread
 		except SystemError:
 			from gui import ChannelWindow
-		sources = {"123":{"uuid": "123","hop": 3, "username": "123", "velocity": 3}}
-		channel_window = ChannelWindow(sources, None)
+			from client import ClientThread
+		sources = {
+			"123":{"uuid": "123","hop": 3, "username": "wlan0", "velocity": 3, "channel": 1},
+			"234":{"uuid": "234","hop": 0, "username": "wlan1", "velocity": 3, "channel": 6}
+		}
+		client_thread = ClientThread()
+		channel_window = ChannelWindow(sources, client_thread)
 		test_widget = TestWidget()
 		channel_window.on_change_mode(test_widget, "123", "hop")
 		channel_window.on_change_mode(test_widget, "123", "lock")
 		channel_window.on_change_value(None, "123", "hop")
 		channel_window.on_cancel(None)
+		channel_window.on_apply(None)
 	
 	@unittest.skipUnless(gi_available, "gi module not available")
 	def test_gui_map_window(self):
@@ -397,11 +409,20 @@ class TestKismon(unittest.TestCase):
 			from gui import SignalWindow
 		def destroy(obj, window):
 			return
-		signal_window = SignalWindow("11:22:33:44:55:66", destroy)
-		signal_window.add_value(None, None, -30)
-		signal_window.add_value(None, None, -31)
 		surface = cairo.ImageSurface(cairo.FORMAT_RGB24, 600, 400)
 		ctx = cairo.Context(surface)
+		signal_window = SignalWindow("11:22:33:44:55:66", destroy)
+		signal_window.on_draw_event(None, ctx)
+		signal_window.history[-1] = {}
+		bssid_src = {"numpackets": 1 }
+		signal_window.add_value(None, None, -30, 0)
+		signal_window.add_value(None, bssid_src, -30, 1)
+		time.sleep(1)
+		signal_window.add_value(None, None, -31, 0)
+		signal_window.add_value(None, bssid_src, -30, 1)
+		time.sleep(1)
+		signal_window.add_value(None, None, -32, 0)
+		signal_window.add_value(None, bssid_src, -30, 1)
 		signal_window.draw_graph(600, 400, ctx)
 		now = int(time.time())
 		for signal in (-50, -60, -70, -80, -50):
@@ -410,7 +431,14 @@ class TestKismon(unittest.TestCase):
 			signal_window.history[now]["test"] = (signal, signal * -1)
 		signal_window.draw_graph(600, 400, ctx)
 		signal_window.on_draw_event(None, ctx)
+		test_widget = TestWidget()
+		signal_window.on_graph_type(test_widget, "signal")
 		signal_window.on_draw_event(None, ctx)
+		signal_window.on_graph_type(test_widget, "packets")
+		signal_window.on_draw_event(None, ctx)
+		test_widget.active = False
+		signal_window.on_graph_type(test_widget, "signal")
+		signal_window.on_graph_type(test_widget, "packets")
 	
 	@unittest.skipUnless(gi_available, "gi module not available")
 	def test_map(self):

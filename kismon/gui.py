@@ -439,7 +439,7 @@ class MainWindow(KismonWindows):
 		table = Gtk.Table(n_rows=4, n_columns=2)
 		row = 0
 		
-		label = Gtk.Label('Active:')
+		label = Gtk.Label(label='Active:')
 		label.set_alignment(xalign=0, yalign=0.5)
 		table.attach(label, 0, 1, row, row+1)
 		
@@ -451,7 +451,7 @@ class MainWindow(KismonWindows):
 		row += 1
 		
 		box = Gtk.Box()
-		label = Gtk.Label('Edit:')
+		label = Gtk.Label(label='Edit:')
 		label.set_alignment(xalign=0, yalign=0.5)
 		box.pack_start(label, True, True, 0)
 		table.attach(box, 0, 1, row, row+1)
@@ -465,7 +465,7 @@ class MainWindow(KismonWindows):
 		table.attach(box, 1, 2, row, row+1)
 		row += 1
 		
-		label = Gtk.Label('Remove:')
+		label = Gtk.Label(label='Remove:')
 		label.set_alignment(xalign=0, yalign=0.5)
 		table.attach(label, 0, 1, row, row+1)
 		
@@ -581,7 +581,7 @@ class MainWindow(KismonWindows):
 		table = Gtk.Table(n_rows=2, n_columns=2)
 		row = 0
 		
-		label = Gtk.Label('Show:')
+		label = Gtk.Label(label='Show:')
 		label.set_alignment(xalign=0, yalign=0.5)
 		table.attach(label, 0, 1, row, row+1)
 		
@@ -591,7 +591,7 @@ class MainWindow(KismonWindows):
 		table.attach(checkbutton, 1, 2, row, row+1)
 		row += 1
 		
-		label = Gtk.Label('Reset:')
+		label = Gtk.Label(label='Reset:')
 		label.set_alignment(xalign=0, yalign=0.5)
 		table.attach(label, 0, 1, row, row+1)
 		
