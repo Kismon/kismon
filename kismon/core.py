@@ -251,18 +251,18 @@ Last seen: %s"""
 			mac = data["bssid"]
 			self.networks.add_bssid_data(data, server_id)
 			if mac in self.main_window.signal_graphs and "signal_dbm" not in thread.client.capabilities["bssidsrc"]:
-				self.main_window.signal_graphs[mac].add_value(None, None, data["signal_dbm"])
+				self.main_window.signal_graphs[mac].add_value(None, None, data["signal_dbm"], server_id)
 			
 			bssids[mac] = True
 			
 		#bssidsrc
 		for data in thread.get_queue("bssidsrc"):
-			if "signal_dbm" not in data or data["uuid"] not in self.sources:
+			if "signal_dbm" not in data or data["uuid"] not in self.sources[server_id]:
 				continue
 			
 			mac = data["bssid"]
 			if mac in self.main_window.signal_graphs:
-				self.main_window.signal_graphs[mac].add_value(self.sources[data["uuid"]], data, data["signal_dbm"])
+				self.main_window.signal_graphs[mac].add_value(self.sources[server_id][data["uuid"]], data, data["signal_dbm"], server_id)
 		
 		if len(self.networks.notify_add_queue) > 0:
 			self.networks.start_queue()

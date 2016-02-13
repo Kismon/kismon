@@ -49,12 +49,12 @@ class SignalWindow:
 		cell = Gtk.CellRendererText()
 		tvcolumn.pack_start(cell, True)
 		cell.set_property('background-set' , True)
-		tvcolumn.set_attributes(cell,text=0, background=8)
+		tvcolumn.set_attributes(cell,text=0, background=9)
 		
 		self.sources_list.append_column(tvcolumn)
 		
 		num=1
-		for column in ("Name", "Type", "Signal (dbm)", "Min", "Max", "Packets/sec", "Packets"):
+		for column in ("Name", "Type", "Signal (dbm)", "Min", "Max", "Packets/sec", "Packets", "Server"):
 			tvcolumn = Gtk.TreeViewColumn(column)
 			self.sources_list.append_column(tvcolumn)
 			cell = Gtk.CellRendererText()
@@ -71,6 +71,7 @@ class SignalWindow:
 			GObject.TYPE_INT,
 			GObject.TYPE_INT,
 			GObject.TYPE_INT,
+			GObject.TYPE_INT, # server
 			GObject.TYPE_STRING, # bg color
 			)
 		self.sources_list.set_model(self.sources_list_store)
@@ -105,7 +106,7 @@ class SignalWindow:
 			
 			line = ['#' , source["username"], source["type"],
 				source["signal"], source["signal_min"], source["signal_max"],
-				source["pps"], source["packets"], self.get_color(uuid, hex=True)]
+				source["pps"], source["packets"], source["server"], self.get_color(uuid, hex=True)]
 			if "iter" in source:
 				source_iter = source["iter"]
 				num = 0
@@ -240,13 +241,16 @@ class SignalWindow:
 		
 		return color
 		
-	def add_value(self, source_data, bssidsrc, value):
+	def add_value(self, source_data, bssidsrc, value, server_id):
 		if source_data is None:
 			source_data = {"username": "signal", "type": "all", "uuid": "all"}
-		if source_data["uuid"] not in self.sources:
-			self.sources[source_data["uuid"]] = source_data
+		
+		uuid = "%i-%s" % (server_id, source_data["uuid"])
+		if uuid not in self.sources:
+			self.sources[uuid] = source_data
 			source = source_data
 			source["number"] = len(self.sources) - 1
+			source["server"] = server_id+1
 			source["signal"] = value
 			source["signal_min"] = value
 			source["signal_max"] = value
@@ -257,7 +261,7 @@ class SignalWindow:
 				source["packets"] = bssidsrc["numpackets"]
 				source["pps"] = 0
 		else:
-			source = self.sources[source_data["uuid"]]
+			source = self.sources[uuid]
 			source["signal"] = value
 			source["signal_min"] = min(value, source["signal_min"])
 			source["signal_max"] = max(value, source["signal_max"])
@@ -268,5 +272,5 @@ class SignalWindow:
 		sec = int(time.time())
 		if sec not in self.history:
 			self.history[sec] = {}
-		self.history[sec][source["uuid"]] = (value, source["pps"])
+		self.history[sec][uuid] = (value, source["pps"])
 		self.graph.queue_draw()
