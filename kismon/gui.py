@@ -84,15 +84,15 @@ class MainWindow(KismonWindows):
 		self.map = map
 		
 		if map is not None:
-			locate_marker = map.locate_marker
+			self.locate_marker = map.locate_marker
 		else:
-			locate_marker = None
+			self.locate_marker = None
 		
 		self.export_networks = {}
 		self.networks.notify_add_list["export"] = self.export_add_network
 		self.networks.notify_remove_list["export"] = self.export_remove_network
 		
-		self.network_list = NetworkList(self.networks, locate_marker, self.on_signal_graph)
+		self.network_list = NetworkList(self.networks, self.locate_marker, self.on_signal_graph)
 		
 		self.gtkwin.set_title("Kismon")
 		self.gtkwin.connect("window-state-event", self.on_window_state)
@@ -603,6 +603,18 @@ class MainWindow(KismonWindows):
 		table.attach(box, 1, 2, row, row+1)
 		row += 1
 		
+		label = Gtk.Label(label='Jump to:')
+		label.set_alignment(xalign=0, yalign=0.5)
+		table.attach(label, 0, 1, row, row+1)
+		
+		box = Gtk.Box()
+		image = Gtk.Image.new_from_icon_name(Gtk.STOCK_HOME, size=Gtk.IconSize.MENU)
+		button = Gtk.Button(image=image)
+		button.connect('clicked', self.on_server_locate_clicked, server_id)
+		box.pack_start(button, False, False, 0)
+		table.attach(box, 1, 2, row, row+1)
+		row += 1
+		
 		table.show_all()
 		return table
 		
@@ -700,6 +712,16 @@ class MainWindow(KismonWindows):
 			widget.set_tooltip_text('Connect')
 		
 		self.set_server_tab_label(server_id, icon, "Server %s %s" %((server_id+1), state))
+		
+	def on_server_locate_clicked(self, widget, server_id):
+		if not self.map:
+			return
+		
+		if server_id == 0:
+			self.map.start_moving()
+		else:
+			server = "server%s" % (server_id + 1)
+			self.locate_marker(server)
 		
 	def set_server_tab_label(self, server_id, icon, tooltip):
 		table = self.get_server_tab(server_id)
