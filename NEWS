@@ -1,9 +1,11 @@
-kismon 0.8 (2015-?-?)
+kismon 0.8 (2016-02-?)
 ===============================
 
 Changes:
+* Kismon can now connect to multiple kismet servers
 * Comment column added to the network list
 * Clipboard function added to the network list
+* Support for WPA2 (thanks to krzotr)
 
 kismon 0.7 (2015-06-28)
 ===============================
@@ -12,7 +14,7 @@ Changes:
 * Migrating to pyGObject Introspection and Gtk3
 * Migrating to Python 3
 
-kismon 0.6 (2011-06-03)
+kismon 0.6 (2012-06-03)
 ===============================
 
 Changes:
