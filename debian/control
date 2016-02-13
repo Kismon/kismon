@@ -2,7 +2,7 @@ Source: kismon
 Section: net
 Priority: extra
 Maintainer: Patrick Salecker <mail@salecker.org>
-Homepage: http://www.salecker.org/software/kismon/en
+Homepage: https://www.salecker.org/software/kismon.html
 Vcs-Git: https://github.com/Kismon/kismon.git
 Vcs-Browser: https://github.com/Kismon/kismon
 Build-Depends: debhelper (>= 7), python3, dh-python
