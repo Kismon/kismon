@@ -68,6 +68,10 @@ class Networks:
 		return self.networks[mac]
 		
 	def save(self, filename, notify=None):
+		if self.queue_running:
+			print("Cannot save networks - queue is running")
+			return True
+
 		msg = "saving %s networks to %s" % (len(self.networks), filename)
 		print(msg)
 		if notify is not None:
@@ -136,6 +140,9 @@ class Networks:
 		
 	def load(self, filename):
 		f = open(filename)
+
+		print("Loading networks.json. Please wait.")
+
 		self.networks = json.load(f)
 		for network in self.networks:
 			if 'comment' not in self.networks[network]:
@@ -143,7 +150,9 @@ class Networks:
 			if 'servers' not in self.networks[network]:
 				self.networks[network]['servers'] = []
 		f.close()
-		
+
+		print("Total networks %d" % (len(self.networks)))
+
 	def apply_filters(self):
 		self.stop_queue()
 		self.apply_filters_on_networks()
@@ -228,7 +237,7 @@ class Networks:
 				
 				counter += 1
 				if time.time()-start_time > 0.9:
-					print("%s networks added in %ssec, %s networks left" % (counter, round(time.time()-start_time,3), len(self.notify_add_queue)))
+					print("%s networks added in %.1fsec, %s networks left" % (counter, round(time.time()-start_time,3), len(self.notify_add_queue)))
 					yield True
 					start_time = time.time()
 					counter = 0
