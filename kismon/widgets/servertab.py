@@ -308,8 +308,8 @@ class ServerTab():
 			sources_table_source["Channel"].set_text("%s" % source["channel"])
 			sources_table_source["Packets"].set_text("%s" % source["packets"])
 		
-	def set_active(self):
-		self.server_switch.set_active(True)
+	def set_active(self, active=True):
+		self.server_switch.set_active(active)
 		
 	def on_server_edit(self, widget):
 		dialog = Gtk.Dialog("Connect")
@@ -322,10 +322,14 @@ class ServerTab():
 		server = entry.get_text()
 		dialog.destroy()
 		self.config["kismet"]["servers"][self.server_id] = server
-		self.on_server_connect(None, True)
+		self.set_active(False)
+		self.set_active(True)
 		host, port = server.split(':')
 		self.info_table['host'].set_text(host)
 		self.info_table['port'].set_text(port)
+		self.update_info_table({'networks': '', 'packets': ''})
+		self.update_gps_table({'lat': '', 'lon': '', 'fix': ''})
+		self.sources = {}
 		
 	def on_server_connect(self, widget, force_connect=False):
 		if self.client_threads[self.server_id].is_running and not force_connect:
