@@ -39,6 +39,7 @@ class Client:
 		self.debug = False
 		self.server = "127.0.0.1:2501"
 		self.connected = False
+		self.connecting = False
 		self.response_id = 1
 		self.error = []
 		self.dump = None
@@ -81,10 +82,13 @@ class Client:
 			self.stop()
 			return False
 		try:
+			self.connecting = True
 			self.s.connect((host, port))
+			self.connecting = False
 			self.connected = True
 			return True
 		except socket.error:
+			self.connecting = False
 			error_message = "Open connection to '%s' failed: %s\nkismet_server must be running to get live data"
 			self.error.append(error_message % \
 				(self.server, sys.exc_info()[1]))
