@@ -13,7 +13,7 @@ class FileImportWindow:
 		self.parser_queue = ()
 		self.gtkwin = Gtk.Window()
 		self.gtkwin.set_position(Gtk.WindowPosition.CENTER)
-		self.gtkwin.set_default_size(600, 300)
+		self.gtkwin.set_default_size(700, 300)
 		self.gtkwin.set_title("Kismon: File Import")
 		self.gtkwin.set_border_width(5)
 		
@@ -46,8 +46,9 @@ class FileImportWindow:
 			action = Gtk.FileChooserAction.SELECT_FOLDER
 		else:
 			action = Gtk.FileChooserAction.OPEN
-		dialog = Gtk.FileChooserDialog(title="", parent=self.gtkwin, action=action,
-			buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+		dialog = Gtk.FileChooserDialog(title="", parent=self.gtkwin, action=action)
+		dialog.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
+		dialog.add_button(Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
 		dialog.set_select_multiple(True)
 		
 		filter = Gtk.FileFilter()
@@ -87,7 +88,7 @@ class FileImportWindow:
 			self.start_button.set_sensitive(True)
 		
 	def add_file(self, filename):
-		table = Gtk.Table(columns=2)
+		table = Gtk.Table(n_columns=2)
 		self.files[filename] = {}
 		self.files[filename]["type"] = "unknown"
 		
@@ -112,8 +113,7 @@ class FileImportWindow:
 		table.attach(label, 1, 2, 0, 1, yoptions=Gtk.AttachOptions.SHRINK, xpadding=5)
 		
 		button = Gtk.Button()
-		image = Gtk.Image()
-		image.set_from_stock(Gtk.STOCK_DELETE, Gtk.IconSize.MENU)
+		image = Gtk.Image.new_from_icon_name(Gtk.STOCK_DELETE, size=Gtk.IconSize.MENU)
 		button.set_image(image)
 		button.connect("clicked", self.on_remove_file, filename)
 		table.attach(button, 2, 3, 0, 1, yoptions=Gtk.AttachOptions.SHRINK, xoptions=Gtk.AttachOptions.SHRINK)
@@ -169,7 +169,7 @@ class FileImportWindow:
 		main_box.pack_start(self.progress_bar, expand=False, fill=True, padding=0)
 		
 		button_box = Gtk.VButtonBox()
-		self.close_button = Gtk.Button("Finish")
+		self.close_button = Gtk.Button(label="Finish")
 		self.close_button.connect("clicked", self.on_close)
 		self.close_button.set_sensitive(False)
 		button_box.add(self.close_button)
