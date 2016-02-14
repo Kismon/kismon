@@ -444,6 +444,9 @@ class MainWindow(KismonWindows):
 	def on_map_widget(self, widget, override=False):
 		map_widget = self.map.widget
 		if (widget is not None and widget.get_active()) or override is True:
+			if self.config["window"]["map_position"] == "widget" and self.notebook.page_num(map_widget) != -1:
+				# the widget is already attached
+				return
 			self.config["window"]["map_position"] = "widget"
 			self.notebook.append_page(map_widget)
 			page_num = self.notebook.page_num(map_widget)
