@@ -44,37 +44,9 @@ from gi.repository import Gdk
 from gi.repository import GObject
 from gi.repository import GLib
 
-class KismonWindows:
-	def __init__(self):
-		self.gtkwin = Gtk.Window()
-		self.gtkwin.set_position(Gtk.WindowPosition.CENTER)
-		self.gtkwin.connect("destroy", self.on_destroy)
-		self.gtkwin.connect('key-press-event', self.on_key_press)
-		self.is_fullscreen = False
-		
-	def fullscreen(self):
-		if self.is_fullscreen is True:
-			self.gtkwin.unfullscreen()
-			self.is_fullscreen = False
-		else:
-			self.gtkwin.fullscreen()
-			self.is_fullscreen = True
-		
-	def on_key_press(self, widget, event):
-		keyval = event.keyval
-		name = Gdk.keyval_name(keyval)
-		if name == "F11":
-			self.fullscreen()
-		elif event.get_state() & Gdk.ModifierType.CONTROL_MASK:
-			if self.map is not None:
-				if name == "i":
-					self.map.zoom_in()
-				elif name == "o":
-					self.map.zoom_out()
-
-class MainWindow(KismonWindows):
+class MainWindow(TemplateWindow):
 	def __init__(self, config, client_start, client_stop, map, networks, sources, client_threads):
-		KismonWindows.__init__(self)
+		TemplateWindow.__init__(self)
 		self.config = config
 		self.config_window = None
 		self.progress_bar_win = None
@@ -1195,26 +1167,6 @@ class ServerTab():
 		
 	def on_channel_config(self, widget):
 		win = ChannelWindow(self.sources, self.client_threads[self.server_id])
-
-class MapWindow(KismonWindows):
-	def __init__(self, map_widget):
-		KismonWindows.__init__(self)
-		self.gtkwin.set_title("Map")
-		self.gtkwin.show()
-		self.gtkwin.set_size_request(640, 480)
-		self.map_widget = map_widget.widget
-		self.gtkwin.add(self.map_widget)
-		
-	def on_destroy(self, window):
-		self.remove_map()
-		self.gtkwin = None
-		
-	def remove_map(self):
-		if self.gtkwin is not None:
-			self.gtkwin.remove(self.map_widget)
-		
-	def hide(self):
-		self.gtkwin.hide()
 
 def show_timestamp(timestamp):
 	time_format = "%Y/%m/%d %H:%M:%S"

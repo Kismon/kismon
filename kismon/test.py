@@ -132,6 +132,7 @@ class TestEvent:
 	def __init__(self):
 		from gi.repository import Gdk
 		self.new_window_state = Gdk.WindowState.MAXIMIZED
+		self.keyval = 0
 
 def gui_file_import_window():
 	test_widget = TestWidget()
@@ -397,6 +398,14 @@ class TestKismon(unittest.TestCase):
 		test_config = Config(None).default_config["map"]
 		test_map = Map(test_config)
 		map_window = MapWindow(test_map)
+		test_event = TestEvent()
+		test_event.keyval = 65480 # F11
+		map_window.on_key_release(None, test_event)
+		map_window.on_key_release(None, test_event)
+		test_event.keyval = 105 # i
+		map_window.on_key_release(None, test_event)
+		test_event.keyval = 111 # o
+		map_window.on_key_release(None, test_event)
 		map_window.hide()
 		map_window.on_destroy(None)
 	
