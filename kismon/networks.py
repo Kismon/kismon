@@ -38,10 +38,11 @@ import re
 
 try:
 	from .client import *
+	import kismon.utils as utils
 except SystemError:
 	from client import *
+	import utils
 
-import utils
 
 class Networks:
 	def __init__(self, config):

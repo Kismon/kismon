@@ -37,13 +37,13 @@ try:
 	from .gui import MainWindow
 	from .config import Config
 	from .networks import Networks
+	import kismon.utils as utils
 except SystemError:
 	from client import *
 	from gui import MainWindow
 	from config import Config
 	from networks import Networks
-
-import utils
+	import utils
 
 from gi.repository import Gtk
 from gi.repository import GLib

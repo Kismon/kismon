@@ -3,8 +3,13 @@ from gi.repository import Gdk
 from gi.repository import GObject
 from gi.repository import GLib
 
-from client import decode_cryptset
-import utils
+
+try:
+	from kismon.client import decode_cryptset
+	import kismon.utils as utils
+except ImportError:
+	from client import decode_cryptset
+	import utils
 
 class NetworkList:
 	def __init__(self, networks, locate_network_on_map, on_signal_graph):

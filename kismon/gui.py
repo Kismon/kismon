@@ -32,12 +32,12 @@ try:
 	from .client import Client, decode_cryptset
 	from .windows import *
 	from .widgets import *
+	import kismon.utils
 except SystemError:
 	from client import Client, decode_cryptset
 	from windows import *
 	from widgets import *
-
-import utils
+	import utils
 
 import time
 import os

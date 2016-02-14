@@ -1,6 +1,9 @@
 from gi.repository import Gtk
 
-from windows import ChannelWindow
+try:
+	from kismon.windows import ChannelWindow
+except ImportError:
+	from windows import ChannelWindow
 
 class ServerTab():
 	def __init__(self, server_id, map, config, client_threads, client_start, client_stop, set_server_tab_label, on_server_remove_clicked):

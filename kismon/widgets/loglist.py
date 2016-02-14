@@ -3,7 +3,10 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GObject
 
-import utils
+try:
+	import kismon.utils as utils
+except ImportError:
+	import utils
 
 class LogList:
 	def __init__(self, config):
