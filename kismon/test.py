@@ -335,11 +335,11 @@ class TestKismon(unittest.TestCase):
 		main_window.network_list.on_copy_network(None)
 		main_window.network_list.on_comment_editing_done(test_widget)
 		main_window.network_list.remove_network('00:12:2A:03:B9:12')
-		main_window.update_info_table(0, {"networks":100, "packets":200} )
-		main_window.update_gps_table(0, {"fix": 3, "lat": 52.0, "lon": 13.0})
+		main_window.server_tabs[0].update_info_table({"networks":100, "packets":200} )
+		main_window.server_tabs[0].update_gps_table({"fix": 3, "lat": 52.0, "lon": 13.0})
 		sources = {"1": {"uuid": "1", "username": "test", "type": "bla",
 			"channel": 11, "packets": 100}}
-		main_window.update_sources_table(0, sources)
+		main_window.server_tabs[0].update_sources_table(sources)
 		main_window.on_configure_event(None, None)
 		main_window.on_config_window(None)
 		main_window.on_config_window(None)
