@@ -168,7 +168,10 @@ Last seen: %s"""
 	def client_stop(self, server_id):
 		if self.client_threads[server_id].client.connecting:
 			# kill connecting sockets, don't wait for the timeout
-			self.client_threads[server_id].client.s.shutdown(socket.SHUT_RDWR)
+			try:
+				self.client_threads[server_id].client.s.shutdown(socket.SHUT_RDWR)
+			except OSError:
+				pass
 		self.client_threads[server_id].stop()
 		
 	def clients_stop(self):
