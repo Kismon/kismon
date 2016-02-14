@@ -279,6 +279,11 @@ Last seen: %s"""
 		
 	def quit(self):
 		self.clients_stop()
+
+		lat = self.map.osm.get_property("latitude")
+		lon = self.map.osm.get_property("longitude")
+		self.config["map"]["last_position"] = "%.6f/%.6f" % (lat, lon)
+
 		while None in self.config['kismet']['servers']:
 			self.config['kismet']['servers'].remove(None)
 		self.config_handler.write()
