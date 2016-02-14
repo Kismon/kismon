@@ -34,14 +34,16 @@ import subprocess
 
 try:
 	from .client import *
-	from .gui import MainWindow, show_timestamp
+	from .gui import MainWindow
 	from .config import Config
 	from .networks import Networks
 except SystemError:
 	from client import *
-	from gui import MainWindow, show_timestamp
+	from gui import MainWindow
 	from config import Config
 	from networks import Networks
+
+import utils
 
 from gi.repository import Gtk
 from gi.repository import GLib
@@ -332,7 +334,7 @@ Last seen: %s"""
 		text = text.replace("&", "&amp;")
 		
 		self.map.add_marker(mac, color, network["lat"], network["lon"])
-		
+
 def main():
 	core = Core()
 	if core.main_window.gtkwin == None:
