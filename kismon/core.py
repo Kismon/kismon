@@ -34,12 +34,12 @@ import subprocess
 
 try:
 	from .client import *
-	from .gui import MainWindow, MapWindow, show_timestamp
+	from .gui import show_timestamp
 	from .config import Config
 	from .networks import Networks
 except SystemError:
 	from client import *
-	from gui import MainWindow, MapWindow, show_timestamp
+	from gui import MainWindow, show_timestamp
 	from config import Config
 	from networks import Networks
 
@@ -183,7 +183,7 @@ Last seen: %s"""
 			for error in thread.client.error:
 				self.main_window.log_list.add(server_name, error)
 			thread.client.error = []
-			self.main_window.server_switches[server_id].set_active(False)
+			self.main_window.server_tabs[server_id].server_switch.set_active(False)
 		
 		#gps
 		gps = None
@@ -200,7 +200,7 @@ Last seen: %s"""
 			except IndexError:
 				break
 		if gps is not None:
-			self.main_window.update_gps_table(server_id, gps)
+			self.main_window.server_tabs[server_id].update_gps_table(gps)
 			if fix is not None and self.map is not None:
 				server = "server%s" % (server_id + 1)
 				if server_id == 0:
@@ -217,7 +217,7 @@ Last seen: %s"""
 		info_queue = thread.get_queue("info")
 		try:
 			data = info_queue.pop()
-			self.main_window.update_info_table(server_id, data)
+			self.main_window.server_tabs[server_id].update_info_table(data)
 		except IndexError:
 			pass
 			
@@ -231,7 +231,7 @@ Last seen: %s"""
 			
 			update = True
 		if update is True:
-			self.main_window.update_sources_table(server_id, self.sources[server_id])
+			self.main_window.server_tabs[server_id].update_sources_table(self.sources[server_id])
 		
 	def queues_handler(self):
 		for server_id in self.client_threads:
