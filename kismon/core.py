@@ -184,6 +184,8 @@ Last seen: %s"""
 				self.main_window.log_list.add(server_name, error)
 			thread.client.error = []
 			self.main_window.server_tabs[server_id].server_switch.set_active(False)
+			page_num = self.main_window.notebook.page_num(self.main_window.log_list.widget)
+			self.main_window.notebook.set_current_page(page_num)
 		
 		#gps
 		gps = None
