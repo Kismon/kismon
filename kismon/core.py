@@ -34,7 +34,7 @@ import subprocess
 
 try:
 	from .client import *
-	from .gui import show_timestamp
+	from .gui import MainWindow, show_timestamp
 	from .config import Config
 	from .networks import Networks
 except SystemError:
