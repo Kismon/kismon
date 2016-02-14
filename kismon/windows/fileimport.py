@@ -3,6 +3,7 @@ import sys
 
 from gi.repository import Gtk
 from gi.repository import GLib
+from gi.repository import GObject
 
 class FileImportWindow:
 	def __init__(self, networks, networks_queue_progress):

@@ -441,6 +441,29 @@ class TestKismon(unittest.TestCase):
 		signal_window.on_graph_type(test_widget, "packets")
 	
 	@unittest.skipUnless(gi_available, "gi module not available")
+	def test_file_import_window(self):
+		try:
+			from .gui import FileImportWindow
+		except SystemError:
+			from gui import FileImportWindow
+		
+		test_networks = networks()
+		file_import_window = FileImportWindow(test_networks, print)
+		file_import_window.create_file_chooser('file')
+		file_import_window.create_file_chooser('dir')
+		file_import_window.add_file('foo.bar')
+		file_import_window.on_remove_file(None, 'foo.bar')
+		file_import_window.add_file('foo.bar')
+		file_import_window.add_file('kismet.netxml')
+		file_import_window.add_file('kismet.csv')
+		file_import_window.add_file('kismon.json')
+		file_import_window.on_start(None)
+		file_import_window.parse_file()
+		file_import_window.parse_file()
+		file_import_window.parse_file()
+		file_import_window.on_close(None)
+	
+	@unittest.skipUnless(gi_available, "gi module not available")
 	def test_map(self):
 		from gi.repository import Gtk
 		try:
