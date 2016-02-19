@@ -247,7 +247,14 @@ class Map:
 		r, g, b = rgb
 		track = self.tracks[key]
 		color = Gdk.Color(r, g, b)
-		track.set_property('color', color)
+		try:
+			track.set_property('color', color)
+		except TypeError:
+			""" osm-gps-map >= 1.1.0
+			https://github.com/nzjrs/osm-gps-map/commit/0e91be935ecf6b737354bd58a9a99ba801e8f9a9
+			"""
+			color = Gdk.RGBA(r/65535, g/65535, b/65535, 1)
+			track.set_property('color', color)
 		
 	def clear_position(self, lat, lon, key):
 		self.coordinates[lat][lon]["markers"].remove(key)
