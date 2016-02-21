@@ -332,7 +332,7 @@ class Networks:
 		
 		if mac not in self.networks:
 			if 'comment' not in data:
-				data['comment'] = data
+				data['comment'] = ""
 			if 'servers' not in data:
 				data['servers'] = []
 			self.networks[mac] = data
