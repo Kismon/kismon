@@ -67,8 +67,8 @@ class Networks:
 	def get_network(self, mac):
 		return self.networks[mac]
 		
-	def save(self, filename, notify=None):
-		if self.queue_running:
+	def save(self, filename, notify=None, force=False):
+		if self.queue_running and not force:
 			print("Cannot save networks - queue is running")
 			return True
 

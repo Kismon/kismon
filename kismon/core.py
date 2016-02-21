@@ -289,7 +289,7 @@ class Core:
 		while None in self.config['kismet']['servers']:
 			self.config['kismet']['servers'].remove(None)
 		self.config_handler.write()
-		self.networks.save(self.networks_file)
+		self.networks.save(self.networks_file, force=True)
 		
 	def add_network_to_map(self, mac):
 		network = self.networks.get_network(mac)
