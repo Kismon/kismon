@@ -114,7 +114,7 @@ class Networks:
 				f.write('    }, \n')
 			f.write('    "ssid": %s, \n' % enc.encode(network["ssid"]))
 			f.write('    "type": "%s",\n' % network["type"])
-			f.write('    "comment": "%s"\n' % network["comment"])
+			f.write('    "comment": %s\n' % enc.encode(network["comment"]))
 			if mac != macs[-1]:
 				f.write('  }, \n')
 			else:
