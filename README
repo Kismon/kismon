@@ -5,7 +5,7 @@ a live map of the networks.
 
 Dependencies
 ------------
-* python-osmgpsmap (>=0.7.2)
+* python-osmgpsmap (>=1.0.2)
 * python3
 * python3-gi
 * libgtk-3
@@ -16,7 +16,7 @@ Installation
 ------------
 $ sudo apt-get install git python3 python3-gi gir1.2-gtk-3.0 \
  gir1.2-gdkpixbuf-2.0 python3-cairo python3-simplejson \
- python-osmgpsmap gir1.2-osmgpsmap-1.0
+ gir1.2-osmgpsmap-1.0
 $ git clone https://github.com/Kismon/kismon.git kismon
 $ cd kismon
 $ python setup.py build
