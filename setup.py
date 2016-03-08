@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
 from distutils.core import setup
+from kismon.utils import get_version
 
 setup(name='kismon',
-	version='0.7',
+	version=get_version(),
 	description='PyGTK based kismet client',
 	author='Patrick Salecker',
 	author_email='mail@salecker.org',

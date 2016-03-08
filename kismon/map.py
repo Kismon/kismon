@@ -38,7 +38,7 @@ import os
 import hashlib
 
 class Map:
-	def __init__(self, config):
+	def __init__(self, config, user_agent=None):
 		self.config = config
 		self.generator_is_running = False
 		self.toggle_moving_button = None
@@ -46,6 +46,7 @@ class Map:
 		self.networks_label_count = 0
 		self.coordinates = {}
 		self.tracks = {}
+		self.user_agent = user_agent
 		
 		self.init_osm()
 		
@@ -81,6 +82,12 @@ class Map:
 		self.osm.set_keyboard_shortcut(OsmGpsMap.MapKey_t.ZOOMIN, Gdk.keyval_from_name("Page_Up"))
 		self.osm.set_keyboard_shortcut(OsmGpsMap.MapKey_t.ZOOMOUT, Gdk.keyval_from_name("Page_Down"))
 		self.osm.connect('changed', self.on_changed)
+		
+		try:
+			self.osm.set_property('user-agent', self.user_agent)
+		except TypeError:
+			# osm-gps-map <= 1.1.0
+			pass
 		
 		self.coordinates = {}
 		for mac in list(self.markers.keys()):

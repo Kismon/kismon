@@ -32,7 +32,7 @@ try:
 	from .client import Client, decode_cryptset
 	from .windows import *
 	from .widgets import *
-	import kismon.utils
+	import kismon.utils as utils
 except SystemError:
 	from client import Client, decode_cryptset
 	from windows import *
@@ -438,7 +438,7 @@ class MainWindow(TemplateWindow):
 	def on_about_dialog(self, widget):
 		dialog = Gtk.AboutDialog()
 		dialog.set_program_name("Kismon")
-		dialog.set_version("0.7")
+		dialog.set_version(utils.get_version())
 		dialog.set_comments('PyGTK based kismet client')
 		dialog.set_website('https://www.salecker.org/software/kismon.html')
 		dialog.set_copyright("(c) 2010-2015 Patrick Salecker")
