@@ -1,7 +1,12 @@
 Kismon
 ======
-Kismon is a PyGTK based Kismet Newcore (since 2009-05-RC1) Client with
-a live map of the networks.
+Kismon is GUI client for kismet (wireless scanner/sniffer/monitor) with
+several features:
+* a live map of the networks
+* file import: netxml (kismet), csv (old kismet version), json (kismon)
+* file export: kmz (Google Earth) and all import formats
+* signal graph for each network
+* it can connect to multiple kismet servers simultaneously
 
 Dependencies
 ------------
@@ -11,6 +16,8 @@ Dependencies
 * libgtk-3
 * python3-cairo
 * python3-simplejson
+
+Note: Kismon works without osm-gps-map, but the map will be disabled.
 
 Installation
 ------------

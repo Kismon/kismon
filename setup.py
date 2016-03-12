@@ -12,7 +12,7 @@ if platform_system == 'Linux' or platform_system.endswith('BSD'):
 
 setup(name='kismon',
 	version=get_version(),
-	description='PyGTK based kismet client',
+	description='A GUI client for kismet (wireless scanner/sniffer/monitor)',
 	author='Patrick Salecker',
 	author_email='mail@salecker.org',
 	url='https://www.salecker.org/software/kismon.html',

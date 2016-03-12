@@ -3,9 +3,11 @@ kismon 0.8 (2016-02-?)
 
 Changes:
 * Kismon can now connect to multiple kismet servers
+* The GPS track can be displayed on the map
 * Comment column added to the network list
 * Clipboard function added to the network list
 * Support for WPA2 (thanks to krzotr)
+* Save map position on quit (thanks to krzotr)
 
 kismon 0.7 (2015-06-28)
 ===============================
