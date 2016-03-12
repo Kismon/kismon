@@ -322,7 +322,7 @@ class TestKismon(unittest.TestCase):
 		test_config = Config(None).default_config
 		test_map = Map(test_config["map"])
 		test_networks =  networks()
-		test_client_threads = {0: ClientThread(), 1: ClientThread()}
+		test_client_threads = {0: ClientThread()}
 		main_window = MainWindow(test_config, dummy, dummy, test_map, test_networks, {0: None, 1: None}, test_client_threads)
 		main_window.network_list.crypt_cache = {}
 		

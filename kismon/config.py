@@ -36,7 +36,7 @@ class Config:
 		
 		self.default_config={
 			"kismet": {
-				"servers": ["127.0.0.1:2501", "server2:2501", "server3:2501"],
+				"servers": ["127.0.0.1:2501"],
 				"connect": True
 				},
 			"window": {
