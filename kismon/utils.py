@@ -5,4 +5,4 @@ def format_timestamp(timestamp):
 	return time.strftime(time_format, time.localtime(timestamp))
 
 def get_version():
-	return '0.7'
+	return '0.8'

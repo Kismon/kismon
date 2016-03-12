@@ -1,3 +1,11 @@
+kismon (0.8) unstable; urgency=low
+
+  * Version 0.8
+  * Update dependencies
+  * Update description and URLs
+
+ -- Patrick Salecker <mail@salecker.org>  Sat, 12 Mar 2016 12:00:00 +0200
+
 kismon (0.7-1) unstable; urgency=low
 
   * make package more compliant according to Debian policy
