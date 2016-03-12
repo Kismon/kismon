@@ -282,7 +282,8 @@ def get_crypt_list():
 	"""
 	cryptsets=["none", "unknown", "wep", "layer3 ", "wep40", "wep104",
 		"tkip", "wpa", "psk", "aes_ocb", "aes_ccm", "leap", "ttls",
-		"peap", "pptp", "fortress", "keyguard"]
+		"peap", "pptp", "fortress", "keyguard", "unknown_nonwep",
+		"wpa_migmode", "version_wpa", "version_wpa2"]
 	
 	return cryptsets
 	
