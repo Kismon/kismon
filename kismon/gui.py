@@ -104,7 +104,7 @@ class MainWindow(TemplateWindow):
 		frame.add(self.server_notebook)
 		hbox.pack_end(frame, expand=False, fill=False, padding=2)
 		
-		image = Gtk.Image.new_from_icon_name(Gtk.STOCK_ADD, Gtk.IconSize.MENU)
+		image = Gtk.Image.new_from_icon_name('gtk-add', Gtk.IconSize.MENU)
 		button = Gtk.Button()
 		button.props.focus_on_click = False
 		button.add(image)
@@ -376,7 +376,7 @@ class MainWindow(TemplateWindow):
 			label = Gtk.Label("You can't remove the last connection!")
 			area = dialog.get_content_area()
 			area.add(label)
-			dialog.add_button(Gtk.STOCK_CANCEL, 1)
+			dialog.add_button('gtk-cancel', 1)
 			dialog.show_all()
 			dialog.run()
 			dialog.destroy()
@@ -483,8 +483,8 @@ class MainWindow(TemplateWindow):
 	def on_file_export(self, widget, export_format, extension, amount):
 		dialog = Gtk.FileChooserDialog(title="Export as %s" % (export_format),
 			parent=self.gtkwin, action=Gtk.FileChooserAction.SAVE)
-		dialog.add_button(Gtk.STOCK_SAVE, Gtk.ResponseType.OK)
-		dialog.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
+		dialog.add_button('gtk-save', Gtk.ResponseType.OK)
+		dialog.add_button('gtk-cancel', Gtk.ResponseType.CANCEL)
 		dialog.set_do_overwrite_confirmation(True)
 		dialog.set_current_name("kismon.%s" % extension)
 		

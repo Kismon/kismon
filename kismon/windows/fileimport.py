@@ -47,8 +47,8 @@ class FileImportWindow:
 		else:
 			action = Gtk.FileChooserAction.OPEN
 		dialog = Gtk.FileChooserDialog(title="", parent=self.gtkwin, action=action)
-		dialog.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
-		dialog.add_button(Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
+		dialog.add_button('gtk-cancel', Gtk.ResponseType.CANCEL)
+		dialog.add_button('gtk-open', Gtk.ResponseType.OK)
 		dialog.set_select_multiple(True)
 		
 		filter = Gtk.FileFilter()
@@ -113,7 +113,7 @@ class FileImportWindow:
 		table.attach(label, 1, 2, 0, 1, yoptions=Gtk.AttachOptions.SHRINK, xpadding=5)
 		
 		button = Gtk.Button()
-		image = Gtk.Image.new_from_icon_name(Gtk.STOCK_DELETE, size=Gtk.IconSize.MENU)
+		image = Gtk.Image.new_from_icon_name('gtk-delete', size=Gtk.IconSize.MENU)
 		button.set_image(image)
 		button.connect("clicked", self.on_remove_file, filename)
 		table.attach(button, 2, 3, 0, 1, yoptions=Gtk.AttachOptions.SHRINK, xoptions=Gtk.AttachOptions.SHRINK)

@@ -91,7 +91,7 @@ class ServerTab():
 		table.attach(box, 0, 1, row, row+1)
 		
 		box = Gtk.Box()
-		image = Gtk.Image.new_from_icon_name(Gtk.STOCK_EDIT, size=Gtk.IconSize.MENU)
+		image = Gtk.Image.new_from_icon_name('gtk-edit', size=Gtk.IconSize.MENU)
 		button = Gtk.Button(image=image)
 		button.connect("clicked", self.on_server_edit)
 		button.set_tooltip_text('Edit connection')
@@ -104,7 +104,7 @@ class ServerTab():
 		table.attach(label, 0, 1, row, row+1)
 		
 		box = Gtk.Box()
-		image = Gtk.Image.new_from_icon_name(Gtk.STOCK_REMOVE, size=Gtk.IconSize.MENU)
+		image = Gtk.Image.new_from_icon_name('gtk-remove', size=Gtk.IconSize.MENU)
 		button = Gtk.Button(image=image)
 		button.set_tooltip_text('Remove server')
 		button.connect("clicked", self.on_server_remove_clicked, self.server_id)
@@ -230,7 +230,7 @@ class ServerTab():
 		table.attach(label, 0, 1, row, row+1)
 		
 		box = Gtk.Box()
-		image = Gtk.Image.new_from_icon_name(Gtk.STOCK_CANCEL, size=Gtk.IconSize.MENU)
+		image = Gtk.Image.new_from_icon_name('gtk-cancel', size=Gtk.IconSize.MENU)
 		button = Gtk.Button(image=image)
 		button.connect('clicked', self.on_track_reset_clicked)
 		box.pack_start(button, False, False, 0)
@@ -242,7 +242,7 @@ class ServerTab():
 		table.attach(label, 0, 1, row, row+1)
 		
 		box = Gtk.Box()
-		image = Gtk.Image.new_from_icon_name(Gtk.STOCK_HOME, size=Gtk.IconSize.MENU)
+		image = Gtk.Image.new_from_icon_name('gtk-home', size=Gtk.IconSize.MENU)
 		button = Gtk.Button(image=image)
 		button.connect('clicked', self.on_server_locate_clicked)
 		box.pack_start(button, False, False, 0)
@@ -316,7 +316,7 @@ class ServerTab():
 		entry = Gtk.Entry()
 		entry.set_text(self.config["kismet"]["servers"][self.server_id])
 		dialog.add_action_widget(entry, 1)
-		dialog.add_button(Gtk.STOCK_CONNECT, 1)
+		dialog.add_button('gtk-connect', 1)
 		dialog.show_all()
 		dialog.run()
 		server = entry.get_text()
@@ -345,12 +345,12 @@ class ServerTab():
 		if widget.get_active():
 			self.on_server_connect(None)
 			state = 'connected'
-			icon = Gtk.STOCK_CONNECT
+			icon = 'gtk-connect'
 			widget.set_tooltip_text('Disconnect')
 		else:
 			self.on_server_disconnect(None)
 			state = 'disconnected'
-			icon = Gtk.STOCK_DISCONNECT
+			icon = 'gtk-disconnect'
 			widget.set_tooltip_text('Connect')
 		
 		self.set_server_tab_label(self.server_id, icon, "Server %s %s" %((self.server_id+1), state))
