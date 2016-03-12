@@ -9,6 +9,10 @@ Changes:
 * Support for WPA2 (thanks to krzotr)
 * Save map position on quit (thanks to krzotr)
 
+Dependencies:
+* osm-gps-map >=1.0.2 is recommended, older versions will show a blank
+  map when you select the OpenStreetMap source
+
 kismon 0.7 (2015-06-28)
 ===============================
 
