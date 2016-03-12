@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 
+import platform
 from distutils.core import setup
 from kismon.utils import get_version
+
+data_files = []
+
+platform_system = platform.system()
+if platform_system == 'Linux' or platform_system.endswith('BSD'):
+	data_files.append(('/usr/share/applications', ['files/kismon.desktop']))
 
 setup(name='kismon',
 	version=get_version(),
@@ -13,6 +20,5 @@ setup(name='kismon',
 	packages=['kismon', 'kismon.widgets', 'kismon.windows'],
 	scripts=['bin/kismon'],
 	platforms='UNIX',
-	data_files = [('/usr/share/applications', ['files/kismon.desktop']),
-		],
+	data_files = data_files,
 )
