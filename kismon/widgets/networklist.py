@@ -138,6 +138,15 @@ class NetworkList:
 				server = server.rsplit(':', 1)[0]
 			servers.append(server)
 		
+		if -100 <= signal <= 0:
+			signal_strength = signal + 100
+		elif signal < -100:
+			signal_strength = 0
+		elif 1 <= signal <= 100:
+			signal_strength = signal
+		else:
+			signal_strength = 0
+		
 		line = [mac,
 				network["type"],
 				ssid_str,
@@ -150,7 +159,7 @@ class NetworkList:
 				signal,
 				network['comment'],
 				", ".join(servers),
-				signal+100
+				signal_strength
 				]
 		try:
 			old_line = self.network_lines[mac]
