@@ -318,6 +318,7 @@ class MainWindow(TemplateWindow):
 		if self.networks.queue_task:
 			self.progress_bar = Gtk.ProgressBar()
 			self.progress_bar.set_text("0.0%%, %s networks left" % len(self.networks.notify_add_queue))
+			self.progress_bar.set_show_text(True)
 			self.progress_bar.set_fraction(0)
 			
 			self.progress_bar_win = Gtk.Window()
