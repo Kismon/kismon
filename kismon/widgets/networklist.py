@@ -19,6 +19,9 @@ class NetworkList:
 		self.locate_network_on_map = locate_network_on_map
 		self.on_signal_graph = on_signal_graph
 		self.networks = networks
+		self.value_cache = {}
+		for key in ('time', 'crypt', 'server', 'type', 'channel', 'signal', 'ssid'):
+			self.value_cache[key] = {}
 		
 		self.networks.notify_add_list["network_list"] = self.add_network
 		self.networks.notify_remove_list["network_list"] = self.remove_network
@@ -113,52 +116,136 @@ class NetworkList:
 		network = self.networks.get_network(self.network_selected)
 		network['comment'] = widget.get_text()
 		self.add_network(self.network_selected)
+	
+	def prepare_network_servers(self, value):
+		if len(value) == 0 or value == None:
+			servers = None
+			servers_str = None
+		else:
+			servers = []
+			for server in value:
+				if server.endswith(':2501'): # remove the default port
+					server = server.rsplit(':', 1)[0]
+				servers.append(server)
+			servers_str = ", ".join(sorted(servers))
+			
+			try:
+				servers = self.value_cache['server'][servers_str]
+			except KeyError:
+				servers = GObject.Value(GObject.TYPE_STRING, servers_str)
+				self.value_cache['server'][servers_str] = servers
+		return servers
+		
+	def prepare_network_time(self, value):
+		try:
+			result = self.value_cache['time'][value]
+		except KeyError:
+			result = GObject.Value(GObject.TYPE_STRING, utils.format_timestamp(value))
+			self.value_cache['time'][value] = result
+		return result
+		
+	def prepare_network_crypt(self, value):
+		try:
+			crypt = self.value_cache['crypt'][value]
+		except KeyError:
+			crypt = GObject.Value(GObject.TYPE_STRING, decode_cryptset(value, True))
+			self.value_cache['crypt'][value] = crypt
+		return crypt
+		
+	def prepare_network_channel(self, value):
+		try:
+			channel = self.value_cache['channel'][value]
+		except KeyError:
+			channel = GObject.Value(GObject.TYPE_INT, value)
+			self.value_cache['channel'][value] = channel
+		return channel
+		
+	def prepare_network_type(self, value):
+		try:
+			network_type = self.value_cache['type'][value]
+		except KeyError:
+			network_type = GObject.Value(GObject.TYPE_STRING, value)
+			self.value_cache['type'][value] = network_type
+		return network_type
+		
+	def prepare_network_signal(self, value):
+		try:
+			return self.value_cache['signal'][value]
+		except KeyError:
+			pass
+		
+		""" Wifi cards report different ranges for the signal, some use
+		-1xx to 0 and others 0 to 100. The CellRendererProgress needs a
+		percentage value between 0 and 100, so we convert the value if
+		necessary.
+		"""
+		if -100 <= value <= 0:
+			signal_strength = value + 100
+		elif value < -100:
+			signal_strength = 0
+		elif 1 <= value <= 100:
+			signal_strength = value
+		else:
+			signal_strength = 0
+		
+		signal = GObject.Value(GObject.TYPE_INT, value)
+		signal_strength = GObject.Value(GObject.TYPE_INT, signal_strength)
+		self.value_cache['signal'][value] = (signal, signal_strength)
+		
+		return signal, signal_strength
+		
+	def prepare_network_ssid(self, value):
+		if value == "":
+			ssid_str = "<no ssid>"
+		else:
+			ssid_str = value
+		
+		try:
+			ssid = self.value_cache['ssid'][ssid_str]
+		except KeyError:
+			ssid = GObject.Value(GObject.TYPE_STRING, ssid_str)
+			self.value_cache['ssid'][ssid_str] = ssid
+		return ssid
+	
+	def prepare_network_coordinate(self, value):
+		if value == 0.0:
+			return None
+		else:
+			return value
 		
 	def add_network(self, mac):
 		network = self.networks.get_network(mac)
-		try:
-			crypt = self.crypt_cache[network["cryptset"]]
-		except KeyError:
-			crypt = decode_cryptset(network["cryptset"], True)
-			self.crypt_cache[network["cryptset"]] = crypt
 		
-		if network["ssid"] == "":
-			ssid_str = "<no ssid>"
-		else:
-			ssid_str = network["ssid"]
-			
-		if "signal_dbm" in network and len(network["signal_dbm"]) == 3:
-			signal = network["signal_dbm"]["last"]
-		else:
+		""" The Gtk.ListStore will convert every Python-type value to its
+		GObject equivalent. Most of the prepare_network_* functions cache
+		and return the value as a GObject, this speed things up as we have
+		a lot of duplicate values. Furthermore a None value is faster then
+		an zero size string, so we replace it where possible.
+		"""
+		
+		if "signal_dbm" not in network or len(network["signal_dbm"]) != 3:
 			signal = 0
-		
-		servers = []
-		for server in network["servers"]:
-			if server.endswith(':2501'):
-				server = server.rsplit(':', 1)[0]
-			servers.append(server)
-		
-		if -100 <= signal <= 0:
-			signal_strength = signal + 100
-		elif signal < -100:
-			signal_strength = 0
-		elif 1 <= signal <= 100:
-			signal_strength = signal
 		else:
-			signal_strength = 0
+			signal = network["signal_dbm"]["last"]
+		signal, signal_strength = self.prepare_network_signal(signal)
+		
+		if network['comment'] == '':
+			comment = None
+		else:
+			comment = network['comment']
 		
 		line = [mac,
-				network["type"],
-				ssid_str,
-				network["channel"],
-				crypt,
-				utils.format_timestamp(network["firsttime"]),
-				utils.format_timestamp(network["lasttime"]),
-				network["lat"],
-				network["lon"],
+				self.prepare_network_type(network["type"]),
+				self.prepare_network_ssid(network["ssid"]),
+				self.prepare_network_channel(network["channel"]),
+				self.prepare_network_crypt(network["cryptset"]),
+				self.prepare_network_time(network["firsttime"]),
+				self.prepare_network_time(network["lasttime"]),
+				self.prepare_network_coordinate(network["lat"]),
+				self.prepare_network_coordinate(network["lon"]),
 				signal,
-				network['comment'],
-				", ".join(servers),
+				comment,
+				self.prepare_network_servers(network["servers"]),
 				signal_strength
 				]
 		try:
