@@ -27,9 +27,12 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
+import gi
+gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from gi.repository import Gdk, GdkPixbuf
 from gi.repository import GObject
+gi.require_version('OsmGpsMap', '1.0')
 from gi.repository import OsmGpsMap
 import cairo
 import io

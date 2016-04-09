@@ -45,6 +45,8 @@ except SystemError:
 	from networks import Networks
 	import utils
 
+import gi
+gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from gi.repository import GLib
 
