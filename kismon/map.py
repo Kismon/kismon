@@ -117,6 +117,7 @@ class Map:
 		drawable = cairo.ImageSurface(cairo.FORMAT_RGB24, size, size)
 		ctx = cairo.Context(drawable)
 		ctx.set_source_rgba(1, 1, 1, 1)
+		ctx.set_antialias(True)
 		ctx.rectangle(0, 0, size, size)
 		ctx.fill()
 		ctx.stroke()
