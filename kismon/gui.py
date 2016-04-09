@@ -104,7 +104,7 @@ class MainWindow(TemplateWindow):
 		frame.add(self.server_notebook)
 		hbox.pack_end(frame, expand=False, fill=False, padding=2)
 		
-		image = Gtk.Image.new_from_icon_name('gtk-add', Gtk.IconSize.MENU)
+		image = Gtk.Image.new_from_icon_name('list-add', Gtk.IconSize.MENU)
 		button = Gtk.Button()
 		button.props.focus_on_click = False
 		button.add(image)

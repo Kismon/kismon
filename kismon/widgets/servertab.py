@@ -104,7 +104,7 @@ class ServerTab():
 		table.attach(label, 0, 1, row, row+1)
 		
 		box = Gtk.Box()
-		image = Gtk.Image.new_from_icon_name('gtk-remove', size=Gtk.IconSize.MENU)
+		image = Gtk.Image.new_from_icon_name('list-remove', size=Gtk.IconSize.MENU)
 		button = Gtk.Button(image=image)
 		button.set_tooltip_text('Remove server')
 		button.connect("clicked", self.on_server_remove_clicked, self.server_id)
