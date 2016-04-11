@@ -86,7 +86,9 @@ class MainWindow(TemplateWindow):
 		self.client_threads = client_threads
 		
 		self.notebook = Gtk.Notebook()
-		
+
+		GObject.timeout_add(2500, self.map_tiles_queue)
+
 		vbox = Gtk.VBox()
 		self.gtkwin.add(vbox)
 		vbox.pack_start(self.init_menu(), False, False, 0)
@@ -251,7 +253,14 @@ class MainWindow(TemplateWindow):
 		
 		sep = Gtk.SeparatorMenuItem()
 		view_menu.append(sep)
-		
+
+		cache_map_tiles_menuitem = Gtk.MenuItem.new_with_mnemonic('Cache map tiles')
+		cache_map_tiles_menuitem.connect("activate", self.on_cache_map_tiles)
+		view_menu.append(cache_map_tiles_menuitem)
+
+		sep = Gtk.SeparatorMenuItem()
+		view_menu.append(sep)
+
 		config_menuitem = Gtk.MenuItem.new_with_mnemonic('_Preferences')
 		config_menuitem.connect("activate", self.on_config_window)
 		view_menu.append(config_menuitem)
@@ -456,7 +465,24 @@ class MainWindow(TemplateWindow):
 		width, height = self.gtkwin.get_size()
 		self.config["window"]["width"] = width
 		self.config["window"]["height"] = height
-		
+
+	def on_cache_map_tiles(self, widget):
+		if self.map.osm.props.tiles_queued != 0:
+			self.map.osm.download_cancel_all()
+			return
+
+		bbox = self.map.osm.get_bbox()
+		self.map.osm.download_maps(
+			*bbox,
+			zoom_start=self.map.osm.get_property('zoom'),
+			zoom_end=int(self.config["map"]["custom_source_max"])
+		)
+
+	def map_tiles_queue(self):
+		if self.map.osm.props.tiles_queued != 0:
+			print(str(self.map.osm.props.tiles_queued) + " tiles to download ...")
+		return True
+
 	def on_config_window(self, widget):
 		if self.config_window is not None:
 			try:
