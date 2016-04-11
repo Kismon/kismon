@@ -32,6 +32,11 @@ import os
 import sys
 import subprocess
 
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
+from gi.repository import GLib
+
 try:
 	from .client import *
 	from .gui import MainWindow
@@ -45,13 +50,10 @@ except SystemError:
 	from networks import Networks
 	import utils
 
-import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
-from gi.repository import GLib
 
 def check_osmgpsmap():
 	try:
+		gi.require_version('OsmGpsMap', '1.0')
 		from gi.repository import OsmGpsMap
 	except:
 		return sys.exc_info()[1]
