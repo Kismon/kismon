@@ -5,14 +5,7 @@ Maintainer: Patrick Salecker <mail@salecker.org>
 Homepage: https://www.salecker.org/software/kismon.html
 Vcs-Git: https://github.com/Kismon/kismon.git
 Vcs-Browser: https://github.com/Kismon/kismon
-Build-Depends: debhelper (>= 7),
-               dh-python,
-               python3,
-               python3-gi,
-               gir1.2-gtk-3.0,
-               gir1.2-gdkpixbuf-2.0,
-               python3-cairo,
-               python3-simplejson
+Build-Depends: debhelper (>= 7), dh-python, python3
 X-Python3-Version: >= 3.4
 Standards-Version: 3.9.6
 
