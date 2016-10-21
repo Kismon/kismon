@@ -224,10 +224,19 @@ class Client:
 			
 		elif line[0] == "*CAPABILITY":
 			# get column headers and enable capabilities
-			foo = line[1].split()
-			self.capabilities[foo[0].lower()] = foo[1].split(",")
+			capability, fields = line[1].split()
+			capability = capability.lower()
+			fields = fields.split(",")
+
+			if capability == 'ssid':
+				# remove some fields for compatibilty reasons
+				for field in fields[:]:
+					if field.startswith('wps') or field == 'shown_msg_probe_nearby_ap':
+						fields.remove(field)
+
+			self.capabilities[capability] = fields
 			response = "!%i ENABLE %s %s\n" % \
-				(self.response_id, foo[0] ,",".join(self.capabilities[foo[0].lower()]))
+				(self.response_id, capability.upper() ,",".join(fields))
 			self.response_id += 1
 			self.send(response)
 		
