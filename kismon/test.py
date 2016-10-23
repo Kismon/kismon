@@ -110,6 +110,7 @@ def core_tests(test_core):
 	task = test_core.networks.notify_add_queue_process()
 	while next(task):
 		continue
+	test_core.quit()
 
 class TestWidget:
 	def __init__(self):
