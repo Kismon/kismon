@@ -313,17 +313,26 @@ class NetworkList:
 			self.locate_network_on_map(self.network_selected)
 		
 	def on_copy_field(self, widget):
-		selected_text = self.network_lines[self.network_selected][self.column_selected]
+		selected_text = self.get_value_from_cell(self.network_selected, self.column_selected)
 		self.set_clipboard(selected_text)
 		
 	def on_copy_network(self, widget):
 		text = []
 		num = 0
 		for column in self.columns:
-			text.append("%s: %s" % (column, self.network_lines[self.network_selected][num]))
+			value = self.get_value_from_cell(self.network_selected, num)
+			text.append("%s: %s" % (column, value))
 			num += 1
 		self.set_clipboard('\n'.join(text))
 		
 	def set_clipboard(self, text):
 		self.clipboard.set_text("%s" % text, -1)
 		self.clipboard.store()
+
+	def get_value_from_cell(self, mac, column):
+		value = self.network_lines[mac][column]
+		try:
+			value = value.get_value()
+		except AttributeError:
+			pass
+		return value
