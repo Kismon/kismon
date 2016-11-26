@@ -275,13 +275,11 @@ class TestKismon(unittest.TestCase):
 		config_file = tempfile.gettempdir() + os.sep + "testconfig.conf"
 		conf=Config(config_file)
 		conf.read()
-		conf.config['emtyp-section'] = []
 		conf.config['kismet']['old-entry'] = 1
 		conf.write()
 		conf.read()
 		conf=Config(config_file)
 		conf.read()
-		conf.show()
 	
 	@unittest.skipUnless(gi_available, "gi module not available")
 	def test_core(self):

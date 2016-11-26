@@ -29,6 +29,8 @@ POSSIBILITY OF SUCH DAMAGE.
 """
 
 import configparser
+import json
+import os
 
 class Config:
 	def __init__(self, config_file):
@@ -82,7 +84,7 @@ class Config:
 				}
 			}
 	
-	def read(self):
+	def read_ini(self):
 		#print "reading config %s" % self.config_file
 		self.config = self.default_config
 		config = configparser.RawConfigParser()
@@ -111,32 +113,33 @@ class Config:
 						value = [v.strip() for v in value.split(",")]
 					self.config[section][key] = value
 	
+	def read(self):
+		self.config = self.default_config
+		if not os.path.isfile(self.config_file):
+			print("config file %s not found, continuing with default settings" % self.config_file)
+			return
+
+		with open(self.config_file, 'r') as f:
+			first_line = f.readline()
+		if first_line.startswith('['):
+			# old ini style config
+			print('loading ini config')
+			self.read_ini()
+		elif first_line.startswith('{'):
+			# new json config
+			print('loading json config')
+			with open(self.config_file, 'r') as f:
+				loaded_config = json.load(f)
+			self.config.update(loaded_config)
+		else:
+			print('unknown config format, using default')
+			return
+
 	def write(self):
-		#print "writing config %s" % self.config_file
-		config = configparser.ConfigParser()
-		
-		for section in self.config:
-			config.add_section(section)
-			for key in self.config[section]:
-				value = self.config[section][key]
-				if type(value) == list:
-					config_value = ",".join(value)
-				else:
-					config_value = str(value)
-				config.set(section, key, config_value)
-		
-		configfile = open(self.config_file, 'w')
-		config.write(configfile)
-		configfile.close()
-		
-	def show(self):
-		txt="\n"
-		for section in self.config:
-			txt += section+" :\n"
-			for key in self.config[section]:
-				txt += "\t%s = %s\n" % (key, self.config[section][key])
-		return txt
-	
+		print('writing json config')
+		with open(self.config_file, 'w') as f:
+			json.dump(self.config, f, indent=2)
+
 if __name__ == "__main__":
 	from test import TestKismon
 	TestKismon.test_config(True)
