@@ -60,6 +60,9 @@ class Config:
 			"networks": {
 				"autosave": 5,
 				},
+			"tracks": {
+				"store": False,
+				},
 			"filter_networks": {
 				"network_list": "current",
 				"map": "current",

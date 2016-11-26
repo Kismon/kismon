@@ -42,12 +42,14 @@ try:
 	from .gui import MainWindow
 	from .config import Config
 	from .networks import Networks
+	from .tracks import Tracks
 	import kismon.utils as utils
 except SystemError:
 	from client import *
 	from gui import MainWindow
 	from config import Config
 	from networks import Networks
+	from tracks import Tracks
 	import utils
 
 
@@ -68,13 +70,15 @@ class Core:
 		self.config_handler = Config(config_file)
 		self.config_handler.read()
 		self.config = self.config_handler.config
-		
+
 		self.sources = {}
 		self.crypt_cache = {}
 		self.networks = Networks(self.config)
 		self.client_threads = {}
 		self.init_client_threads()
-		
+		self.tracks = Tracks("%stracks.json" % user_dir)
+		self.tracks.load()
+
 		if "--disable-map" in sys.argv:
 			self.map_error = "--disable-map used"
 		else:
@@ -203,6 +207,8 @@ class Core:
 					gps = data
 				if data["fix"] > 1:
 					fix = (data["lat"], data["lon"])
+					if self.config['tracks']['store'] == True:
+						self.tracks.add_point_to_track(server_name, data['lat'], data['lon'], data['alt'])
 					break
 			except IndexError:
 				break
@@ -296,7 +302,9 @@ class Core:
 			self.config['kismet']['servers'].remove(None)
 		self.config_handler.write()
 		self.networks.save(self.networks_file, force=True)
-		
+		if self.config['tracks']['store'] == True:
+			self.tracks.save()
+
 	def add_network_to_map(self, mac):
 		network = self.networks.get_network(mac)
 		

@@ -82,7 +82,19 @@ class ConfigWindow:
 		label = Gtk.Label(label="0 = disable")
 		label.set_alignment(xalign=0, yalign=0.5)
 		hbox.pack_start(label, False, False, 5)
-		
+
+		frame = Gtk.Frame()
+		frame.set_label("Tracks")
+		page.attach(frame, 0, 1, 2, 3, yoptions=Gtk.AttachOptions.SHRINK)
+		hbox = Gtk.HBox()
+		frame.add(hbox)
+
+		checkbox = Gtk.CheckButton.new_with_label("Store GPS Tracks")
+		if 'tracks' in self.config and self.config['tracks']['store'] is True:
+			checkbox.clicked()
+		checkbox.connect("clicked", self.on_change_tracks_store)
+		hbox.add(checkbox)
+
 	def on_change_log_list_max(self, widget):
 		if self.config["window"]["log_list_max"] == int(widget.get_value()):
 			return
@@ -94,7 +106,10 @@ class ConfigWindow:
 			return
 		self.config["networks"]["autosave"] = int(widget.get_value())
 		self.main_window.networks.set_autosave(self.config["networks"]["autosave"])
-		
+
+	def on_change_tracks_store(self, widget):
+		self.config["tracks"]["store"] = widget.get_active()
+
 	def init_map_page(self, map_page):
 		position_frame = Gtk.Frame()
 		position_frame.set_label("Position")
