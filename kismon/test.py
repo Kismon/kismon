@@ -154,15 +154,17 @@ def networks():
 	try:
 		from .config import Config
 		from .networks import Networks
+		from .tracks import Tracks
 	except SystemError:
 		from config import Config
 		from networks import Networks
+		from tracks import Tracks
 
 	def dummy(bla):
 		return
 	test_data = get_client_test_data()[2]
 	test_config = Config(None).default_config
-	
+
 	networks = Networks(test_config)
 	networks.notify_add_list["map"] = dummy
 	networks.notify_add_list["network_list"] = dummy
@@ -186,7 +188,10 @@ def networks():
 	for x in range(2):
 		networks.import_networks("csv", tmp_csv_file)
 	networks.import_networks("netxml", "")
-	
+
+	tmp_tracks_file = "%s%stest-tracks-%s.json" % (tempfile.gettempdir(), os.sep, int(time.time()))
+	test_tracks = Tracks(tmp_tracks_file)
+
 	networks_file = "%s%snetworks-%s.json" % (tempfile.gettempdir(), os.sep, int(time.time()))
 	networks.save(networks_file)
 	networks.load(networks_file)
@@ -195,8 +200,8 @@ def networks():
 	networks.save(networks_file)
 	networks.export_networks_netxml(tempfile.gettempdir() + os.sep + "test.netxml", networks.networks)
 	networks.import_networks("netxml", tempfile.gettempdir() + os.sep + "test.netxml")
-	networks.export_networks_kmz(tempfile.gettempdir() + os.sep + "test.kmz", networks.networks)
-	
+	networks.export_networks_kmz(tempfile.gettempdir() + os.sep + "test.kmz", networks.networks, tracks=test_tracks)
+
 	return networks
 
 
@@ -308,23 +313,27 @@ class TestKismon(unittest.TestCase):
 			from .map import Map
 			from .gui import MainWindow
 			from .client import ClientThread
+			from .tracks import Tracks
 		except SystemError:
 			from config import Config
 			from map import Map
 			from gui import MainWindow
 			from client import ClientThread
+			from tracks import Tracks
 		def dummy(server_id):
 			return
-		
+
 		test_widget = TestWidget()
-		
+
 		test_config = Config(None).default_config
 		test_map = Map(test_config["map"])
 		test_networks =  networks()
 		test_client_threads = {0: ClientThread()}
-		main_window = MainWindow(test_config, dummy, dummy, test_map, test_networks, {0: None, 1: None}, test_client_threads)
+		tmp_tracks_file = "%s%stest-tracks-%s.json" % (tempfile.gettempdir(), os.sep, int(time.time()))
+		test_tracks = Tracks(tmp_tracks_file)
+		main_window = MainWindow(test_config, dummy, dummy, test_map, test_networks, test_tracks, {0: None, 1: None}, test_client_threads)
 		main_window.network_list.crypt_cache = {}
-		
+
 		main_window.log_list.add("Kismon", "test")
 		main_window.network_list.add_network('11:22:33:44:55:66')
 		main_window.network_list.network_selected = '11:22:33:44:55:66'

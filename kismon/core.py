@@ -96,6 +96,7 @@ class Core:
 			self.map,
 			self.networks,
 			self.sources,
+			self.tracks,
 			self.client_threads)
 		self.main_window.log_list.add("Kismon", "started")
 		if self.map_error is not None:

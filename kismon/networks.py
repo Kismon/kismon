@@ -399,8 +399,8 @@ class Networks:
 			self.add_network_data(mac, parser.networks[mac])
 		
 		return len(parser.networks)
-		
-	def export_networks(self, export_format, filename, networks=None):
+
+	def export_networks(self, export_format, filename, networks=None, tracks=None):
 		if networks is None:
 			networks = self.networks
 		if export_format == "kismon":
@@ -408,7 +408,7 @@ class Networks:
 		elif export_format == "kismet netxml":
 			self.export_networks_netxml(filename, networks)
 		elif export_format == "google earth kmz":
-			self.export_networks_kmz(filename, networks)
+			self.export_networks_kmz(filename, networks, tracks)
 		elif export_format == "mappoint csv":
 			self.export_networks_mappoint(filename, networks)
 		
@@ -498,8 +498,8 @@ class Networks:
 		f.write('</detection-run>')
 		f.close()
 		locale.setlocale(locale.LC_TIME, '')
-		
-	def export_networks_kmz(self, filename, networks):
+
+	def export_networks_kmz(self, filename, networks, tracks):
 		kml_folder = """
 <Folder>
 <name>%s: %s APs</name>
@@ -522,7 +522,7 @@ class Networks:
 
 		for crypt in ("WPA2", "WPA", "WEP", "None", "Other"):
 			if crypt == "WPA2":
-				pic = "WPA2"
+				pic = "WPA"
 			elif crypt == "WPA":
 				pic = "WPA"
 			elif crypt == "WEP":
@@ -537,6 +537,10 @@ class Networks:
 				pic,
 				"".join(folders[crypt])
 			))
+
+		if tracks != None:
+			data.append(tracks.export_kml())
+
 		data.append("\r\n</Document>\r\n</kml>")
 		
 		zinfo = zipfile.ZipInfo("kismon.kml")
@@ -586,7 +590,7 @@ GPS: %s,%s]]></description></Placemark>"""
 			))
 			count[crypt] += 1
 		return folders
-		
+
 	def export_networks_mappoint(self, filename, networks):
 		f = open(filename, "w")
 		

@@ -49,7 +49,7 @@ from gi.repository import GObject
 from gi.repository import GLib
 
 class MainWindow(TemplateWindow):
-	def __init__(self, config, client_start, client_stop, map, networks, sources, client_threads):
+	def __init__(self, config, client_start, client_stop, map, networks, sources, tracks, client_threads):
 		TemplateWindow.__init__(self)
 		self.config = config
 		self.config_window = None
@@ -58,7 +58,8 @@ class MainWindow(TemplateWindow):
 		self.client_stop = client_stop
 		self.networks = networks
 		self.map = map
-		
+		self.tracks = tracks
+
 		if map is not None:
 			self.locate_marker = map.locate_marker
 		else:
@@ -503,9 +504,9 @@ class MainWindow(TemplateWindow):
 					networks.append(mac)
 		else:
 			networks = None
-		
-		self.networks.export_networks(export_format, filename, networks)
-		
+
+		self.networks.export_networks(export_format, filename, networks, self.tracks)
+
 	def export_add_network(self, mac):
 		self.export_networks[mac] = True
 		
