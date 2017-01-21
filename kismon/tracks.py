@@ -37,6 +37,7 @@ class Tracks:
 	def __init__(self, tracks_file):
 		self.tracks = {}
 		self.tracks_file = tracks_file
+		self.starttime = int(time.time())
 
 	def load(self):
 		if not os.path.isfile(self.tracks_file):
@@ -56,7 +57,7 @@ class Tracks:
 		timestamp = int(time.time())
 		self.tracks[track_name][str(timestamp)] = (lat, lon, alt)
 
-	def group_to_sessions(self):
+	def group_to_sessions(self, filter_time):
 		sessions = {}
 		timeout = 600
 		for track_name in self.tracks:
@@ -70,6 +71,8 @@ class Tracks:
 			for timestamp in timestamps:
 				point = track[timestamp]
 				timestamp = int(timestamp)
+				if timestamp < filter_time:
+					continue
 				if timestamp - previous_timestamp > timeout:
 					if len(session) > 0:
 						sessions[track_name][first_timestamp] = session
@@ -81,10 +84,14 @@ class Tracks:
 				sessions[track_name][first_timestamp] = session
 		return sessions
 
-	def export_kml(self):
+	def export_kml(self, export_filter):
+		if export_filter == 'current':
+			filter_time = self.starttime
+		else:
+			filter_time = 0
 		output = []
 		output.append("<Folder><name>Tracks</name>")
-		sessions = self.group_to_sessions()
+		sessions = self.group_to_sessions(filter_time)
 		time_format = "%a %b %d %H:%M:%S %Y"
 		for track_name in sessions:
 			output.append("<Folder><name>%s</name>" % track_name)

@@ -200,7 +200,8 @@ def networks():
 	networks.save(networks_file)
 	networks.export_networks_netxml(tempfile.gettempdir() + os.sep + "test.netxml", networks.networks)
 	networks.import_networks("netxml", tempfile.gettempdir() + os.sep + "test.netxml")
-	networks.export_networks_kmz(tempfile.gettempdir() + os.sep + "test.kmz", networks.networks, tracks=test_tracks)
+	networks.export_networks_kmz(tempfile.gettempdir() + os.sep + "test.kmz", networks.networks, tracks=test_tracks, filtered=False)
+	networks.export_networks_kmz(tempfile.gettempdir() + os.sep + "test.kmz", networks.networks, tracks=test_tracks, filtered=True)
 
 	return networks
 

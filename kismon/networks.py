@@ -400,7 +400,7 @@ class Networks:
 		
 		return len(parser.networks)
 
-	def export_networks(self, export_format, filename, networks=None, tracks=None):
+	def export_networks(self, export_format, filename, networks=None, tracks=None, filtered=False):
 		if networks is None:
 			networks = self.networks
 		if export_format == "kismon":
@@ -408,7 +408,7 @@ class Networks:
 		elif export_format == "kismet netxml":
 			self.export_networks_netxml(filename, networks)
 		elif export_format == "google earth kmz":
-			self.export_networks_kmz(filename, networks, tracks)
+			self.export_networks_kmz(filename, networks, tracks, filtered)
 		elif export_format == "mappoint csv":
 			self.export_networks_mappoint(filename, networks)
 		
@@ -499,7 +499,7 @@ class Networks:
 		f.close()
 		locale.setlocale(locale.LC_TIME, '')
 
-	def export_networks_kmz(self, filename, networks, tracks):
+	def export_networks_kmz(self, filename, networks, tracks, filtered):
 		kml_folder = """
 <Folder>
 <name>%s: %s APs</name>
@@ -539,7 +539,11 @@ class Networks:
 			))
 
 		if tracks != None:
-			data.append(tracks.export_kml())
+			if filtered:
+				track_filter = self.config['filter_networks']['export']
+			else:
+				track_filter = False
+			data.append(tracks.export_kml(track_filter))
 
 		data.append("\r\n</Document>\r\n</kml>")
 		

@@ -502,10 +502,12 @@ class MainWindow(TemplateWindow):
 			for mac in self.export_networks:
 				if self.export_networks[mac] is True:
 					networks.append(mac)
+			filtered = True
 		else:
 			networks = None
+			filtered = False
 
-		self.networks.export_networks(export_format, filename, networks, self.tracks)
+		self.networks.export_networks(export_format, filename, networks, self.tracks, filtered)
 
 	def export_add_network(self, mac):
 		self.export_networks[mac] = True
