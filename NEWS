@@ -1,3 +1,12 @@
+kismon 0.9.0 (2017-01-21)
+===============================
+
+Changes:
+* Compatibility with Kismet versions 2016-01-R1 and 2016-07-R1
+* GPS tracks can be stored and included in the KMZ file export
+* Config file format changed from ini to json
+* Bug fixes
+
 kismon 0.8.1 (2016-06-29)
 ===============================
 
