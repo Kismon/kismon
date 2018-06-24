@@ -199,8 +199,8 @@ class Map:
 		if self.is_position_invalid(lat, lon):
 			return
 		self.osm.gps_clear()
-		self.osm.gps_add(lat, lon, heading=OsmGpsMap.MAP_INVALID);
-		
+		self.osm.gps_add(lat, lon, heading=OsmGpsMap.MAP_INVALID)
+
 		self.config["last_position"] = "%s/%s" % (lat, lon)
 		
 	def set_center_and_zoom(self, lat, lon, zoom):
@@ -298,7 +298,7 @@ class Map:
 			except KeyError:
 				new = True
 			
-			if new == True:
+			if new:
 				self.add_image(lat, lon, key, marker.color)
 			
 			marker.lat = lat
@@ -357,9 +357,9 @@ class Map:
 		self.set_position(float(lat), float(lon))
 		
 	def on_map_pressed(self, actor, event):
-		if event != None:
+		if event is not None:
 			self.osm.grab_focus()
-			if event.x >= 32 and event.x < 48 and event.y >= 32 and event.y < 48:
+			if 32 <= event.x < 48 and 32 <= event.y < 48:
 				self.start_moving()
 		
 	def locate_marker(self, key):

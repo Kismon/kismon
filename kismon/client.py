@@ -204,8 +204,7 @@ class Client:
 				try:
 					data[cap_columns[y]] = column
 				except:
-					print("Parser error:", cap, y, len(columns), \
-						len(cap_columns), data)
+					print("Parser error:", cap, y, len(columns), len(cap_columns), data)
 					print(repr(line))
 				y += 1
 			
@@ -247,7 +246,7 @@ class ClientThread(threading.Thread):
 		self.client = Client()
 		self.is_running = False
 		self.queue = {}
-		if server != None:
+		if server is not None:
 			self.client.server = server
 	
 	def stop(self):

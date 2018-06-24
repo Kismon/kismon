@@ -5,7 +5,7 @@ try:
 except ImportError:
 	from windows import ChannelWindow
 
-class ServerTab():
+class ServerTab:
 	def __init__(self, server_id, map, config, client_threads, client_start, client_stop, set_server_tab_label, on_server_remove_clicked):
 		self.server_id = server_id
 		self.config = config
@@ -52,7 +52,7 @@ class ServerTab():
 		self.gps_expander = gps_expander
 		self.init_gps_table(server_id)
 		
-		if self.map != None:
+		if self.map is not None:
 			track_expander = Gtk.Expander()
 			track_expander.set_label("GPS Track")
 			table = self.init_track_table(server_id)

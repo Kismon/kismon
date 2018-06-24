@@ -160,7 +160,7 @@ class Networks:
 		self.start_queue()
 		
 	def check_filter(self, mac, network):
-		if self.config["filter_type"][network["type"]] == False:
+		if not self.config["filter_type"][network["type"]]:
 			return False
 		
 		crypts = decode_cryptset(network["cryptset"])
@@ -174,7 +174,7 @@ class Networks:
 			crypt = "wep"
 		else:
 			crypt = "other"
-		if self.config["filter_crypt"][crypt] == False:
+		if not self.config["filter_crypt"][crypt]:
 			return False
 		
 		if self.config["filter_regexpr"]["ssid"] != "":
@@ -313,7 +313,7 @@ class Networks:
 				network["channel"] = bssid["channel"]
 				network["lasttime"] = bssid["lasttime"]
 				network["signal_dbm"]["last"] = bssid["signal_dbm"]
-				
+
 			network["firsttime"] = min(network["firsttime"], bssid["firsttime"])
 			network["signal_dbm"]["min"] = min(network["signal_dbm"]["min"], bssid["minsignal_dbm"])
 			network["signal_dbm"]["max"] = min(network["signal_dbm"]["max"], bssid["maxsignal_dbm"])
@@ -365,8 +365,8 @@ class Networks:
 		else:
 			newer = False
 		if (network["lat"] == 0.0 and network["lon"] == 0.0) or \
-			(((signal and data_signal and network["signal_dbm"]["max"] < data["signal_dbm"]["max"]) or \
-			(not signal and data_signal)) and data["lat"] != 0.0 and data["lon"] != 0.0):
+			(((signal and data_signal and network["signal_dbm"]["max"] < data["signal_dbm"]["max"]) or
+			  (not signal and data_signal)) and data["lat"] != 0.0 and data["lon"] != 0.0):
 				network["lat"] = data["lat"]
 				network["lon"] = data["lon"]
 		if newer or network["ssid"] == "":
@@ -392,6 +392,9 @@ class Networks:
 			parser = Netxml()
 		elif filetype == "csv":
 			parser = CSV()
+		else:
+			print("unknown filetype")
+			return 0
 		
 		parser.parse(filename)
 		
@@ -413,7 +416,7 @@ class Networks:
 			self.export_networks_mappoint(filename, networks)
 		
 	def export_networks_netxml(self, filename, networks):
-		locale.setlocale(locale.LC_TIME, 'C');
+		locale.setlocale(locale.LC_TIME, 'C')
 		f = open(filename, "w")
 		f.write('<?xml version="1.0" encoding="ISO-8859-1"?>\n')
 		f.write('<!DOCTYPE detection-run SYSTEM "http://kismetwireless.net/kismet-3.1.0.dtd">\n')
@@ -538,7 +541,7 @@ class Networks:
 				"".join(folders[crypt])
 			))
 
-		if tracks != None:
+		if tracks is not None:
 			if filtered:
 				track_filter = self.config['filter_networks']['export']
 			else:
@@ -636,8 +639,8 @@ class Netxml:
 			"network": None,
 			"encryption": {}
 			}
-		locale.setlocale(locale.LC_TIME, 'C');
-		
+		locale.setlocale(locale.LC_TIME, 'C')
+
 		p = xml.parsers.expat.ParserCreate()
 		p.buffer_text = True #avoid chunked data
 		p.StartElementHandler = self.parse_start_element
@@ -734,7 +737,7 @@ class CSV:
 		self.networks = {}
 		
 	def parse(self, filename):
-		locale.setlocale(locale.LC_TIME, 'C');
+		locale.setlocale(locale.LC_TIME, 'C')
 		f = open(filename)
 		head = f.readline().split(";")[:-1]
 		for line in f.readlines():

@@ -483,8 +483,8 @@ class MainWindow(TemplateWindow):
 		file_import_window.gtkwin.set_modal(True)
 		
 	def on_file_export(self, widget, export_format, extension, amount):
-		dialog = Gtk.FileChooserDialog(title="Export as %s" % (export_format),
-			parent=self.gtkwin, action=Gtk.FileChooserAction.SAVE)
+		dialog = Gtk.FileChooserDialog(title="Export as %s" % export_format,
+									   parent=self.gtkwin, action=Gtk.FileChooserAction.SAVE)
 		dialog.add_button('gtk-save', Gtk.ResponseType.OK)
 		dialog.add_button('gtk-cancel', Gtk.ResponseType.CANCEL)
 		dialog.set_do_overwrite_confirmation(True)
@@ -494,7 +494,7 @@ class MainWindow(TemplateWindow):
 		if dialog.run() == Gtk.ResponseType.OK:
 			filename = dialog.get_filename()
 		dialog.destroy()
-		if filename == False:
+		if not filename:
 			return
 		
 		if amount == "Filtered":

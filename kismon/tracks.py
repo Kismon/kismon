@@ -89,8 +89,7 @@ class Tracks:
 			filter_time = self.starttime
 		else:
 			filter_time = 0
-		output = []
-		output.append("<Folder><name>Tracks</name>")
+		output = ["<Folder><name>Tracks</name>"]
 		sessions = self.group_to_sessions(filter_time)
 		time_format = "%a %b %d %H:%M:%S %Y"
 		for track_name in sessions:

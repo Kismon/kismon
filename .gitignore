@@ -1,3 +1,4 @@
 *.pyc
 .pybuild/
 build/
+debian/kismon/

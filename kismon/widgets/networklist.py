@@ -118,7 +118,7 @@ class NetworkList:
 		self.add_network(self.network_selected)
 	
 	def prepare_network_servers(self, value):
-		if len(value) == 0 or value == None:
+		if len(value) == 0 or value is None:
 			servers = None
 			servers_str = None
 		else:

@@ -208,7 +208,7 @@ class Core:
 					gps = data
 				if data["fix"] > 1:
 					fix = (data["lat"], data["lon"])
-					if self.config['tracks']['store'] == True:
+					if self.config['tracks']['store']:
 						self.tracks.add_point_to_track(server_name, data['lat'], data['lon'], data['alt'])
 					break
 			except IndexError:
@@ -303,7 +303,7 @@ class Core:
 			self.config['kismet']['servers'].remove(None)
 		self.config_handler.write()
 		self.networks.save(self.networks_file, force=True)
-		if self.config['tracks']['store'] == True:
+		if self.config['tracks']['store']:
 			self.tracks.save()
 
 	def add_network_to_map(self, mac):
@@ -328,7 +328,7 @@ class Core:
 
 def main():
 	core = Core()
-	if core.main_window.gtkwin == None:
+	if core.main_window.gtkwin is None:
 		sys.exit()
 	try:
 		Gtk.main()

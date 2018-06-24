@@ -95,7 +95,7 @@ def get_client_test_data():
 		('status', {'text': 'Detected new managed network "test", BSSID 00:26:4D:4A:1C:11, encryption yes, channel 1, 54.00 mbit', 'flags': 2}),
 		('info', {'noise': 0, 'datapackets': 2, 'crypt': 2, 'clients': 0, 'packets': 58, 'rate': 0, 'llcpackets': 56, 'dropped': 0, 'numerrorsources': 0, 'numsources': 1, 'filtered': 0, 'networks': 13}),
 	]
-	return (test_lines, result_split_line, result_parse_line)
+	return test_lines, result_split_line, result_parse_line
 
 def core_tests(test_core):
 	test_networks = networks()
