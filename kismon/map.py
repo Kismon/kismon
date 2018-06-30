@@ -190,7 +190,8 @@ class Map:
 		zoom = self.osm.get_property('zoom')
 		self.config["last_zoom"] = zoom
 		
-	def is_position_invalid(self, lat, lon):
+	@staticmethod
+	def is_position_invalid(lat, lon):
 		if lat == 0.0 and lon == 0.0:
 			return True
 		return False

@@ -120,7 +120,6 @@ class NetworkList:
 	def prepare_network_servers(self, value):
 		if len(value) == 0 or value is None:
 			servers = None
-			servers_str = None
 		else:
 			servers = []
 			for server in value:
@@ -207,7 +206,8 @@ class NetworkList:
 			self.value_cache['ssid'][ssid_str] = ssid
 		return ssid
 	
-	def prepare_network_coordinate(self, value):
+	@staticmethod
+	def prepare_network_coordinate(value):
 		if value == 0.0:
 			return None
 		else:

@@ -32,7 +32,7 @@ class ServerTab:
 		connection_expander.set_label("Control")
 		connection_expander.set_expanded(True)
 		right_table.pack_start(connection_expander, False, False, 0)
-		connection_table = self.init_control_table(server_id)
+		connection_table = self.init_control_table()
 		connection_expander.add(connection_table)
 		row += 1
 		
@@ -50,12 +50,12 @@ class ServerTab:
 		right_table.pack_start(gps_expander, False, False, 0)
 		row += 1
 		self.gps_expander = gps_expander
-		self.init_gps_table(server_id)
+		self.init_gps_table()
 		
 		if self.map is not None:
 			track_expander = Gtk.Expander()
 			track_expander.set_label("GPS Track")
-			table = self.init_track_table(server_id)
+			table = self.init_track_table()
 			track_expander.add(table)
 			right_table.pack_start(track_expander, False, False, 0)
 			row += 1
@@ -70,7 +70,7 @@ class ServerTab:
 		self.sources_table_source = {}
 		right_scrolled.show_all()
 		
-	def init_control_table(self, server_id):
+	def init_control_table(self):
 		table = Gtk.Table(n_rows=4, n_columns=2)
 		row = 0
 		
@@ -165,7 +165,7 @@ class ServerTab:
 		self.info_table['networks'].set_text("%s" % data["networks"])
 		self.info_table['packets'].set_text("%s" % data["packets"])
 	
-	def init_gps_table(self, server_id):
+	def init_gps_table(self):
 		table = Gtk.Table(n_rows=3, n_columns=2)
 		
 		fix_label = Gtk.Label(label="Fix: ")
@@ -211,7 +211,7 @@ class ServerTab:
 		self.gps_table_lat.set_text("%s" % data["lat"])
 		self.gps_table_lon.set_text("%s" % data["lon"])
 		
-	def init_track_table(self, server_id):
+	def init_track_table(self):
 		table = Gtk.Table(n_rows=2, n_columns=2)
 		row = 0
 		

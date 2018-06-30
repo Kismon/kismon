@@ -134,9 +134,9 @@ class MainWindow(TemplateWindow):
 		if self.map is None:
 			return
 		if self.config["window"]["map_position"] == "widget":
-			self.on_map_widget(None, True)
+			self.on_map_widget(override=True)
 		elif self.config["window"]["map_position"] == "window":
-			self.on_map_window(None, True)
+			self.on_map_window(override=True)
 		else:
 			self.on_map_hide(None)
 	
@@ -419,7 +419,7 @@ class MainWindow(TemplateWindow):
 			except AttributeError:
 				pass
 		
-	def on_map_widget(self, widget, override=False):
+	def on_map_widget(self, widget=None, override=False):
 		map_widget = self.map.widget
 		if (widget is not None and widget.get_active()) or override is True:
 			if self.config["window"]["map_position"] == "widget" and self.notebook.page_num(map_widget) != -1:
