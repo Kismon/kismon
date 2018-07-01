@@ -70,9 +70,10 @@ class Config:
 				},
 			"filter_type": {
 				"infrastructure": True,
-				"probe": False,
-				"data": False,
+				"client": False,
 				"ad-hoc": False,
+				"generic": False,
+				"wired": False,
 				},
 			"filter_crypt": {
 				"none": True,

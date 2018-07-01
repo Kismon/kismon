@@ -36,13 +36,8 @@ from gi.repository import GLib
 import zipfile
 import re
 
-try:
-	from .client import *
-	import kismon.utils as utils
-except SystemError:
-	from client import *
-	import utils
-
+from kismon.client_rest import *
+import kismon.utils as utils
 
 class Networks:
 	def __init__(self, config):
@@ -265,6 +260,82 @@ class Networks:
 			GLib.source_remove(self.queue_task)
 			self.queue_task = None
 		self.notify_add_queue = {}
+
+	def add_device_data(self, device, server_id):
+		mac = device['kismet.device.base.macaddr']
+		print(mac)
+		new_channel = device['kismet.device.base.channel']
+		if new_channel.isdigit():
+			new_channel = int(new_channel)
+		else:
+			new_channel = 0
+
+		ssid_map = device['dot11.device']['dot11.device.advertised_ssid_map']
+		if len(ssid_map) > 1:
+			print("todo: multiple SSIDs per device %s" % mac)
+		if len(ssid_map) > 0:
+			for key in ssid_map:
+				new_ssid = ssid_map[key]
+				new_cryptset = new_ssid['dot11.advertisedssid.crypt_set']
+				break
+		else:
+			new_cryptset = 0
+
+		if mac not in self.networks:
+			network = {
+				"type": decode_network_typeset(device['dot11.device']['dot11.device.typeset']),
+				"channel": new_channel,
+				"firsttime": device['kismet.device.base.first_time'],
+				"lasttime": device['kismet.device.base.last_time'],
+				"lat": 0, # todo
+				"lon": 0, # todo
+				"manuf": device['kismet.device.base.manuf'],
+				"ssid": device['dot11.device']['dot11.device.last_beaconed_ssid'],
+				"cryptset": new_cryptset,
+				"signal_dbm": {
+					"min": 0, # todo
+					"max": 0, # todo
+					"last": 0 # todo
+				},
+				"comment": '',
+				"servers": [],
+			}
+			self.networks[mac] = network
+		else:
+			network = self.networks[mac]
+			if "signal_dbm" not in network:
+				""" todo
+				network["signal_dbm"] = {
+					"min": bssid["minsignal_dbm"],
+					"max": bssid["maxsignal_dbm"],
+					"last": bssid["signal_dbm"]
+				}
+				"""
+				pass
+			if 'comment' not in network:
+				network['comment'] = ''
+
+			if device['kismet.device.base.last_time'] > network["lasttime"]:
+				""" todo
+				if bssid["gpsfixed"] == 1 and \
+						((network["signal_dbm"]["max"] < bssid["maxsignal_dbm"]) or
+						 (network["lat"] == 0 and network["lon"] == 0)):
+					network["lat"] = bssid["bestlat"]
+					network["lon"] = bssid["bestlon"]
+				"""
+				network["channel"] = new_channel
+				network["lasttime"] = device['kismet.device.base.last_time']
+				network["cryptset"] = new_cryptset
+				# todo network["signal_dbm"]["last"] = bssid["signal_dbm"]
+
+			network["firsttime"] = min(network["firsttime"], device['kismet.device.base.first_time'])
+			# todo network["signal_dbm"]["min"] = min(network["signal_dbm"]["min"], bssid["minsignal_dbm"])
+			# todo network["signal_dbm"]["max"] = min(network["signal_dbm"]["max"], bssid["maxsignal_dbm"])
+			server = self.config['kismet']['servers'][server_id]
+			if server not in network['servers']:
+				network['servers'].append(server)
+
+		self.notify_add(mac)
 		
 	def add_bssid_data(self, bssid, server_id):
 		mac = bssid["bssid"]

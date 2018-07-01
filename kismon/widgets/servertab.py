@@ -119,23 +119,15 @@ class ServerTab:
 		table = Gtk.Table(n_rows=4, n_columns=2)
 		row = 0
 		
-		server_host, server_port = self.config['kismet']['servers'][server_id].split(':')
-		label = Gtk.Label(label="Host: ")
+		server_uri = self.config['kismet']['servers'][server_id]
+		label = Gtk.Label(label="URI: ")
 		label.set_alignment(xalign=0, yalign=0)
 		table.attach(label, 0, 1, row, row+1)
-		value_label = Gtk.Label(label="%s" % server_host)
-		value_label.set_alignment(xalign=0, yalign=0)
-		table.attach(value_label, 1, 2, row, row+1)
-		self.info_table['host'] = value_label
 		row += 1
-		
-		label = Gtk.Label(label="Port: ")
-		label.set_alignment(xalign=0, yalign=0)
-		table.attach(label, 0, 1, row, row+1)
-		value_label = Gtk.Label(label="%s" % server_port)
+		value_label = Gtk.Label(label="%s" % server_uri)
 		value_label.set_alignment(xalign=0, yalign=0)
-		table.attach(value_label, 1, 2, row, row+1)
-		self.info_table['port'] = value_label
+		table.attach(value_label, 0, 2, row, row+1)
+		self.info_table['host'] = value_label
 		row += 1
 		
 		networks_label = Gtk.Label(label="Networks: ")

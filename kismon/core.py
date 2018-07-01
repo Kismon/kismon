@@ -37,21 +37,12 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from gi.repository import GLib
 
-try:
-	from .client import *
-	from .gui import MainWindow
-	from .config import Config
-	from .networks import Networks
-	from .tracks import Tracks
-	import kismon.utils as utils
-except SystemError:
-	from client import *
-	from gui import MainWindow
-	from config import Config
-	from networks import Networks
-	from tracks import Tracks
-	import utils
-
+from kismon.client_rest import *
+from kismon.gui import MainWindow
+from kismon.config import Config
+from kismon.networks import Networks
+from kismon.tracks import Tracks
+import kismon.utils as utils
 
 def check_osmgpsmap():
 	try:
@@ -148,12 +139,8 @@ class Core:
 		
 	def init_client_thread(self, server_id):
 		server = self.config["kismet"]["servers"][server_id]
-		self.client_threads[server_id] = ClientThread(server)
-		self.client_threads[server_id].client.set_capabilities(
-			('status', 'source', 'info', 'gps', 'bssid', 'bssidsrc', 'ssid'))
-		if "--create-kismet-dump" in sys.argv:
-			self.client_threads[server_id].client.enable_dump()
-		
+		self.client_threads[server_id] = RestClientThread(server)
+
 	def init_client_threads(self):
 		server_id=0
 		for server in self.config["kismet"]["servers"]:
@@ -170,12 +157,6 @@ class Core:
 		self.client_threads[server_id].start()
 		
 	def client_stop(self, server_id):
-		if self.client_threads[server_id].client.connecting:
-			# kill connecting sockets, don't wait for the timeout
-			try:
-				self.client_threads[server_id].client.s.shutdown(socket.SHUT_RDWR)
-			except OSError:
-				pass
 		self.client_threads[server_id].stop()
 		
 	def clients_stop(self):
@@ -196,7 +177,7 @@ class Core:
 			self.main_window.server_tabs[server_id].server_switch.set_active(False)
 			page_num = self.main_window.notebook.page_num(self.main_window.log_list.widget)
 			self.main_window.notebook.set_current_page(page_num)
-		
+		"""
 		#gps
 		gps = None
 		fix = None
@@ -246,6 +227,7 @@ class Core:
 			update = True
 		if update is True:
 			self.main_window.server_tabs[server_id].update_sources_table(self.sources[server_id])
+		"""
 		
 	def queues_handler(self):
 		for server_id in self.client_threads:
@@ -254,7 +236,13 @@ class Core:
 		
 	def queue_handler_networks(self, server_id):
 		thread = self.client_threads[server_id]
-		
+
+		queue = thread.get_queue("dot11")
+		for x in range(0, len(queue)):
+			device = queue.pop(0)
+			self.networks.add_device_data(device, server_id)
+
+		"""
 		#ssid
 		for data in thread.get_queue("ssid"):
 			self.networks.add_ssid_data(data)
@@ -277,13 +265,13 @@ class Core:
 			mac = data["bssid"]
 			if mac in self.main_window.signal_graphs:
 				self.main_window.signal_graphs[mac].add_value(self.sources[server_id][data["uuid"]], data, data["signal_dbm"], server_id)
-		
+		"""
 		if len(self.networks.notify_add_queue) > 0:
 			self.networks.start_queue()
 			if len(self.networks.notify_add_queue) > 500:
 				self.networks.disable_refresh()
 				self.main_window.networks_queue_progress()
-		
+
 		self.main_window.update_statusbar()
 		
 	def queues_handler_networks(self):

@@ -226,7 +226,7 @@ class MainWindow(TemplateWindow):
 		network_menuitem.set_submenu(network_type_menu)
 		view_menu.append(network_menuitem)
 		
-		for network_type, key in (("Infrastructure", "infrastructure"),("Data", "data"), ("Probe", "probe"), ("Ad-Hoc", "ad-hoc")):
+		for network_type, key in (("Infrastructure", "infrastructure"),("Generic", "generic"), ("Client", "client"), ("Ad-Hoc", "ad-hoc"), ("Wired", "wired")):
 			item = Gtk.CheckMenuItem.new_with_label('%s Networks' % network_type)
 			if self.config["filter_type"][key]:
 				item.set_active(True)
