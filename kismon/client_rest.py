@@ -83,6 +83,9 @@ class RestClient:
             'kismet.device.base.channel',
             'kismet.device.base.manuf',
             'kismet.device.base.signal/kismet.common.signal.last_signal_dbm',
+            'kismet.device.base.signal/kismet.common.signal.min_signal_dbm',
+            'kismet.device.base.signal/kismet.common.signal.max_signal_dbm',
+            'kismet.device.base.signal/kismet.common.signal.peak_loc',
         ]
         if queue_list:
             self.queue = queue_list

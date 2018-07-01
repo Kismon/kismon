@@ -52,7 +52,6 @@ class Networks:
 		self.resume_refresh_functions = []
 		self.queue_running = False
 		self.block_queue_start = False
-		self.temp_ssid_data = {}
 		self.queue_task = None
 		self.num_backups = 5
 		self.autosave_task = None
@@ -273,13 +272,26 @@ class Networks:
 		ssid_map = device['dot11.device']['dot11.device.advertised_ssid_map']
 		if len(ssid_map) > 1:
 			print("todo: multiple SSIDs per device %s" % mac)
+
+		new_cryptset = 0
 		if len(ssid_map) > 0:
 			for key in ssid_map:
 				new_ssid = ssid_map[key]
 				new_cryptset = new_ssid['dot11.advertisedssid.crypt_set']
 				break
+
+		try:
+			peak_loc = device['kismet.common.signal.peak_loc']
+		except KeyError:
+			peak_loc = None
+		if peak_loc and peak_loc['kismet.common.location.fix'] >= 2:
+			new_lat = peak_loc['kismet.common.location.lat']
+			new_lon = peak_loc['kismet.common.location.lon']
+			gps_fix = True
 		else:
-			new_cryptset = 0
+			new_lat = 0
+			new_lon = 0
+			gps_fix = False
 
 		if mac not in self.networks:
 			network = {
@@ -287,15 +299,15 @@ class Networks:
 				"channel": new_channel,
 				"firsttime": device['kismet.device.base.first_time'],
 				"lasttime": device['kismet.device.base.last_time'],
-				"lat": 0, # todo
-				"lon": 0, # todo
+				"lat": new_lat,
+				"lon": new_lon,
 				"manuf": device['kismet.device.base.manuf'],
 				"ssid": device['dot11.device']['dot11.device.last_beaconed_ssid'],
 				"cryptset": new_cryptset,
 				"signal_dbm": {
-					"min": 0, # todo
-					"max": 0, # todo
-					"last": 0 # todo
+					"min": device['kismet.common.signal.min_signal_dbm'],
+					"max": device['kismet.common.signal.max_signal_dbm'],
+					"last": device['kismet.common.signal.last_signal_dbm'],
 				},
 				"comment": '',
 				"servers": [],
@@ -304,108 +316,35 @@ class Networks:
 		else:
 			network = self.networks[mac]
 			if "signal_dbm" not in network:
-				""" todo
 				network["signal_dbm"] = {
-					"min": bssid["minsignal_dbm"],
-					"max": bssid["maxsignal_dbm"],
-					"last": bssid["signal_dbm"]
+					"min": device['kismet.common.signal.min_signal_dbm'],
+					"max": device['kismet.common.signal.max_signal_dbm'],
+					"last": device['kismet.common.signal.last_signal_dbm']
 				}
-				"""
-				pass
 			if 'comment' not in network:
 				network['comment'] = ''
 
 			if device['kismet.device.base.last_time'] > network["lasttime"]:
-				""" todo
-				if bssid["gpsfixed"] == 1 and \
-						((network["signal_dbm"]["max"] < bssid["maxsignal_dbm"]) or
+				if gps_fix and ((network["signal_dbm"]["max"] < device['kismet.common.signal.max_signal_dbm']) or
 						 (network["lat"] == 0 and network["lon"] == 0)):
-					network["lat"] = bssid["bestlat"]
-					network["lon"] = bssid["bestlon"]
-				"""
+					network["lat"] = new_lat
+					network["lon"] = new_lon
+
 				network["channel"] = new_channel
 				network["lasttime"] = device['kismet.device.base.last_time']
 				network["cryptset"] = new_cryptset
-				# todo network["signal_dbm"]["last"] = bssid["signal_dbm"]
+				network["signal_dbm"]["last"] = device['kismet.common.signal.last_signal_dbm']
+				network["ssid"] = device['dot11.device']['dot11.device.last_beaconed_ssid']
 
 			network["firsttime"] = min(network["firsttime"], device['kismet.device.base.first_time'])
-			# todo network["signal_dbm"]["min"] = min(network["signal_dbm"]["min"], bssid["minsignal_dbm"])
-			# todo network["signal_dbm"]["max"] = min(network["signal_dbm"]["max"], bssid["maxsignal_dbm"])
+			network["signal_dbm"]["min"] = min(network["signal_dbm"]["min"], device['kismet.common.signal.min_signal_dbm'])
+			network["signal_dbm"]["max"] = min(network["signal_dbm"]["max"], device['kismet.common.signal.max_signal_dbm'])
 			server = self.config['kismet']['servers'][server_id]
 			if server not in network['servers']:
 				network['servers'].append(server)
 
 		self.notify_add(mac)
-		
-	def add_bssid_data(self, bssid, server_id):
-		mac = bssid["bssid"]
-		if mac not in self.networks:
-			network = {
-				"type": decode_network_type(bssid["type"]),
-				"channel": bssid["channel"],
-				"firsttime": bssid["firsttime"],
-				"lasttime": bssid["lasttime"],
-				"lat": bssid["bestlat"],
-				"lon": bssid["bestlon"],
-				"manuf": bssid["manuf"],
-				"ssid": "",
-				"cryptset": 0,
-				"signal_dbm": {
-					"min": bssid["minsignal_dbm"],
-					"max": bssid["maxsignal_dbm"],
-					"last": bssid["signal_dbm"]
-				},
-				"comment": '',
-				"servers": [],
-			}
-			self.networks[mac] = network
-			if mac in self.temp_ssid_data:
-				data = self.temp_ssid_data[mac]
-				self.add_ssid_data(data)
-				del self.temp_ssid_data[mac]
-		else:
-			network = self.networks[mac]
-			if "signal_dbm" not in network:
-				network["signal_dbm"] = {
-					"min": bssid["minsignal_dbm"],
-					"max": bssid["maxsignal_dbm"],
-					"last": bssid["signal_dbm"]
-					}
-			if 'comment' not in network:
-				network['comment'] = ''
-			
-			if bssid["lasttime"] > network["lasttime"]:
-				if bssid["gpsfixed"] == 1 and \
-					((network["signal_dbm"]["max"] < bssid["maxsignal_dbm"]) or
-					 (network["lat"] == 0 and network["lon"] == 0)):
-						network["lat"] = bssid["bestlat"]
-						network["lon"] = bssid["bestlon"]
-				
-				network["channel"] = bssid["channel"]
-				network["lasttime"] = bssid["lasttime"]
-				network["signal_dbm"]["last"] = bssid["signal_dbm"]
 
-			network["firsttime"] = min(network["firsttime"], bssid["firsttime"])
-			network["signal_dbm"]["min"] = min(network["signal_dbm"]["min"], bssid["minsignal_dbm"])
-			network["signal_dbm"]["max"] = min(network["signal_dbm"]["max"], bssid["maxsignal_dbm"])
-			server = self.config['kismet']['servers'][server_id]
-			if server not in network['servers']:
-				network['servers'].append(server)
-		
-		self.notify_add(mac)
-		
-	def add_ssid_data(self, ssid):
-		mac = ssid["mac"]
-		if mac not in self.networks:
-			self.temp_ssid_data[mac] = ssid
-			return
-		
-		network = self.networks[mac]
-		if ssid["lasttime"] >= network["lasttime"] or \
-			(network["ssid"] == "" and network["cryptset"] == 0):
-			network["cryptset"] = ssid["cryptset"]
-			network["ssid"] = str(ssid["ssid"])
-		
 	def add_network_data(self, mac, data):
 		if len(mac) != 17 or mac == "00:00:00:00:00:00":
 			return

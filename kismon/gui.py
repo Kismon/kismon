@@ -28,16 +28,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
 
-try:
-	from .client import Client, decode_cryptset
-	from .windows import *
-	from .widgets import *
-	import kismon.utils as utils
-except SystemError:
-	from client import Client, decode_cryptset
-	from windows import *
-	from widgets import *
-	import utils
+from kismon.windows import *
+from kismon.widgets import *
+import kismon.utils as utils
 
 import time
 import os
