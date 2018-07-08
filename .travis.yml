@@ -11,5 +11,12 @@ before_install:
  - "sudo apt-get update"
  - "sudo apt-get -qq install python3-gi python3-cairo python3-simplejson"
  - "sudo apt-get -qq install gir1.2-gtk-3.0 gir1.2-gdkpixbuf-2.0 gir1.2-osmgpsmap-1.0"
+ - "sudo apt-get -qq install libmicrohttpd-dev libsqlite3-dev protobuf-compiler protobuf-c-compiler python3-requests"
+ - "git clone https://github.com/dreadnought/kismet.git"
+ - "cd kismet"
+ - "git checkout python3"
+ - "./configure --with-python2=python3 --enable-capture-tools-only --disable-pcap"
+ - "cd python_modules/KismetRest && sudo make install"
+ - "cd $TRAVIS_BUILD_DIR"
 script:
  - /usr/bin/python3 -m unittest discover -v
