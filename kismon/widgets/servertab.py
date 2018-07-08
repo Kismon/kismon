@@ -130,33 +130,22 @@ class ServerTab:
 		self.info_table['host'] = value_label
 		row += 1
 		
-		networks_label = Gtk.Label(label="Networks: ")
+		networks_label = Gtk.Label(label="Devices: ")
 		networks_label.set_alignment(xalign=0, yalign=0)
 		table.attach(networks_label, 0, 1, row, row+1)
 		
 		networks_value_label = Gtk.Label()
 		networks_value_label.set_alignment(xalign=0, yalign=0)
 		table.attach(networks_value_label, 1, 2, row, row+1)
-		self.info_table['networks'] = networks_value_label
+		self.info_table['devices'] = networks_value_label
 		row += 1
-		
-		packets_label = Gtk.Label(label="Packets: ")
-		packets_label.set_alignment(xalign=0, yalign=0)
-		table.attach(packets_label, 0, 1, row, row+1)
-		
-		packets_value_label = Gtk.Label()
-		packets_value_label.set_alignment(xalign=0, yalign=0)
-		table.attach(packets_value_label, 1, 2, row, row+1)
-		self.info_table['packets'] = packets_value_label
-		row += 1
-		
+
 		table.show_all()
 		self.info_expander.add(table)
 		
-	def update_info_table(self, data):
-		self.info_table['networks'].set_text("%s" % data["networks"])
-		self.info_table['packets'].set_text("%s" % data["packets"])
-	
+	def update_info_table(self, devices):
+		self.info_table['devices'].set_text("%s" % devices)
+
 	def init_gps_table(self):
 		table = Gtk.Table(n_rows=3, n_columns=2)
 		
@@ -191,17 +180,19 @@ class ServerTab:
 		self.gps_table = table
 		self.gps_expander.add(self.gps_table)
 		
-	def update_gps_table(self, data):
-		if data["fix"] == -1:
-			data["fix"] = "None"
-		elif data["fix"] == 2:
-			data["fix"] = "2D"
-		elif data["fix"] == 3:
-			data["fix"] = "3D"
+	def update_gps_table(self, lat, lon, fix):
+		if fix == -1:
+			fix_text = "None"
+		elif fix == 2:
+			fix_text = "2D"
+		elif fix == 3:
+			fix_text = "3D"
+		else:
+			fix_text = fix
 		
-		self.gps_table_fix.set_text("%s" % data["fix"])
-		self.gps_table_lat.set_text("%s" % data["lat"])
-		self.gps_table_lon.set_text("%s" % data["lon"])
+		self.gps_table_fix.set_text("%s" % fix_text)
+		self.gps_table_lat.set_text("%s" % lat)
+		self.gps_table_lon.set_text("%s" % lon)
 		
 	def init_track_table(self):
 		table = Gtk.Table(n_rows=2, n_columns=2)
@@ -267,9 +258,8 @@ class ServerTab:
 		rows = []
 		if len(self.sources_table_sources) != 1:
 			rows.append((None, None))
-		rows.append((source["username"], ""))
+		rows.append((source['name'], ''))
 		rows.append(("Type", source["type"]))
-		rows.append(("Channel", source["channel"]))
 		rows.append(("Packets", source["packets"]))
 		
 		row = len(self.sources_table_sources) * 5
@@ -297,7 +287,6 @@ class ServerTab:
 			source = sources[uuid]
 			sources_table_source = self.sources_table_sources[uuid]
 			sources_table_source["Type"].set_text("%s" % source["type"])
-			sources_table_source["Channel"].set_text("%s" % source["channel"])
 			sources_table_source["Packets"].set_text("%s" % source["packets"])
 		
 	def set_active(self, active=True):

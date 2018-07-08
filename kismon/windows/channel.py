@@ -26,7 +26,7 @@ class ChannelWindow:
 			self.widgets[uuid] = {}
 			source = self.sources[uuid]
 			frame = Gtk.Frame()
-			frame.set_label(source["username"])
+			frame.set_label(source['name'])
 			self.sources_list.pack_start(frame, False, False, 0)
 			
 			table = Gtk.Table(n_rows=3, n_columns=3)
@@ -43,7 +43,7 @@ class ChannelWindow:
 			field.set_max_length(3)
 			field.set_increments(1,10)
 			field.set_range(1,100)
-			field.set_value(source["velocity"])
+			field.set_value(source["hop_rate"])
 			if source["hop"] == 0:
 				field.set_sensitive(False)
 			self.widgets[uuid]["hop"] = field

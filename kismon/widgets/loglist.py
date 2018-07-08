@@ -38,10 +38,10 @@ class LogList:
 		
 		self.widget = log_scrolled
 		
-	def add(self, origin, message):
+	def add(self, origin, message, timestamp=time.time()):
 		if not self.cleanup():
 			return
-		row = self.store.append([utils.format_timestamp(time.time()), origin, message])
+		row = self.store.append([utils.format_timestamp(timestamp), origin, message])
 		path = self.store.get_path(row)
 		self.treeview.scroll_to_cell(path)
 		self.rows.append(row)

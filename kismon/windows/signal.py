@@ -104,7 +104,7 @@ class SignalWindow:
 		for uuid in self.sources:
 			source = self.sources[uuid]
 			
-			line = ['#' , source["username"], source["type"],
+			line = ['#' , source["name"], source["type"],
 				source["signal"], source["signal_min"], source["signal_max"],
 				source["pps"], source["packets"], source["server"], self.get_color(uuid, hex=True)]
 			if "iter" in source:
@@ -241,36 +241,27 @@ class SignalWindow:
 		
 		return color
 		
-	def add_value(self, source_data, bssidsrc, value, server_id):
-		if source_data is None:
-			source_data = {"username": "signal", "type": "all", "uuid": "all"}
-		
+	def add_value(self, source_data, packets, signal, timestamp, server_id):
 		uuid = "%i-%s" % (server_id, source_data["uuid"])
 		if uuid not in self.sources:
 			self.sources[uuid] = source_data
 			source = source_data
 			source["number"] = len(self.sources) - 1
 			source["server"] = server_id+1
-			source["signal"] = value
-			source["signal_min"] = value
-			source["signal_max"] = value
-			if bssidsrc is None:
-				source["packets"] = 0
-				source["pps"] = 0
-			else:
-				source["packets"] = bssidsrc["numpackets"]
-				source["pps"] = 0
+			source["signal"] = signal
+			source["signal_min"] = signal
+			source["signal_max"] = signal
+			source["packets"] = packets
+			source["pps"] = 0
 		else:
 			source = self.sources[uuid]
-			source["signal"] = value
-			source["signal_min"] = min(value, source["signal_min"])
-			source["signal_max"] = max(value, source["signal_max"])
-			if bssidsrc is not None:
-				source["pps"] = bssidsrc["numpackets"] - source["packets"]
-				source["packets"] = bssidsrc["numpackets"]
-				
-		sec = int(time.time())
-		if sec not in self.history:
-			self.history[sec] = {}
-		self.history[sec][uuid] = (value, source["pps"])
+			source["signal"] = signal
+			source["signal_min"] = min(signal, source["signal_min"])
+			source["signal_max"] = max(signal, source["signal_max"])
+			source["pps"] = packets - source["packets"]
+			source["packets"] = packets
+
+		if timestamp not in self.history:
+			self.history[timestamp] = {}
+		self.history[timestamp][uuid] = (signal, source["pps"])
 		self.graph.queue_draw()

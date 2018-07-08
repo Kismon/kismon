@@ -129,10 +129,7 @@ class Core:
 		if self.map_error is not None:
 			self.map = None
 		else:
-			try:
-				from .map import Map
-			except SystemError:
-				from map import Map
+			from kismon.map import Map
 			user_agent = 'kismon/%s' % utils.get_version()
 			self.map = Map(self.config["map"], user_agent=user_agent)
 			self.map.set_last_from_config()
@@ -177,58 +174,69 @@ class Core:
 			self.main_window.server_tabs[server_id].server_switch.set_active(False)
 			page_num = self.main_window.notebook.page_num(self.main_window.log_list.widget)
 			self.main_window.notebook.set_current_page(page_num)
-		"""
+
+		# info
+		status = thread.get_queue('status')
+		if status:
+			self.main_window.server_tabs[server_id].update_info_table(devices=status['kismet.system.devices.count'])
+
 		#gps
 		gps = None
-		fix = None
-		gps_queue = thread.get_queue("gps")
-		while True:
-			try:
-				data = gps_queue.pop()
-				if gps is None:
-					gps = data
-				if data["fix"] > 1:
-					fix = (data["lat"], data["lon"])
-					if self.config['tracks']['store']:
-						self.tracks.add_point_to_track(server_name, data['lat'], data['lon'], data['alt'])
-					break
-			except IndexError:
-				break
-		if gps is not None:
-			self.main_window.server_tabs[server_id].update_gps_table(gps)
-			if fix is not None and self.map is not None:
+		gps_queue = thread.get_queue("location")
+
+		while len(gps_queue) > 0:
+			data = gps_queue.pop(0)
+			if not data:
+				continue
+
+			if data['kismet.common.location.valid'] == 0:
+				continue
+			gps = {'lat': data['kismet.common.location.lat'],
+					'lon': data['kismet.common.location.lon'],
+					'alt': data['kismet.common.location.alt'],
+					'fix': data['kismet.common.location.fix'],
+				   }
+			if data['kismet.common.location.fix'] > 1:
+				if self.config['tracks']['store']:
+					self.tracks.add_point_to_track(server_name, gps['lat'], gps['lon'], gps['alt'])
+				self.map.add_track(gps['lat'], gps['lon'], server_id)
+		if gps:
+			self.main_window.server_tabs[server_id].update_gps_table(lat=gps['lat'], lon=gps['lon'], fix=gps['fix'])
+			if gps['fix'] > 1:
 				server = "server%s" % (server_id + 1)
 				if server_id == 0:
-					self.map.set_position(fix[0], fix[1])
+					self.map.set_position(gps['lat'], gps['lon'])
 				else:
-					self.map.add_marker(server, server, fix[0], fix[1])
-				self.map.add_track(fix[0], fix[1], server_id)
-		
-		#status
-		for data in thread.get_queue("status"):
-			self.main_window.log_list.add(server_name, data["text"])
-		
-		#info
-		info_queue = thread.get_queue("info")
-		try:
-			data = info_queue.pop()
-			self.main_window.server_tabs[server_id].update_info_table(data)
-		except IndexError:
-			pass
-			
-		#source
-		update = False
-		for data in thread.get_queue("source"):
-			uuid = data["uuid"]
-			if uuid == "00000000-0000-0000-0000-000000000000":
-				continue
-			self.sources[server_id][uuid] = data
-			
-			update = True
-		if update is True:
+					self.map.add_marker(server, server, gps['lat'], gps['lon'])
+
+		message_queue = thread.get_queue("messages")
+		while len(message_queue) > 0:
+			message = message_queue.pop(0)
+			self.main_window.log_list.add(origin=server_name, message=message['kismet.messagebus.message_string'], timestamp=message['kismet.messagebus.message_time'])
+
+
+		datasources = thread.get_queue('datasources')
+		sources_updated = False
+		for ds in datasources:
+			uuid = ds['kismet.datasource.uuid']
+			source = {
+				'type': ds['kismet.datasource.hardware'],
+				'packets': ds['kismet.datasource.num_packets'],
+				'channel': ds['kismet.datasource.channel'],
+				'hop': ds['kismet.datasource.hopping'],
+				'hop_rate': ds['kismet.datasource.hop_rate'],
+				'running': ds['kismet.datasource.running'],
+				'name': ds['kismet.datasource.name'],
+				'uuid': uuid,
+			}
+			#print(source)
+			if uuid in self.sources[server_id] and source['packets'] != self.sources[server_id][uuid]['packets']:
+				sources_updated = True
+			self.sources[server_id][uuid] = source
+
+		if sources_updated is True:
 			self.main_window.server_tabs[server_id].update_sources_table(self.sources[server_id])
-		"""
-		
+
 	def queues_handler(self):
 		for server_id in self.client_threads:
 			self.queue_handler(server_id)
@@ -241,31 +249,23 @@ class Core:
 		for x in range(0, len(queue)):
 			device = queue.pop(0)
 			self.networks.add_device_data(device, server_id)
+			mac = device['kismet.device.base.macaddr']
 
-		"""
-		#ssid
-		for data in thread.get_queue("ssid"):
-			self.networks.add_ssid_data(data)
-		
-		#bssid
-		bssids = {}
-		for data in thread.get_queue("bssid"):
-			mac = data["bssid"]
-			self.networks.add_bssid_data(data, server_id)
-			if mac in self.main_window.signal_graphs and "signal_dbm" not in thread.client.capabilities["bssidsrc"]:
-				self.main_window.signal_graphs[mac].add_value(None, None, data["signal_dbm"], server_id)
-			
-			bssids[mac] = True
-			
-		#bssidsrc
-		for data in thread.get_queue("bssidsrc"):
-			if "signal_dbm" not in data or data["uuid"] not in self.sources[server_id]:
-				continue
-			
-			mac = data["bssid"]
-			if mac in self.main_window.signal_graphs:
-				self.main_window.signal_graphs[mac].add_value(self.sources[server_id][data["uuid"]], data, data["signal_dbm"], server_id)
-		"""
+			for sid in device['kismet.device.base.seenby']:
+				source = device['kismet.device.base.seenby'][sid]
+				source_uuid = source['kismet.common.seenby.uuid']
+				if source_uuid not in self.sources[server_id]:
+					continue
+				if mac not in self.main_window.signal_graphs:
+					continue
+
+				print(source)
+				self.main_window.signal_graphs[mac].add_value(source_data=self.sources[server_id][source_uuid],
+															  packets=source['kismet.common.seenby.num_packets'],
+															  signal=source['kismet.common.seenby.signal']['kismet.common.signal.last_signal_dbm'],
+															  timestamp=source['kismet.common.seenby.last_time'],
+															  server_id=server_id)
+
 		if len(self.networks.notify_add_queue) > 0:
 			self.networks.start_queue()
 			if len(self.networks.notify_add_queue) > 500:

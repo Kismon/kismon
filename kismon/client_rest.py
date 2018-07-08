@@ -41,9 +41,16 @@ class RestClient:
         self.uri = "http://127.0.0.1:2501"
         self.connector = None
         self.connected = False
-        self.timestamp = 0
+        self.timestamp = {
+            'devices': 0,
+            'messages': 0,
+        }
         self.queue = {
             'dot11': [],
+            'status': None,
+            'location': [],
+            'messages': [],
+            'datasources': None,
         }
         self.error = []
 
@@ -52,16 +59,9 @@ class RestClient:
         """
         self.connector = KismetRest.KismetConnector(self.uri)
         print("Client: start %s" % self.uri)
-        try:
-            status = self.connector.system_status()
-        except Exception as e:
-            self.connected = False
-            print("Client: failed to connect")
-            print(e)
-            self.error.append("failed to connect: %s" % e)
+        if not self.update_system_status():
             return False
         self.connected = True
-        print("Server UUID:", status['kismet.system.server_uuid'])
 
     def stop(self):
         """Close connection to the server
@@ -73,7 +73,7 @@ class RestClient:
         #print(device['dot11.device']['dot11.device.last_beaconed_ssid'])
         self.queue['dot11'].append(device)
 
-    def receive_data(self, queue_list=None):
+    def get_updated_devices(self, queue_list=None):
         fields = [
             'dot11.device',
             'kismet.device.base.key',
@@ -86,20 +86,51 @@ class RestClient:
             'kismet.device.base.signal/kismet.common.signal.min_signal_dbm',
             'kismet.device.base.signal/kismet.common.signal.max_signal_dbm',
             'kismet.device.base.signal/kismet.common.signal.peak_loc',
+            'kismet.device.base.seenby',
         ]
         if queue_list:
             self.queue = queue_list
 
         new_timestamp = time.time()
-        time_diff = int(self.timestamp - new_timestamp - 0.5)
+        time_diff = int(self.timestamp['devices'] - new_timestamp - 0.5)
         self.connector.smart_device_list(callback=self._callback, fields=fields, ts=time_diff)
-        self.timestamp = new_timestamp
+        self.timestamp['devices'] = new_timestamp
 
     def loop(self):
         while self.connected is True:
-            self.receive_data()
+            self.get_updated_devices()
             time.sleep(1)
 
+    def update_system_status(self):
+        try:
+            status = self.connector.system_status()
+        except Exception as e:
+            self.connected = False
+            print("Client: failed to connect")
+            print(e)
+            self.error.append("failed to connect: %s" % e)
+            return False
+        self.queue['status'] = status
+        return True
+
+    def update_location(self):
+        self.queue['location'].append(self.connector.location())
+
+    def queue_new_messages(self):
+        messages = self.connector.messages(ts_sec=self.timestamp['messages'])
+        self.timestamp['messages'] = int(time.time())
+        self.queue['messages'].extend(messages['kismet.messagebus.list'])
+
+    def update_datasources(self):
+        self.queue['datasources'] = self.connector.datasources()
+
+    def set_channel(self, uuid, mode, value):
+        print('set_channel', uuid, mode, value)
+        # todo: requires login
+        if mode == 'channel':
+            self.connector.config_datasource_set_channel(uuid=uuid, channel=value)
+        elif mode == 'hop':
+            self.connector.config_datasource_set_hop_rate(uuid=uuid, rate=value)
 
 class RestClientThread(threading.Thread):
     def __init__(self, uri=None):
@@ -107,7 +138,6 @@ class RestClientThread(threading.Thread):
         self.debug = False
         self.client = RestClient()
         self.is_running = False
-        self.queue = []
         if uri is not None:
             self.client.uri = uri
 
@@ -117,7 +147,11 @@ class RestClientThread(threading.Thread):
             self.client.stop()
 
     def get_queue(self, name):
-        return self.client.queue[name]
+        try:
+            return self.client.queue[name]
+        except KeyError:
+            print("queue %s absent" % name)
+            return False
 
     def run(self):
         self.is_running = True
@@ -125,7 +159,11 @@ class RestClientThread(threading.Thread):
         if self.client.start() is False:
             self.stop()
         while self.is_running is True and (self.client.connected is True):
-            self.client.receive_data(self.queue)
+            self.client.get_updated_devices()
+            self.client.update_system_status()
+            self.client.update_location()
+            self.client.queue_new_messages()
+            self.client.update_datasources()
             time.sleep(1)
         self.stop()
 
