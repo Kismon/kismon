@@ -45,6 +45,11 @@ class RestClient:
             'devices': 0,
             'messages': 0,
         }
+        self.queue = {}
+        self.empty_queue()
+        self.error = []
+
+    def empty_queue(self):
         self.queue = {
             'dot11': [],
             'status': None,
@@ -52,7 +57,6 @@ class RestClient:
             'messages': [],
             'datasources': None,
         }
-        self.error = []
 
     def start(self):
         """Open connection to the server
@@ -99,6 +103,13 @@ class RestClient:
     def loop(self):
         while self.connected is True:
             self.get_updated_devices()
+            self.update_system_status()
+            self.update_location()
+            self.queue_new_messages()
+            self.update_datasources()
+            for name in self.queue:
+                print("'%s': " % name, self.queue[name])
+            self.empty_queue()
             time.sleep(1)
 
     def update_system_status(self):
@@ -126,6 +137,9 @@ class RestClient:
 
     def set_channel(self, uuid, mode, value):
         print('set_channel', uuid, mode, value)
+        if not self.connected:
+            print('not connected')
+            return False
         # todo: requires login
         if mode == 'channel':
             self.connector.config_datasource_set_channel(uuid=uuid, channel=value)
@@ -164,6 +178,7 @@ class RestClientThread(threading.Thread):
             self.client.update_location()
             self.client.queue_new_messages()
             self.client.update_datasources()
+            #print(self.client.queue)
             time.sleep(1)
         self.stop()
 

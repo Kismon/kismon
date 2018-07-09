@@ -199,10 +199,11 @@ class Core:
 			if data['kismet.common.location.fix'] > 1:
 				if self.config['tracks']['store']:
 					self.tracks.add_point_to_track(server_name, gps['lat'], gps['lon'], gps['alt'])
-				self.map.add_track(gps['lat'], gps['lon'], server_id)
+				if self.map:
+					self.map.add_track(gps['lat'], gps['lon'], server_id)
 		if gps:
 			self.main_window.server_tabs[server_id].update_gps_table(lat=gps['lat'], lon=gps['lon'], fix=gps['fix'])
-			if gps['fix'] > 1:
+			if gps['fix'] > 1 and self.map:
 				server = "server%s" % (server_id + 1)
 				if server_id == 0:
 					self.map.set_position(gps['lat'], gps['lon'])
