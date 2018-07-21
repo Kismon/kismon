@@ -203,9 +203,7 @@ class TestKismon(unittest.TestCase):
         config_file = tempfile.gettempdir() + os.sep + "testconfig.conf"
         conf = Config(config_file)
         conf.read()
-        conf.config['kismet']['old-entry'] = 1
         conf.write()
-        conf.read()
         conf = Config(config_file)
         conf.read()
 
