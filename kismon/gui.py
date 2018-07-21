@@ -381,14 +381,21 @@ class MainWindow(TemplateWindow):
 		page_num = self.server_notebook.page_num(table)
 		self.server_notebook.remove_page(page_num)
 		self.client_stop(server_id)
-		self.config['kismet']['servers'][server_id] = None
+		self.config['servers'][server_id] = None
 		self.map.remove_track(server_id)
 		self.map.remove_marker("server%s" % (server_id + 1))
 		
 	def on_add_server_clicked(self, widget):
 		server_id = len(self.client_threads)
 		print("adding server", server_id+1)
-		self.config['kismet']['servers'].append("server%s:2501" % (server_id+1))
+		self.config['servers'].append(
+			{
+				'uri': "http://server%s:2501" % (server_id+1),
+				'username': '',
+				'password': '',
+				'id': server_id
+			}
+		)
 		self.client_start(server_id)
 		self.add_server_tab(server_id)
 		

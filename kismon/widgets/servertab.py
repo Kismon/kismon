@@ -118,16 +118,15 @@ class ServerTab:
 		self.info_table = {}
 		table = Gtk.Table(n_rows=4, n_columns=2)
 		row = 0
-		
-		server_uri = self.config['kismet']['servers'][server_id]
+
 		label = Gtk.Label(label="URI: ")
 		label.set_alignment(xalign=0, yalign=0)
 		table.attach(label, 0, 1, row, row+1)
 		row += 1
-		value_label = Gtk.Label(label="%s" % server_uri)
+		value_label = Gtk.Label(label="%s" % self.config['servers'][server_id]['uri'])
 		value_label.set_alignment(xalign=0, yalign=0)
 		table.attach(value_label, 0, 2, row, row+1)
-		self.info_table['host'] = value_label
+		self.info_table['uri'] = value_label
 		row += 1
 		
 		networks_label = Gtk.Label(label="Devices: ")
@@ -295,21 +294,19 @@ class ServerTab:
 	def on_server_edit(self, widget):
 		dialog = Gtk.Dialog("Connect")
 		entry = Gtk.Entry()
-		entry.set_text(self.config["kismet"]["servers"][self.server_id])
+		entry.set_text(self.config["servers"][self.server_id]['uri'])
 		dialog.add_action_widget(entry, 1)
 		dialog.add_button('gtk-connect', 1)
 		dialog.show_all()
 		dialog.run()
-		server = entry.get_text()
+		uri = entry.get_text()
 		dialog.destroy()
-		self.config["kismet"]["servers"][self.server_id] = server
+		self.config['servers'][self.server_id]['uri'] = uri
 		self.set_active(False)
 		self.set_active(True)
-		host, port = server.split(':')
-		self.info_table['host'].set_text(host)
-		self.info_table['port'].set_text(port)
-		self.update_info_table({'networks': '', 'packets': ''})
-		self.update_gps_table({'lat': '', 'lon': '', 'fix': ''})
+		self.info_table['uri'].set_text(uri)
+		self.update_info_table(devices=0)
+		self.update_gps_table(lat='', lon='', fix='')
 		self.sources = {}
 		
 	def on_server_connect(self, widget, force_connect=False):

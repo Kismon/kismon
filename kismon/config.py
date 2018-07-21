@@ -37,16 +37,20 @@ class Config:
 		self.config_file = config_file
 		
 		self.default_config={
-			"kismet": {
-				"servers": ["127.0.0.1:2501"],
-				"connect": True
+			"servers": [
+				{
+					'uri': 'http://127.0.0.1:2501',
+					'username': '',
+					'password': '',
+					'connect': True
 				},
+			],
 			"window": {
 				"maximized": False,
 				"width": 800,
 				"height": 600,
 				"map_position": "hide",
-				"log_list_max": 50,
+				"log_list_max": 200,
 				},
 			"map": {
 				"source": "openstreetmap",
@@ -87,36 +91,7 @@ class Config:
 				"bssid": "",
 				}
 			}
-	
-	def read_ini(self):
-		#print "reading config %s" % self.config_file
-		self.config = self.default_config
-		config = configparser.RawConfigParser()
-		config.read(self.config_file)
-		config_sections = config.sections()
-		
-		for section in self.config:
-			if section in config_sections:
-				items = config.items(section)
-				if len(items) == 0:
-					continue
-				for key, value in items:
-					try:
-						valtype = type(self.config[section][key])
-					except KeyError:
-						print("Old config entry: %s" % key)
-						continue
-					if valtype == bool:
-						if value in ("True", "true"):
-							value = True
-						else:
-							value = False
-					elif valtype == int:
-						value = int(value)
-					elif valtype == list:
-						value = [v.strip() for v in value.split(",")]
-					self.config[section][key] = value
-	
+
 	def read(self):
 		self.config = self.default_config
 		if not os.path.isfile(self.config_file):
@@ -126,9 +101,8 @@ class Config:
 		with open(self.config_file, 'r') as f:
 			first_line = f.readline()
 		if first_line.startswith('['):
-			# old ini style config
-			print('loading ini config')
-			self.read_ini()
+			print('skipping old ini config, using default')
+			return
 		elif first_line.startswith('{'):
 			# new json config
 			print('loading json config')

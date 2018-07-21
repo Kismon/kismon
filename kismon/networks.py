@@ -341,9 +341,9 @@ class Networks:
 			network["firsttime"] = min(network["firsttime"], device['kismet.device.base.first_time'])
 			network["signal_dbm"]["min"] = min(network["signal_dbm"]["min"], device['kismet.common.signal.min_signal_dbm'])
 			network["signal_dbm"]["max"] = min(network["signal_dbm"]["max"], device['kismet.common.signal.max_signal_dbm'])
-			server = self.config['kismet']['servers'][server_id]
-			if server not in network['servers']:
-				network['servers'].append(server)
+			server_uri = self.config['servers'][server_id]['uri']
+			if server_uri not in network['servers']:
+				network['servers'].append(server_uri)
 
 		self.notify_add(mac)
 
