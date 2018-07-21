@@ -90,7 +90,8 @@ class Networks:
 		f.close()
 		
 	def save_networks(self, filename, networks):
-		f = open(filename, "w")
+		new_file = "%s.new" % filename
+		f = open(new_file, "w")
 		f.write('{\n')
 		macs = sorted(networks)
 		enc = json.JSONEncoder()
@@ -119,6 +120,7 @@ class Networks:
 				f.write('  }\n')
 		f.write('}')
 		f.close()
+		os.rename(new_file, filename)
 		
 	def set_autosave(self, minutes, filename=None, notify=None):
 		if filename is not None:

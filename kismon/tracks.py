@@ -47,8 +47,10 @@ class Tracks:
 			self.tracks = json.load(f)
 
 	def save(self):
-		with open(self.tracks_file, 'w') as f:
+		new_file = "%s.new" % self.tracks_file
+		with open(new_file, 'w') as f:
 			json.dump(self.tracks, f)
+		os.rename(new_file, self.tracks_file)
 
 	def add_point_to_track(self, track_name, lat, lon, alt):
 		if track_name not in self.tracks:
