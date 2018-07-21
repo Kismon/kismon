@@ -55,7 +55,7 @@ class RestClient:
             'status': None,
             'location': [],
             'messages': [],
-            'datasources': None,
+            'datasources': {},
         }
 
     def start(self):
@@ -96,7 +96,7 @@ class RestClient:
             self.queue = queue_list
 
         new_timestamp = time.time()
-        time_diff = int(self.timestamp['devices'] - new_timestamp - 0.5)
+        time_diff = int(self.timestamp['devices'] - new_timestamp - 1)
         self.connector.smart_device_list(callback=self._callback, fields=fields, ts=time_diff)
         self.timestamp['devices'] = new_timestamp
 

@@ -260,10 +260,12 @@ class Core:
 				if mac not in self.main_window.signal_graphs:
 					continue
 
-				print(source)
+				#print(source)
+				if source['kismet.common.seenby.signal']['kismet.common.signal.type'] != 'dbm':
+					continue
 				self.main_window.signal_graphs[mac].add_value(source_data=self.sources[server_id][source_uuid],
 															  packets=source['kismet.common.seenby.num_packets'],
-															  signal=source['kismet.common.seenby.signal']['kismet.common.signal.last_signal_dbm'],
+															  signal=source['kismet.common.seenby.signal']['kismet.common.signal.last_signal'],
 															  timestamp=source['kismet.common.seenby.last_time'],
 															  server_id=server_id)
 

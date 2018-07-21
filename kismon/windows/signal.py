@@ -128,11 +128,13 @@ class SignalWindow:
 			index = 0
 			data_min = -100
 			data_max = -50
+			data_step = 5
 			text = "%s dbm"
 		else:
 			index = 1
 			data_min = 0
 			data_max = 20
+			data_step = 2
 			text = "%s p/s"
 		
 		if len(self.history) > 0:
@@ -173,11 +175,15 @@ class SignalWindow:
 		ctx.show_text(text % data_min)
 		
 		value = (int((data_min + 2) / 10)) * 10
+
 		while True:
-			value += int(float(data_range) / 6)
-			if value >= data_max:
+			r = range(data_min, data_max, data_step)
+			if len(r) > 6: # max. 6 horizontal lines
+				data_step = data_step * 2
+			else:
 				break
-			
+
+		for value in r:
 			y = y_rel * (data_max - value)
 			ctx.move_to(border_left - 5, y)
 			ctx.line_to(width - border_right, y)

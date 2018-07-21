@@ -262,7 +262,7 @@ class Networks:
 
 	def add_device_data(self, device, server_id):
 		mac = device['kismet.device.base.macaddr']
-		print(mac)
+		#print(mac)
 		new_channel = device['kismet.device.base.channel']
 		if new_channel.isdigit():
 			new_channel = int(new_channel)
