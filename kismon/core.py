@@ -135,12 +135,13 @@ class Core:
 			self.map.set_last_from_config()
 		
 	def init_client_thread(self, server_id):
-		server = self.config["kismet"]["servers"][server_id]
-		self.client_threads[server_id] = RestClientThread(server)
+		server = self.config["servers"][server_id]
+		server['id'] = server_id
+		self.client_threads[server_id] = RestClientThread(server['uri'])
 
 	def init_client_threads(self):
 		server_id=0
-		for server in self.config["kismet"]["servers"]:
+		for server in self.config["servers"]:
 			self.init_client_thread(server_id)
 			server_id += 1
 		
@@ -162,14 +163,14 @@ class Core:
 		return True
 		
 	def queue_handler(self, server_id):
-		server_name = self.config['kismet']['servers'][server_id]
+		server = self.config['servers'][server_id]
 		if self.main_window.gtkwin is None:
 			return False
 		
 		thread = self.client_threads[server_id]
 		if len(thread.client.error) > 0:
 			for error in thread.client.error:
-				self.main_window.log_list.add(server_name, error)
+				self.main_window.log_list.add(server['uri'], error)
 			thread.client.error = []
 			self.main_window.server_tabs[server_id].server_switch.set_active(False)
 			page_num = self.main_window.notebook.page_num(self.main_window.log_list.widget)
@@ -198,22 +199,22 @@ class Core:
 				   }
 			if data['kismet.common.location.fix'] > 1:
 				if self.config['tracks']['store']:
-					self.tracks.add_point_to_track(server_name, gps['lat'], gps['lon'], gps['alt'])
+					self.tracks.add_point_to_track(server['uri'], gps['lat'], gps['lon'], gps['alt'])
 				if self.map:
 					self.map.add_track(gps['lat'], gps['lon'], server_id)
 		if gps:
 			self.main_window.server_tabs[server_id].update_gps_table(lat=gps['lat'], lon=gps['lon'], fix=gps['fix'])
 			if gps['fix'] > 1 and self.map:
-				server = "server%s" % (server_id + 1)
+				server_key = "server%s" % (server_id + 1)
 				if server_id == 0:
 					self.map.set_position(gps['lat'], gps['lon'])
 				else:
-					self.map.add_marker(server, server, gps['lat'], gps['lon'])
+					self.map.add_marker(server_key, server_key, gps['lat'], gps['lon'])
 
 		message_queue = thread.get_queue("messages")
 		while len(message_queue) > 0:
 			message = message_queue.pop(0)
-			self.main_window.log_list.add(origin=server_name, message=message['kismet.messagebus.message_string'], timestamp=message['kismet.messagebus.message_time'])
+			self.main_window.log_list.add(origin=server['uri'], message=message['kismet.messagebus.message_string'], timestamp=message['kismet.messagebus.message_time'])
 
 
 		datasources = thread.get_queue('datasources')
@@ -290,8 +291,8 @@ class Core:
 			lon = self.map.osm.get_property("longitude")
 			self.config["map"]["last_position"] = "%.6f/%.6f" % (lat, lon)
 
-		while None in self.config['kismet']['servers']:
-			self.config['kismet']['servers'].remove(None)
+		while None in self.config['servers']:
+			self.config['servers'].remove(None)
 		self.config_handler.write()
 		self.networks.save(self.networks_file, force=True)
 		if self.config['tracks']['store']:
