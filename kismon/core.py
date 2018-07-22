@@ -138,6 +138,8 @@ class Core:
 		server = self.config["servers"][server_id]
 		server['id'] = server_id
 		self.client_threads[server_id] = RestClientThread(server['uri'])
+		if server['username'] != '' and server['password'] != '':
+			self.client_threads[server_id].client.credentials = (server['username'], server['password'])
 
 	def init_client_threads(self):
 		server_id=0

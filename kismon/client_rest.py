@@ -41,6 +41,8 @@ class RestClient:
         self.uri = "http://127.0.0.1:2501"
         self.connector = None
         self.connected = False
+        self.authenticated = False
+        self.credentials = None
         self.timestamp = {
             'devices': 0,
             'messages': 0,
@@ -135,14 +137,30 @@ class RestClient:
     def update_datasources(self):
         self.queue['datasources'] = self.connector.datasources()
 
+    def authenticate(self):
+        print("authenticating...")
+        if not self.credentials:
+            print('no credentials')
+            return False
+
+        self.connector.set_login(self.credentials[0], self.credentials[1])
+        self.connector.login()
+        self.authenticated = True
+        print("authenticated")
+        return True
+
     def set_channel(self, uuid, mode, value):
         print('set_channel', uuid, mode, value)
         if not self.connected:
             print('not connected')
             return False
-        # todo: requires login
-        if mode == 'channel':
-            self.connector.config_datasource_set_channel(uuid=uuid, channel=value)
+
+        if not self.authenticated:
+            if not self.authenticate():
+                return False
+
+        if mode == 'lock':
+            self.connector.config_datasource_set_channel(uuid=uuid, channel=str(value))
         elif mode == 'hop':
             self.connector.config_datasource_set_hop_rate(uuid=uuid, rate=value)
 

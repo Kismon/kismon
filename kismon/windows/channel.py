@@ -68,7 +68,7 @@ class ChannelWindow:
 			field.set_increments(1,10)
 			field.set_range(1,100)
 			if source["hop"] == 0:
-				field.set_value(source["channel"])
+				field.set_value(int(source["channel"]))
 			else:
 				field.set_value(1)
 				field.set_sensitive(False)
