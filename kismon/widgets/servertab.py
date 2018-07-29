@@ -1,9 +1,6 @@
 from gi.repository import Gtk
 
-try:
-	from kismon.windows import ChannelWindow
-except ImportError:
-	from windows import ChannelWindow
+from kismon.windows import ChannelWindow
 
 class ServerTab:
 	def __init__(self, server_id, map, config, client_threads, client_start, client_stop, set_server_tab_label, on_server_remove_clicked):
@@ -84,36 +81,47 @@ class ServerTab:
 		self.server_switch = checkbutton
 		row += 1
 		
-		box = Gtk.Box()
-		label = Gtk.Label(label='Edit:')
-		label.set_alignment(xalign=0, yalign=0.5)
-		box.pack_start(label, True, True, 0)
-		table.attach(box, 0, 1, row, row+1)
-		
-		box = Gtk.Box()
-		image = Gtk.Image.new_from_icon_name('gtk-edit', size=Gtk.IconSize.MENU)
-		button = Gtk.Button(image=image)
-		button.connect("clicked", self.on_server_edit)
-		button.set_tooltip_text('Edit connection')
-		box.pack_start(button, False, False, 0)
-		table.attach(box, 1, 2, row, row+1)
-		row += 1
-		
-		label = Gtk.Label(label='Remove:')
+		label = Gtk.Label(label='Configure:')
 		label.set_alignment(xalign=0, yalign=0.5)
 		table.attach(label, 0, 1, row, row+1)
-		
+
 		box = Gtk.Box()
-		image = Gtk.Image.new_from_icon_name('list-remove', size=Gtk.IconSize.MENU)
-		button = Gtk.Button(image=image)
-		button.set_tooltip_text('Remove server')
-		button.connect("clicked", self.on_server_remove_clicked, self.server_id)
-		box.pack_start(button, False, False, 0)
+		menubutton = Gtk.MenuButton()
+		menubutton.connect("clicked", self.on_control_menubutton_clicked)
+		box.pack_start(menubutton, False, False, 0)
+
+		vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+		popover = Gtk.Popover()
+		popover.add(vbox)
+		self.control_popover = popover
+		menubutton.set_popover(popover)
+		image = Gtk.Image.new_from_icon_name('document-properties', Gtk.IconSize.MENU)
+		menubutton.add(image)
+
+		edit_button = Gtk.ModelButton('Edit connection')
+		edit_button.connect('clicked', self.on_server_edit)
+		vbox.pack_start(edit_button, False, True, 5)
+
+		channel_button = Gtk.ModelButton('Change channel')
+		channel_button.connect('clicked', self.on_channel_config)
+		vbox.pack_start(channel_button, False, True, 5)
+
+		label = Gtk.Label('-')
+		vbox.pack_start(label, False, True, 5)
+
+		remove_button = Gtk.ModelButton('Remove server')
+		remove_button.connect('clicked', self.on_server_remove_clicked, self.server_id)
+		vbox.pack_start(remove_button, False, True, 5)
+
 		table.attach(box, 1, 2, row, row+1)
 		row += 1
-		
+
 		return table
-		
+
+	def on_control_menubutton_clicked(self, button):
+		self.control_popover.set_relative_to(button)
+		self.control_popover.show_all()
+
 	def init_info_table(self, server_id):
 		self.info_table = {}
 		table = Gtk.Table(n_rows=4, n_columns=2)
@@ -243,10 +251,6 @@ class ServerTab:
 		for uuid in sources:
 			row = self.init_sources_table_source(sources[uuid], table)
 		
-		button = Gtk.Button(label='Channel Settings')
-		button.connect('clicked', self.on_channel_config)
-		table.attach(button, 0, 2, row, row+1)
-		
 		table.show_all()
 		self.sources_table = table
 		self.sources_expander.add(table)
@@ -292,6 +296,7 @@ class ServerTab:
 		self.server_switch.set_active(active)
 		
 	def on_server_edit(self, widget):
+		self.control_popover.hide()
 		dialog = Gtk.Dialog("Connect")
 		entry = Gtk.Entry()
 		entry.set_text(self.config["servers"][self.server_id]['uri'])
@@ -353,4 +358,5 @@ class ServerTab:
 		self.map.remove_track(self.server_id)
 		
 	def on_channel_config(self, widget):
-		win = ChannelWindow(self.sources, self.client_threads[self.server_id])
+		self.control_popover.hide()
+		ChannelWindow(self.sources, self.client_threads[self.server_id])
