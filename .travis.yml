@@ -1,21 +1,13 @@
 language: python
 python:
- - "3.4"
+ - "3.5"
 sudo: required
+services:
+ - docker
 dist: trusty
 cache: apt
 before_install:
- - "export DISPLAY=:99.0"
- - "sh -e /etc/init.d/xvfb start"
- - "sudo add-apt-repository 'deb http://archive.ubuntu.com/ubuntu trusty-backports universe'"
- - "sudo apt-get update"
- - "sudo apt-get -qq install python3-gi python3-cairo python3-simplejson"
- - "sudo apt-get -qq install gir1.2-gtk-3.0 gir1.2-gdkpixbuf-2.0 gir1.2-osmgpsmap-1.0"
- - "sudo apt-get -qq install python3-requests"
- - "git clone https://github.com/dreadnought/kismet.git"
- - "cd kismet/python_modules/KismetRest"
- - "git checkout python3"
- - "sudo python3 setup.py install"
- - "cd $TRAVIS_BUILD_DIR"
+ - docker build -t kismon-travis .travis/
+ - docker run -v $PWD:/code/ -d --name kismon-container kismon-travis
 script:
- - /usr/bin/python3 -m unittest discover -v
+ - docker exec kismon-container /usr/bin/python3 -m unittest discover -v
