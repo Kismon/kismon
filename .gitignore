@@ -1,4 +1,11 @@
 *.pyc
 .pybuild/
+.idea/
 build/
 debian/kismon/
+debian/debhelper-build-stamp
+debian/files
+debian/kismon.debhelper.log
+debian/kismon.postinst.debhelper
+debian/kismon.prerm.debhelper
+debian/kismon.substvars

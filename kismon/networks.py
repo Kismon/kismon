@@ -304,6 +304,11 @@ class Networks:
 			signal_dbm_max = 0
 			signal_dbm_last = 0
 
+		if 'dot11.device.last_beaconed_ssid' in device['dot11.device']:
+			ssid = device['dot11.device']['dot11.device.last_beaconed_ssid']
+		else:
+			ssid = ''
+
 		if mac not in self.networks:
 			network = {
 				"type": decode_network_typeset(device['dot11.device']['dot11.device.typeset']),
@@ -313,7 +318,7 @@ class Networks:
 				"lat": new_lat,
 				"lon": new_lon,
 				"manuf": device['kismet.device.base.manuf'],
-				"ssid": device['dot11.device']['dot11.device.last_beaconed_ssid'],
+				"ssid": ssid,
 				"cryptset": new_cryptset,
 				"signal_dbm": {
 					"min": signal_dbm_min,
@@ -345,7 +350,7 @@ class Networks:
 				network["lasttime"] = device['kismet.device.base.last_time']
 				network["cryptset"] = new_cryptset
 				network["signal_dbm"]["last"] = signal_dbm_last
-				network["ssid"] = device['dot11.device']['dot11.device.last_beaconed_ssid']
+				network["ssid"] = ssid
 
 			network["firsttime"] = min(network["firsttime"], device['kismet.device.base.first_time'])
 			network["signal_dbm"]["min"] = min(network["signal_dbm"]["min"], signal_dbm_min)
