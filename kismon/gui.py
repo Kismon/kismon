@@ -343,7 +343,9 @@ class MainWindow(TemplateWindow):
 		self.progress_bar_win = None
 		
 	def add_server_tab(self, server_id):
-		self.server_tabs[server_id] = ServerTab(server_id, self.map, self.config, self.client_threads, self.client_start, self.client_stop, self.set_server_tab_label, self.on_server_remove_clicked)
+		self.server_tabs[server_id] = ServerTab(server_id, self.map, self.config, self.client_threads,
+												self.client_start, self.client_stop, self.set_server_tab_label,
+												self.on_server_remove_clicked, window=self.gtkwin)
 		self.server_notebook.append_page(self.server_tabs[server_id].widget)
 		self.server_tabs[server_id].set_active()
 		

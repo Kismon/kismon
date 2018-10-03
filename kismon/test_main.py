@@ -293,7 +293,7 @@ class TestKismon(unittest.TestCase):
             "234": {"uuid": "234", "hop": 0, "name": "wlan1", "hop_rate": 3, "channel": 6}
         }
         client_thread = RestClientThread()
-        channel_window = ChannelWindow(sources, client_thread)
+        channel_window = ChannelWindow(sources, client_thread, parent=None)
         test_widget = TestWidget()
         channel_window.on_change_mode(test_widget, "123", "hop")
         channel_window.on_change_mode(test_widget, "123", "lock")
