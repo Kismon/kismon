@@ -3,7 +3,7 @@ from gi.repository import Gtk
 from kismon.windows import ChannelWindow
 
 class ServerTab:
-	def __init__(self, server_id, map, config, client_threads, client_start, client_stop, set_server_tab_label, on_server_remove_clicked):
+	def __init__(self, server_id, map, config, client_threads, client_start, client_stop, set_server_tab_label, on_server_remove_clicked, window):
 		self.server_id = server_id
 		self.config = config
 		self.map = map
@@ -12,6 +12,7 @@ class ServerTab:
 		self.client_stop = client_stop
 		self.set_server_tab_label = set_server_tab_label
 		self.on_server_remove_clicked = on_server_remove_clicked
+		self.window = window
 		self.sources = {}
 		self.sources_tables = {}
 		self.sources_table_sources = {}
@@ -295,24 +296,88 @@ class ServerTab:
 	def set_active(self, active=True):
 		self.server_switch.set_active(active)
 		
-	def on_server_edit(self, widget):
+	def on_server_edit(self, widget, login_optional=True):
 		self.control_popover.hide()
-		dialog = Gtk.Dialog("Connect")
-		entry = Gtk.Entry()
-		entry.set_text(self.config["servers"][self.server_id]['uri'])
-		dialog.add_action_widget(entry, 1)
+		dialog = Gtk.Dialog(title="Edit server", parent=self.window)
+		box = dialog.get_content_area()
+		row = 0
+		table = Gtk.Table(n_rows=4, n_columns=2)
+
+		label = Gtk.Label("URI: ")
+		table.attach(label, 0, 1, row, row + 1)
+
+		uri_entry = Gtk.Entry()
+		uri_entry.set_text(self.config["servers"][self.server_id]['uri'])
+		table.attach(uri_entry, 1, 2, row, row + 1)
+		row += 1
+
+		label = Gtk.Label()
+		if login_optional:
+			label.set_markup("Username: ")
+		else:
+			label.set_markup("<b>Username</b>: ")
+
+		table.attach(label, 0, 1, row, row + 1)
+
+		username_entry = Gtk.Entry()
+		username_entry.set_placeholder_text("Default: kismet")
+		current_username = self.config["servers"][self.server_id]['username']
+		if current_username == "":
+			current_username = "kismet"
+		username_entry.set_text(current_username)
+		table.attach(username_entry, 1, 2, row, row + 1)
+
+		row += 1
+
+		label = Gtk.Label()
+		if login_optional:
+			label.set_markup("Password*: ")
+		else:
+			label.set_markup("<b>Password*</b>: ")
+
+		table.attach(label, 0, 1, row, row + 1)
+
+		password_entry = Gtk.Entry()
+		password_entry.set_visibility(False)
+		password_entry.set_placeholder_text("Password")
+		password_entry.set_text(self.config["servers"][self.server_id]['password'])
+		table.attach(password_entry, 1, 2, row, row + 1)
+		row += 1
+
+		label = Gtk.Label()
+		if login_optional:
+			label.set_markup("<i>* Optional, see kismet_httpd.conf</i>")
+		else:
+			label.set_markup("<b>* Required, see kismet_httpd.conf</b>")
+		table.attach(label, 0, 2, row, row + 1)
+		row += 1
+
+		box.add(table)
+		dialog.add_button('gtk-cancel', 0)
 		dialog.add_button('gtk-connect', 1)
+
 		dialog.show_all()
-		dialog.run()
-		uri = entry.get_text()
+		response = dialog.run()
+		if response < 1:
+			print("dialog canceled (%s)" % response)
+			dialog.destroy()
+			return False
+		uri = uri_entry.get_text()
+		username = username_entry.get_text()
+		password = password_entry.get_text()
 		dialog.destroy()
+
 		self.config['servers'][self.server_id]['uri'] = uri
+		self.config['servers'][self.server_id]['username'] = username
+		self.config['servers'][self.server_id]['password'] = password
+		self.client_threads[self.server_id].client.credentials = (username, password)
 		self.set_active(False)
 		self.set_active(True)
 		self.info_table['uri'].set_text(uri)
 		self.update_info_table(devices=0)
 		self.update_gps_table(lat='', lon='', fix='')
 		self.sources = {}
+		return True
 		
 	def on_server_connect(self, widget, force_connect=False):
 		if self.client_threads[self.server_id].is_running and not force_connect:
@@ -359,4 +424,14 @@ class ServerTab:
 		
 	def on_channel_config(self, widget):
 		self.control_popover.hide()
-		ChannelWindow(self.sources, self.client_threads[self.server_id])
+
+		client = self.client_threads[self.server_id].client
+		while not client.authenticate():
+			response = self.on_server_edit(widget=None, login_optional=False)
+			if not response: # if the dialog was canceled
+				return
+			print("next try")
+
+		ChannelWindow(sources=self.sources,
+					  client_thread=self.client_threads[self.server_id],
+					  parent=self.window)

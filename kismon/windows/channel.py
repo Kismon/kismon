@@ -1,13 +1,14 @@
 from gi.repository import Gtk
 
 class ChannelWindow:
-	def __init__(self, sources, client_thread):
+	def __init__(self, sources, client_thread, parent):
 		self.sources = sources
 		self.client_thread = client_thread
 		self.changes = {}
 		self.widgets = {}
 		
 		self.gtkwin = Gtk.Window()
+		self.gtkwin.set_transient_for(parent)
 		self.gtkwin.set_position(Gtk.WindowPosition.CENTER)
 		self.gtkwin.set_default_size(320, 240)
 		self.gtkwin.set_title("Configure Channel")

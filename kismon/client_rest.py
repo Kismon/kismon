@@ -145,7 +145,11 @@ class RestClient:
             return False
 
         self.connector.set_login(self.credentials[0], self.credentials[1])
-        self.connector.login()
+        response = self.connector.login()
+        if response == False:
+            self.authenticated = False
+            print("login failed")
+            return False
         self.authenticated = True
         print("authenticated")
         return True
