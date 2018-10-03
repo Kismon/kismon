@@ -73,7 +73,8 @@ class ServerTab:
 		row = 0
 		
 		label = Gtk.Label(label='Active:')
-		label.set_alignment(xalign=0, yalign=0.5)
+		label.set_property("xalign", 0)
+		label.set_property("yalign", 0.5)
 		table.attach(label, 0, 1, row, row+1)
 		
 		checkbutton = Gtk.CheckButton()
@@ -83,7 +84,8 @@ class ServerTab:
 		row += 1
 		
 		label = Gtk.Label(label='Configure:')
-		label.set_alignment(xalign=0, yalign=0.5)
+		label.set_property("xalign", 0)
+		label.set_property("yalign", 0.5)
 		table.attach(label, 0, 1, row, row+1)
 
 		box = Gtk.Box()
@@ -99,18 +101,18 @@ class ServerTab:
 		image = Gtk.Image.new_from_icon_name('document-properties', Gtk.IconSize.MENU)
 		menubutton.add(image)
 
-		edit_button = Gtk.ModelButton('Edit connection')
+		edit_button = Gtk.ModelButton(label='Edit connection')
 		edit_button.connect('clicked', self.on_server_edit)
 		vbox.pack_start(edit_button, False, True, 5)
 
-		channel_button = Gtk.ModelButton('Change channel')
+		channel_button = Gtk.ModelButton(label='Change channel')
 		channel_button.connect('clicked', self.on_channel_config)
 		vbox.pack_start(channel_button, False, True, 5)
 
-		label = Gtk.Label('-')
+		label = Gtk.Label(label='-')
 		vbox.pack_start(label, False, True, 5)
 
-		remove_button = Gtk.ModelButton('Remove server')
+		remove_button = Gtk.ModelButton(label='Remove server')
 		remove_button.connect('clicked', self.on_server_remove_clicked, self.server_id)
 		vbox.pack_start(remove_button, False, True, 5)
 
@@ -129,21 +131,25 @@ class ServerTab:
 		row = 0
 
 		label = Gtk.Label(label="URI: ")
-		label.set_alignment(xalign=0, yalign=0)
+		label.set_property("xalign", 0)
+		label.set_property("yalign", 0)
 		table.attach(label, 0, 1, row, row+1)
 		row += 1
 		value_label = Gtk.Label(label="%s" % self.config['servers'][server_id]['uri'])
-		value_label.set_alignment(xalign=0, yalign=0)
+		value_label.set_property("xalign", 0)
+		value_label.set_property("yalign", 0)
 		table.attach(value_label, 0, 2, row, row+1)
 		self.info_table['uri'] = value_label
 		row += 1
 		
 		networks_label = Gtk.Label(label="Devices: ")
-		networks_label.set_alignment(xalign=0, yalign=0)
+		networks_label.set_property("xalign", 0)
+		networks_label.set_property("yalign", 0)
 		table.attach(networks_label, 0, 1, row, row+1)
 		
 		networks_value_label = Gtk.Label()
-		networks_value_label.set_alignment(xalign=0, yalign=0)
+		label.set_property("xalign", 0)
+		label.set_property("yalign", 0)
 		table.attach(networks_value_label, 1, 2, row, row+1)
 		self.info_table['devices'] = networks_value_label
 		row += 1
@@ -158,29 +164,35 @@ class ServerTab:
 		table = Gtk.Table(n_rows=3, n_columns=2)
 		
 		fix_label = Gtk.Label(label="Fix: ")
-		fix_label.set_alignment(xalign=0, yalign=0)
+		fix_label.set_property("xalign", 0)
+		fix_label.set_property("yalign", 0)
 		table.attach(fix_label, 0, 1, 0, 1)
 		
 		fix_value_label = Gtk.Label()
-		fix_value_label.set_alignment(xalign=0, yalign=0)
+		fix_value_label.set_property("xalign", 0)
+		fix_value_label.set_property("yalign", 0)
 		table.attach(fix_value_label, 1, 2, 0, 1)
 		self.gps_table_fix = fix_value_label
 		
 		lat_label = Gtk.Label(label="Latitude: ")
-		lat_label.set_alignment(xalign=0, yalign=0)
+		lat_label.set_property("xalign", 0)
+		lat_label.set_property("yalign", 0)
 		table.attach(lat_label, 0, 1, 1, 2)
 		
 		lat_value_label = Gtk.Label()
-		lat_value_label.set_alignment(xalign=0, yalign=0)
+		lat_value_label.set_property("xalign", 0)
+		lat_value_label.set_property("yalign", 0)
 		table.attach(lat_value_label, 1, 2, 1, 2)
 		self.gps_table_lat = lat_value_label
 		
 		lon_label = Gtk.Label(label="Longitude: ")
-		lon_label.set_alignment(xalign=0, yalign=0)
+		lon_label.set_property("xalign", 0)
+		lon_label.set_property("yalign", 0)
 		table.attach(lon_label, 0, 1, 2, 3)
 		
 		lon_value_label = Gtk.Label()
-		lon_value_label.set_alignment(xalign=0, yalign=0)
+		lon_value_label.set_property("xalign", 0)
+		lon_value_label.set_property("yalign", 0)
 		table.attach(lon_value_label, 1, 2, 2, 3)
 		self.gps_table_lon = lon_value_label
 		
@@ -207,7 +219,8 @@ class ServerTab:
 		row = 0
 		
 		label = Gtk.Label(label='Show:')
-		label.set_alignment(xalign=0, yalign=0.5)
+		label.set_property("xalign", 0)
+		label.set_property("yalign", 0.5)
 		table.attach(label, 0, 1, row, row+1)
 		
 		checkbutton = Gtk.CheckButton()
@@ -217,7 +230,8 @@ class ServerTab:
 		row += 1
 		
 		label = Gtk.Label(label='Reset:')
-		label.set_alignment(xalign=0, yalign=0.5)
+		label.set_property("xalign", 0)
+		label.set_property("yalign", 0.5)
 		table.attach(label, 0, 1, row, row+1)
 		
 		box = Gtk.Box()
@@ -229,7 +243,8 @@ class ServerTab:
 		row += 1
 		
 		label = Gtk.Label(label='Jump to:')
-		label.set_alignment(xalign=0, yalign=0.5)
+		label.set_property("xalign", 0)
+		label.set_property("yalign", 0.5)
 		table.attach(label, 0, 1, row, row+1)
 		
 		box = Gtk.Box()
@@ -270,11 +285,13 @@ class ServerTab:
 		for title, value in rows:
 			if title is not None:
 				label = Gtk.Label(label="%s: "%title)
-				label.set_alignment(xalign=0, yalign=0)
+				label.set_property("xalign", 0)
+				label.set_property("yalign", 0)
 				table.attach(label, 0, 1, row, row+1)
 			
 			label = Gtk.Label(label=value)
-			label.set_alignment(xalign=0, yalign=0)
+			label.set_property("xalign", 0)
+			label.set_property("yalign", 0)
 			table.attach(label, 1, 2, row, row+1)
 			self.sources_table_sources[source["uuid"]][title] = label
 			row += 1
@@ -298,7 +315,8 @@ class ServerTab:
 		
 	def on_server_edit(self, widget, login_optional=True):
 		self.control_popover.hide()
-		dialog = Gtk.Dialog(title="Edit server", parent=self.window)
+		dialog = Gtk.Dialog(title="Edit server")
+		dialog.set_transient_for(self.window)
 		box = dialog.get_content_area()
 		row = 0
 		table = Gtk.Table(n_rows=4, n_columns=2)

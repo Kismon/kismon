@@ -46,7 +46,8 @@ class FileImportWindow:
 			action = Gtk.FileChooserAction.SELECT_FOLDER
 		else:
 			action = Gtk.FileChooserAction.OPEN
-		dialog = Gtk.FileChooserDialog(title="", parent=self.gtkwin, action=action)
+		dialog = Gtk.FileChooserDialog(title="", action=action)
+		dialog.set_transient_for(self.gtkwin)
 		dialog.add_button('gtk-cancel', Gtk.ResponseType.CANCEL)
 		dialog.add_button('gtk-open', Gtk.ResponseType.OK)
 		dialog.set_select_multiple(True)
@@ -109,7 +110,8 @@ class FileImportWindow:
 		table.attach(combobox, 0, 1, 0, 1, yoptions=Gtk.AttachOptions.SHRINK, xoptions=Gtk.AttachOptions.SHRINK)
 		
 		label = Gtk.Label(label=filename)
-		label.set_alignment(xalign=0, yalign=0.5)
+		label.set_property("xalign", 0)
+		label.set_property("yalign", 0.5)
 		table.attach(label, 1, 2, 0, 1, yoptions=Gtk.AttachOptions.SHRINK, xpadding=5)
 		
 		button = Gtk.Button()

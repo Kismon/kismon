@@ -39,7 +39,8 @@ class ChannelWindow:
 			if source["hop"] > 0:
 				hop_button.clicked()
 			hop_button.connect("clicked", self.on_change_mode, uuid, "hop")
-			hop_button.set_alignment(0,0)
+			hop_button.set_property("xalign", 0)
+			hop_button.set_property("yalign", 0.4)
 			table.attach(hop_button, 0, 1, 0, 1)
 			
 			field = Gtk.SpinButton()
@@ -56,14 +57,16 @@ class ChannelWindow:
 			
 			label = Gtk.Label(label="rate")
 			label.set_justify(Gtk.Justification.LEFT)
-			label.set_alignment(0.1,0.5)
+			label.set_property("xalign", 0.1)
+			label.set_property("yalign", 0.5)
 			table.attach(label, 2, 3, 0, 1, xoptions=Gtk.AttachOptions.FILL)
 			
 			lock_button = Gtk.RadioButton.new_with_label_from_widget(hop_button, "Lock")
 			if source["hop"] == 0:
 				lock_button.clicked()
 			lock_button.connect("clicked", self.on_change_mode, uuid, "lock")
-			hop_button.set_alignment(0,0)
+			lock_button.set_property("xalign", 0)
+			lock_button.set_property("yalign", 0.4)
 			table.attach(lock_button, 0, 1, 1, 2)
 			
 			field = Gtk.SpinButton()
@@ -83,7 +86,8 @@ class ChannelWindow:
 			
 			label = Gtk.Label(label="channel")
 			label.set_justify(Gtk.Justification.FILL)
-			label.set_alignment(0.1,0.5)
+			label.set_property("xalign", 0.1)
+			label.set_property("yalign", 0.5)
 			table.attach(label, 2, 3, 1, 2, xoptions=Gtk.AttachOptions.FILL)
 			
 		button_box = Gtk.HButtonBox()

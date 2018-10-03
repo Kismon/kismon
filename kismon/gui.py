@@ -287,7 +287,8 @@ class MainWindow(TemplateWindow):
 		self.networks_queue_progress()
 		
 	def on_network_filter_regexpr(self, widget, key):
-		dialog = Gtk.Dialog("%s (regular expression)" % key.upper(), parent=self.gtkwin)
+		dialog = Gtk.Dialog("%s (regular expression)" % key.upper())
+		dialog.set_transient_for(self.gtkwin)
 		entry = Gtk.Entry()
 		entry.set_width_chars(100)
 		entry.set_text(self.config["filter_regexpr"][key])
@@ -369,7 +370,8 @@ class MainWindow(TemplateWindow):
 	def on_server_remove_clicked(self, widget, server_id):
 		if self.server_notebook.get_n_pages() == 1:
 			# last connection
-			dialog = Gtk.Dialog("Info", parent=self.gtkwin)
+			dialog = Gtk.Dialog("Info")
+			dialog.set_transient_for(self.gtkwin)
 			label = Gtk.Label("You can't remove the last connection!")
 			area = dialog.get_content_area()
 			area.add(label)
@@ -486,7 +488,8 @@ class MainWindow(TemplateWindow):
 		
 	def on_file_export(self, widget, export_format, extension, amount):
 		dialog = Gtk.FileChooserDialog(title="Export as %s" % export_format,
-									   parent=self.gtkwin, action=Gtk.FileChooserAction.SAVE)
+									   action=Gtk.FileChooserAction.SAVE)
+		dialog.set_transient_for(self.gtkwin)
 		dialog.add_button('gtk-save', Gtk.ResponseType.OK)
 		dialog.add_button('gtk-cancel', Gtk.ResponseType.CANCEL)
 		dialog.set_do_overwrite_confirmation(True)

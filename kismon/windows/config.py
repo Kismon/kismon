@@ -43,7 +43,9 @@ class ConfigWindow:
 		vbox.add(hbox)
 		
 		label = Gtk.Label(label="Max rows in the log list: ")
-		label.set_alignment(xalign=0, yalign=0.5)
+		label.set_property("xalign", 0)
+		label.set_property("yalign", 0.5)
+
 		label.set_justify(Gtk.Justification.RIGHT)
 		hbox.pack_start(label, False, False, 5)
 		
@@ -57,7 +59,8 @@ class ConfigWindow:
 		hbox.pack_start(field, False, False, 5)
 		
 		label = Gtk.Label(label="-1 = unlimited 0 = disable")
-		label.set_alignment(xalign=0, yalign=0.5)
+		label.set_property("xalign", 0)
+		label.set_property("yalign", 0.5)
 		hbox.pack_start(label, False, False, 5)
 		
 		frame = Gtk.Frame()
@@ -80,7 +83,8 @@ class ConfigWindow:
 		hbox.pack_start(field, False, False, 5)
 		
 		label = Gtk.Label(label="0 = disable")
-		label.set_alignment(xalign=0, yalign=0.5)
+		label.set_property("xalign", 0)
+		label.set_property("yalign", 0.5)
 		hbox.pack_start(label, False, False, 5)
 
 		frame = Gtk.Frame()
@@ -158,7 +162,8 @@ class ConfigWindow:
 		source_vbox.add(hbox)
 		
 		label = Gtk.Label(label="     URL: ")
-		label.set_alignment(xalign=0, yalign=0.5)
+		label.set_property("xalign", 0)
+		label.set_property("yalign", 0.5)
 		label.set_justify(Gtk.Justification.LEFT)
 		hbox.pack_start(label, False, False, 5)
 		
@@ -174,7 +179,8 @@ class ConfigWindow:
 		x=1
 		for name in ("     Zoom Levels: ", " - "):
 			label = Gtk.Label(label=name)
-			label.set_alignment(xalign=0, yalign=0.5)
+			label.set_property("xalign", 0)
+			label.set_property("yalign", 0.5)
 			label.set_justify(Gtk.Justification.LEFT)
 			hbox.pack_start(label, False, False, 5)
 			
