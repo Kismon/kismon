@@ -11,10 +11,13 @@ class ChannelWindow:
 		self.gtkwin.set_position(Gtk.WindowPosition.CENTER)
 		self.gtkwin.set_default_size(320, 240)
 		self.gtkwin.set_title("Configure Channel")
-		
+
+		self.vbox = None
+		self.init_box()
+
+	def init_box(self):
 		vbox = Gtk.VBox()
-		self.gtkwin.add(vbox)
-		
+
 		self.sources_list = Gtk.VBox()
 		sources_list_scroll = Gtk.ScrolledWindow()
 		sources_list_scroll.add(self.sources_list)
@@ -92,7 +95,16 @@ class ChannelWindow:
 		apply_button = Gtk.Button.new_with_mnemonic('_Apply')
 		apply_button.connect("clicked", self.on_apply)
 		button_box.add(apply_button)
-		
+
+		update_button = Gtk.Button.new_with_mnemonic('_Refresh')
+		update_button.connect("clicked", self.on_refresh)
+		button_box.add(update_button)
+
+		if self.vbox:
+			self.gtkwin.remove(self.vbox)
+		self.vbox = vbox
+
+		self.gtkwin.add(vbox)
 		self.gtkwin.show_all()
 		
 	def on_change_mode(self, widget, uuid, mode):
@@ -119,3 +131,6 @@ class ChannelWindow:
 		
 	def on_cancel(self, widget):
 		self.gtkwin.destroy()
+
+	def on_refresh(self, widget):
+		self.init_box()
