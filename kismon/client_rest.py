@@ -256,12 +256,13 @@ def decode_cryptset(cryptset, str=False):
 
 
 def decode_network_typeset(num):
-    """see devicetracker.h from kismet
+    """see phy_80211.h from kismet
     """
-    types = {0: 'generic', 1: 'infrastructure', 2: 'client', 4: 'wired', 8: 'ad-hoc'}
+    types = {0: 'generic', 1: 'infrastructure', 2: 'client', 3: 'infrastructure', 4: 'wired', 8: 'ad-hoc'}
     try:
         return types[num]
     except KeyError:
+        print("fixme: unkown type num %s" % num)
         return False
 
 
