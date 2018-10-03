@@ -1,13 +1,15 @@
-language: python
-python:
- - "3.5"
+matrix:
+  include:
+  - env: ubuntu_version="16.04"
+  - env: ubuntu_version="18.04"
 sudo: required
 services:
  - docker
-dist: trusty
-cache: apt
+language: python
+
 before_install:
- - docker build -t kismon-travis .travis/
- - docker run -v $PWD:/code/ -d --name kismon-container kismon-travis
+ - docker build --build-arg ubuntu_version=${ubuntu_version} -t kismon-travis-${ubuntu_version} .travis/
+ - docker run -v $PWD:/code/ -d --name kismon-container kismon-travis-${ubuntu_version}
+
 script:
  - docker exec kismon-container /usr/bin/python3 -m unittest discover -v
