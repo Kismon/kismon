@@ -63,6 +63,7 @@ class Config:
 				},
 			"networks": {
 				"autosave": 5,
+				"num_backups": 5,
 				},
 			"tracks": {
 				"store": False,
@@ -108,7 +109,15 @@ class Config:
 			print('loading json config')
 			with open(self.config_file, 'r') as f:
 				loaded_config = json.load(f)
-			self.config.update(loaded_config)
+			for key in self.config:
+				if key not in loaded_config:
+					# doesn't exist before
+					continue
+				if type(self.config[key]) != type(loaded_config[key]):
+					# type has changed
+					continue
+				if type(self.config[key]) == dict:
+					self.config[key].update(loaded_config[key])
 		else:
 			print('unknown config format, using default')
 			return

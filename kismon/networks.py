@@ -53,7 +53,6 @@ class Networks:
 		self.queue_running = False
 		self.block_queue_start = False
 		self.queue_task = None
-		self.num_backups = 5
 		self.autosave_task = None
 		self.autosave_filename = None
 		self.autosave_notify = None
@@ -73,8 +72,7 @@ class Networks:
 
 		tmpfilename = filename + ".new"
 		self.save_networks(tmpfilename, self.networks)
-
-		for num in range(self.num_backups - 2, -1 , -1):
+		for num in range(self.config["networks"]["num_backups"] - 2, -1 , -1):
 			backup_filename = "%s.%s" % (filename, num)
 			if os.path.isfile(backup_filename):
 				os.rename(backup_filename, "%s.%s" % (filename, num + 1))
