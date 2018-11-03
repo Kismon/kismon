@@ -63,7 +63,8 @@ class RestClient:
     def start(self):
         """Open connection to the server
         """
-        self.connector = KismetRest.KismetConnector(self.uri)
+        sessioncache_path = "~/.kismon/kismet-session-%s" % ''.join(e if e.isalnum() else '-' for e in self.uri)
+        self.connector = KismetRest.KismetConnector(self.uri, sessioncache_path=sessioncache_path)
         print("Client: start %s" % self.uri)
         if not self.update_system_status():
             return False
