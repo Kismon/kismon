@@ -32,13 +32,8 @@ from kismon.windows import *
 from kismon.widgets import *
 import kismon.utils as utils
 
-import time
-import os
-import sys
-
 from gi.repository import Gtk
 from gi.repository import Gdk
-from gi.repository import GObject
 from gi.repository import GLib
 
 class MainWindow(TemplateWindow):
