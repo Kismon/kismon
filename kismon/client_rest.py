@@ -139,6 +139,18 @@ class RestClient:
     def update_datasources(self):
         self.queue['datasources'] = self.connector.datasources()
 
+    def get_available_datasources(self):
+        if not self.authenticated:
+            if not self.authenticate():
+                return False
+
+        datasources = self.connector.datasource_list_interfaces()
+        return datasources
+
+    def add_datasource(self, interface):
+        response = self.connector.add_datasource(interface)
+        print(response)
+
     def authenticate(self):
         print("authenticating...")
         if not self.credentials:

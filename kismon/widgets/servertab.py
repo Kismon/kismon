@@ -1,6 +1,6 @@
 from gi.repository import Gtk
 
-from kismon.windows import ChannelWindow
+from kismon.windows import ChannelWindow, DatasourcesWindow
 
 class ServerTab:
 	def __init__(self, server_id, map, config, client_threads, client_start, client_stop, set_server_tab_label, on_server_remove_clicked, window):
@@ -67,6 +67,8 @@ class ServerTab:
 		self.sources_table = None
 		self.sources_table_source = {}
 		right_scrolled.show_all()
+
+		self.datasources_dialog_answer = None
 		
 	def init_control_table(self):
 		table = Gtk.Table(n_rows=4, n_columns=2)
@@ -108,6 +110,11 @@ class ServerTab:
 		channel_button = Gtk.ModelButton(label='Change channel')
 		channel_button.connect('clicked', self.on_channel_config)
 		vbox.pack_start(channel_button, False, True, 5)
+
+		datasource_button = Gtk.ModelButton(label='Add data source')
+		datasource_button.connect('clicked', self.on_manage_datasources)
+		vbox.pack_start(datasource_button, False, True, 5)
+
 
 		label = Gtk.Label(label='-')
 		vbox.pack_start(label, False, True, 5)
@@ -261,7 +268,7 @@ class ServerTab:
 	def init_sources_table(self, sources):
 		self.sources_table_sources = {}
 		if self.sources_table is not None:
-			self.sources_expander.remove(self.sources_tables)
+			self.sources_expander.remove(self.sources_table)
 			
 		table = Gtk.Table(n_rows=(len(sources)*5)+1, n_columns=2)
 		for uuid in sources:
@@ -443,13 +450,23 @@ class ServerTab:
 	def on_channel_config(self, widget):
 		self.control_popover.hide()
 
-		client = self.client_threads[self.server_id].client
-		while not client.authenticate():
-			response = self.on_server_edit(widget=None, login_optional=False)
-			if not response: # if the dialog was canceled
-				return
-			print("next try")
-
+		if not self.try_authentification():
+			return
 		ChannelWindow(sources=self.sources,
 					  client_thread=self.client_threads[self.server_id],
 					  parent=self.window)
+
+	def on_manage_datasources(self, widget=None):
+		self.try_authentification()
+		DatasourcesWindow(client_thread=self.client_threads[self.server_id],
+						  parent=self.window)
+
+
+	def try_authentification(self):
+		client = self.client_threads[self.server_id].client
+		while not client.authenticate():
+			response = self.on_server_edit(widget=None, login_optional=False)
+			if not response:  # if the dialog was canceled
+				return False
+			print("next try")
+		return True

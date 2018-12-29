@@ -220,6 +220,17 @@ class Core:
 
 
 		datasources = thread.get_queue('datasources')
+		if len(datasources) == 0:
+			#print("no active datasources")
+			if type(self.main_window.server_tabs[server_id].datasources_dialog_answer) == bool:
+				# question was already asked
+				pass
+			elif not thread.client.connected:
+				# not connected
+				pass
+			elif self.datasources_dialog(server_id):
+				self.main_window.server_tabs[server_id].on_manage_datasources()
+
 		sources_updated = False
 		for ds in datasources:
 			uuid = ds['kismet.datasource.uuid']
@@ -240,6 +251,25 @@ class Core:
 
 		if sources_updated is True:
 			self.main_window.server_tabs[server_id].update_sources_table(self.sources[server_id])
+
+	def datasources_dialog(self, server_id):
+		dialog_message = "The Kismet instance %s seams to have no active interfaces, do you want to activate them now? *\n\n* requires authentification" % (self.config["servers"][server_id]['uri'])
+		dialog = Gtk.MessageDialog(self.main_window.gtkwin, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.QUESTION,
+								   Gtk.ButtonsType.YES_NO, dialog_message)
+
+		def dialog_response(dialog, response_id):
+			answer = False
+			if response_id == -8:
+				answer = True
+				print("yes")
+			else:
+				print("no", response_id)
+			self.main_window.server_tabs[server_id].datasources_dialog_answer = answer
+
+		dialog.connect("response", dialog_response)
+		dialog.run()
+		dialog.destroy()
+		return self.main_window.server_tabs[server_id].datasources_dialog_answer
 
 	def queues_handler(self):
 		for server_id in self.client_threads:

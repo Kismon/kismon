@@ -118,6 +118,8 @@ class Config:
 					continue
 				if type(self.config[key]) == dict:
 					self.config[key].update(loaded_config[key])
+				elif type(self.config[key]) == list:
+					self.config[key] = loaded_config[key]
 		else:
 			print('unknown config format, using default')
 			return
