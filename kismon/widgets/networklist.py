@@ -76,7 +76,8 @@ class NetworkList:
 		frame = Gtk.Frame()
 		frame.set_label("Networks")
 		frame.add(scrolled)
-		
+
+		self.scrolled_window = scrolled
 		self.widget = frame
 		
 		self.store.set_sort_column_id(6, Gtk.SortType.DESCENDING)
@@ -261,8 +262,9 @@ class NetworkList:
 				num += 1
 		else:
 			self.network_iter[mac] = self.store.append(line)
-			
-			adj = self.treeview.get_vadjustment()
+
+			# stick to the top of the table after adding a new row
+			adj = self.scrolled_window.get_vadjustment()
 			self.scroll_value = int(adj.get_value())
 			if self.scroll_value == 0:
 				GLib.idle_add(self.treeview.scroll_to_point, -1, 0)
