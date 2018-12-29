@@ -74,11 +74,10 @@ class Config:
 				"export": "all"
 				},
 			"filter_type": {
-				"infrastructure": True,
+				"unknown": True,
 				"client": False,
+				"infrastructure":True,
 				"ad-hoc": False,
-				"generic": False,
-				"wired": False,
 				},
 			"filter_crypt": {
 				"none": True,

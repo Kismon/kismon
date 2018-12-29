@@ -115,7 +115,6 @@ class ServerTab:
 		datasource_button.connect('clicked', self.on_manage_datasources)
 		vbox.pack_start(datasource_button, False, True, 5)
 
-
 		label = Gtk.Label(label='-')
 		vbox.pack_start(label, False, True, 5)
 

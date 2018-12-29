@@ -154,7 +154,13 @@ class Networks:
 		self.start_queue()
 
 	def check_filter(self, mac, network):
-		if not self.config["filter_type"][network["type"]]:
+		if network["type"] == 'generic':
+			network["type"] =  'unknown'
+		if network["type"] not in self.config["filter_type"]:
+			print("fixme: unknown network type %s" % network["type"])
+			print(mac)
+			print(network)
+		elif not self.config["filter_type"][network["type"]]:
 			return False
 
 		crypts = decode_cryptset(network["cryptset"])
@@ -353,6 +359,7 @@ class Networks:
 			network["firsttime"] = min(network["firsttime"], device['kismet.device.base.first_time'])
 			network["signal_dbm"]["min"] = min(network["signal_dbm"]["min"], signal_dbm_min)
 			network["signal_dbm"]["max"] = min(network["signal_dbm"]["max"], signal_dbm_max)
+			network["type"] = decode_network_typeset(device['dot11.device']['dot11.device.typeset'])
 			server_uri = self.config['servers'][server_id]['uri']
 			if server_uri not in network['servers']:
 				network['servers'].append(server_uri)

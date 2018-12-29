@@ -271,13 +271,29 @@ def decode_cryptset(cryptset, str=False):
 def decode_network_typeset(num):
     """see phy_80211.h from kismet
     """
-    types = {0: 'generic', 1: 'infrastructure', 2: 'client', 3: 'infrastructure', 4: 'wired', 8: 'ad-hoc'}
-    try:
-        return types[num]
-    except KeyError:
-        print("fixme: unkown type num %s" % num)
-        return False
+    bits = "{0:b}".format(int(num+1))
+    type_bits = ['unknown', 'beakon_ap', 'adhoc', 'client', 'wds', 'turbocell', 'inferred_wireless', 'inferred_wired', 'probe_ap']
 
+    flags = []
+    position = len(bits) - 1
+    for bit in bits:
+        if bit == "1":
+            flags.append(type_bits[position])
+        position -= 1
+
+    if 'beakon_ap' in flags or 'probe_ap' in flags:
+        return 'infrastructure'
+    elif 'client' in flags:
+        return 'client'
+    elif 'adhoc' in flags:
+        return 'ad-hoc'
+    elif 'unknown' in flags and len(flags) == 1:
+        return 'unknown'
+    else:
+        print("fixme: unknown type")
+        print(num, "vs.", bits)
+        print(flags)
+        return 'unknown'
 
 if __name__ == "__main__":
     client = RestClient()

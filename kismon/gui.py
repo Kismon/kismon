@@ -214,11 +214,11 @@ class MainWindow(TemplateWindow):
 		network_menuitem.set_submenu(network_type_menu)
 		view_menu.append(network_menuitem)
 		
-		for network_type, key in (("Infrastructure", "infrastructure"),("Generic", "generic"), ("Client", "client"), ("Ad-Hoc", "ad-hoc"), ("Wired", "wired")):
-			item = Gtk.CheckMenuItem.new_with_label('%s Networks' % network_type)
-			if self.config["filter_type"][key]:
+		for network_type in self.config['filter_type'].keys():
+			item = Gtk.CheckMenuItem.new_with_label('%s Networks' % network_type.capitalize())
+			if self.config["filter_type"][network_type]:
 				item.set_active(True)
-			item.connect("activate", self.on_network_filter_type)
+			item.connect("activate", self.on_network_filter_type, network_type)
 			network_type_menu.append(item)
 		
 		crypt_menu = Gtk.Menu()
@@ -256,14 +256,8 @@ class MainWindow(TemplateWindow):
 		
 		return menubar
 	
-	def on_network_filter_type(self, widget):
-		types = ("infrastructure", "ad-hoc", "probe", "data")
-		label = widget.get_label().lower()
-		
-		for network_type in types:
-			if network_type in label:
-				self.config["filter_type"][network_type] = widget.get_active()
-				break
+	def on_network_filter_type(self, widget, network_type):
+		self.config["filter_type"][network_type] = widget.get_active()
 		self.networks.apply_filters()
 		self.networks_queue_progress()
 		
