@@ -11,14 +11,12 @@ Kismon is GUI client for kismet (wireless scanner/sniffer/monitor) with several 
 
 ## Dependencies
 
-* python-osmgpsmap (>=1.0.2)
-* python3
-* python3-gi
-* libgtk-3
-* python3-cairo
-* python3-simplejson
-
-Note: Kismon works without osm-gps-map, but the map will be disabled.
+* kismet (>=2019-?-? or git master)
+  * Kismon requires the Python module of [kismet](https://github.com/kismetwireless/kismet), it has to be installed for Python 3
+* [osm-gps-map](https://github.com/nzjrs/osm-gps-map) (>=1.0.2)
+  * osm-gps-map is optional, the map will be disabled if it's missing
+* python3-gi, python3-cairo, python3-simplejson
+* GTK+ 3
 
 ## Kismet Compatibility
 
@@ -27,7 +25,7 @@ Be aware that kismon is starting with version 1.0 not compatible with kismet ser
 Here is a list of the known compatibility:
 
 * kismon 1.0
-  * Kismet 2018-?-?
+  * Kismet 2019-?-?
 * kismon 0.9
   * Kismet 2011-01-R1 - 2016-07-R1
 * kismon 0.8
@@ -42,12 +40,22 @@ $ sudo apt-get install git python3 python3-gi gir1.2-gtk-3.0 \
 $ git clone https://github.com/Kismon/kismon.git kismon
 $ cd kismon
 $ python3 setup.py build
-# python3 setup.py install
+$ sudo python3 setup.py install
 ```
 
 Or just use `make` instead of the python commands.
 ```
 # make install
+```
+
+### Kismet Python module
+
+The Python module of kismet isn't included in the most Linux distributions and has to be installed manually.
+
+```
+$ git clone https://github.com/kismetwireless/kismet.git
+$ cd kismet/python_modules/KismetRest
+$ sudo python3 setup.py install
 ```
 
 ## Create Debian/Ubuntu package
