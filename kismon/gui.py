@@ -74,8 +74,7 @@ class MainWindow(TemplateWindow):
 		self.sources = sources
 		self.client_threads = client_threads
 		
-		self.notebook = Gtk.Notebook()
-		
+
 		vbox = Gtk.VBox()
 		self.gtkwin.add(vbox)
 		vbox.pack_start(self.init_menu(), False, False, 0)
@@ -86,7 +85,10 @@ class MainWindow(TemplateWindow):
 		hbox = Gtk.HBox()
 		vpaned_main.add1(hbox)
 		hbox.pack_start(self.network_list.widget, expand=True, fill=True, padding=0)
-		
+
+		self.notebook = Gtk.Notebook()
+		vpaned_main.add2(self.notebook)
+
 		self.server_notebook = Gtk.Notebook()
 		frame = Gtk.Frame()
 		frame.set_label("Servers")
@@ -107,10 +109,15 @@ class MainWindow(TemplateWindow):
 			self.add_server_tab(server_id)
 		
 		self.log_list = LogList(self.config["window"])
-		vpaned_main.add2(self.notebook)
 		self.notebook.append_page(self.log_list.widget)
 		self.notebook.set_tab_label_text(self.log_list.widget, "Log")
-		
+
+		self.filter_tab = FilterTab(config=self.config,
+									networks=self.networks,
+									networks_queue_progress=self.networks_queue_progress)
+		self.notebook.append_page(self.filter_tab.widget)
+		self.notebook.set_tab_label_text(self.filter_tab.widget, "Filter")
+
 		self.statusbar = Gtk.Statusbar()
 		self.statusbar_context = self.statusbar.get_context_id("Starting...")
 		vbox.pack_end(self.statusbar, expand=False, fill=False, padding=0)
@@ -179,60 +186,6 @@ class MainWindow(TemplateWindow):
 		view_menuitem.set_submenu(view_menu)
 		menubar.append(view_menuitem)
 		
-		networks_menu = Gtk.Menu()
-		networks_menuitem = Gtk.MenuItem.new_with_label("Amount of networks")
-		networks_menuitem.set_submenu(networks_menu)
-		view_menu.append(networks_menuitem)
-		
-		for name, key in (("Network List", "network_list"), ("Map", "map"), ("Export", "export")):
-			menu = Gtk.Menu()
-			menuitem = Gtk.MenuItem.new_with_label(name)
-			menuitem.set_submenu(menu)
-			networks_menu.append(menuitem)
-			
-			show_none = Gtk.RadioMenuItem(label='Disable')
-			if key != "export":
-				menu.append(show_none)
-			show_current = Gtk.RadioMenuItem(group=show_none, label='Networks from the current session')
-			menu.append(show_current)
-			show_all = Gtk.RadioMenuItem(group=show_none, label='All Networks')
-			menu.append(show_all)
-			
-			if self.config["filter_networks"][key] == "none":
-				show_none.set_active(True)
-			if self.config["filter_networks"][key] == "current":
-				show_current.set_active(True)
-			if self.config["filter_networks"][key] == "all":
-				show_all.set_active(True)
-			
-			show_none.connect("activate", self.on_network_filter_networks, key, "none")
-			show_current.connect("activate", self.on_network_filter_networks, key, "current")
-			show_all.connect("activate", self.on_network_filter_networks, key, "all")
-		
-		network_type_menu = Gtk.Menu()
-		network_menuitem = Gtk.MenuItem.new_with_label("Network Type")
-		network_menuitem.set_submenu(network_type_menu)
-		view_menu.append(network_menuitem)
-		
-		for network_type in self.config['filter_type'].keys():
-			item = Gtk.CheckMenuItem.new_with_label('%s Networks' % network_type.capitalize())
-			if self.config["filter_type"][network_type]:
-				item.set_active(True)
-			item.connect("activate", self.on_network_filter_type, network_type)
-			network_type_menu.append(item)
-		
-		crypt_menu = Gtk.Menu()
-		crypt_menuitem = Gtk.MenuItem.new_with_label("Encryption")
-		crypt_menuitem.set_submenu(crypt_menu)
-		view_menu.append(crypt_menuitem)
-		
-		for crypt in ("None", "WEP", "WPA", "WPA2", "Other"):
-			crypt_item = Gtk.CheckMenuItem.new_with_label(crypt)
-			if self.config["filter_crypt"][crypt.lower()]:
-				crypt_item.set_active(True)
-			crypt_item.connect("activate", self.on_network_filter_crypt)
-			crypt_menu.append(crypt_item)
-		
 		for key in ("ssid", "bssid"):
 			regexpr_menuitem = Gtk.MenuItem.new_with_label("%s (regular expression)" % key.upper())
 			regexpr_menuitem.connect("activate", self.on_network_filter_regexpr, key)
@@ -255,26 +208,7 @@ class MainWindow(TemplateWindow):
 		help_menu.append(about)
 		
 		return menubar
-	
-	def on_network_filter_type(self, widget, network_type):
-		self.config["filter_type"][network_type] = widget.get_active()
-		self.networks.apply_filters()
-		self.networks_queue_progress()
-		
-	def on_network_filter_networks(self, widget, target, show):
-		if not widget.get_active():
-			return
-		
-		self.config["filter_networks"][target] = show
-		self.networks.apply_filters()
-		self.networks_queue_progress()
-		
-	def on_network_filter_crypt(self, widget):
-		crypt = widget.get_label().lower()
-		self.config["filter_crypt"][crypt] = widget.get_active()
-		self.networks.apply_filters()
-		self.networks_queue_progress()
-		
+
 	def on_network_filter_regexpr(self, widget, key):
 		dialog = Gtk.Dialog("%s (regular expression)" % key.upper())
 		dialog.set_transient_for(self.gtkwin)
