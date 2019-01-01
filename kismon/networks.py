@@ -28,9 +28,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
 
+import os
 import simplejson as json
 import xml.parsers.expat
-import time
 import locale
 from gi.repository import GLib
 import zipfile
@@ -155,7 +155,7 @@ class Networks:
 
 	def check_filter(self, mac, network):
 		if network["type"] == 'generic':
-			network["type"] =  'unknown'
+			network["type"] = 'unknown'
 		if network["type"] not in self.config["filter_type"]:
 			print("fixme: unknown network type %s" % network["type"])
 			print(mac)
@@ -220,8 +220,8 @@ class Networks:
 		if self.refresh_disabled is True:
 			return
 		self.refresh_disabled = True
-		for function in self.disable_refresh_functions:
-			function()
+		for hooks in self.disable_refresh_functions:
+			hooks()
 
 	def notify_add_queue_process(self):
 		self.queue_running = True
@@ -247,8 +247,8 @@ class Networks:
 		self.queue_running = False
 		self.queue_task = None
 		if self.refresh_disabled is True:
-			for function in self.resume_refresh_functions:
-				function()
+			for hooks in self.resume_refresh_functions:
+				hooks()
 			self.refresh_disabled = False
 
 		yield False
@@ -382,9 +382,6 @@ class Networks:
 		network = self.networks[mac]
 		signal = False
 		data_signal = False
-		for search, result in ((network, signal), (data, data_signal)):
-			if "signal_dbm" in search:
-				result = True
 
 		if data["lasttime"] > network["lasttime"]:
 			newer = True

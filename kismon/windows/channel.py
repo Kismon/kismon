@@ -14,6 +14,7 @@ class ChannelWindow:
 		self.gtkwin.set_title("Configure Channel")
 
 		self.vbox = None
+		self.sources_list = None
 		self.init_box()
 
 	def init_box(self):

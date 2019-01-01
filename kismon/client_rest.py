@@ -28,12 +28,10 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
 
-import socket
-import sys
 import threading
 import time
-import os
 import KismetRest
+
 
 class RestClient:
     def __init__(self):
@@ -77,7 +75,7 @@ class RestClient:
         self.connected = False
 
     def _callback(self, device):
-        #print(device['dot11.device']['dot11.device.last_beaconed_ssid'])
+        # print(device['dot11.device']['dot11.device.last_beaconed_ssid'])
         self.queue['dot11'].append(device)
 
     def get_updated_devices(self, queue_list=None):
@@ -182,6 +180,7 @@ class RestClient:
         elif mode == 'hop':
             self.connector.config_datasource_set_hop_rate(uuid=uuid, rate=value)
 
+
 class RestClientThread(threading.Thread):
     def __init__(self, uri=None):
         threading.Thread.__init__(self)
@@ -214,7 +213,7 @@ class RestClientThread(threading.Thread):
             self.client.update_location()
             self.client.queue_new_messages()
             self.client.update_datasources()
-            #print(self.client.queue)
+            # print(self.client.queue)
             time.sleep(1)
         self.stop()
 
@@ -243,10 +242,10 @@ def encode_cryptset(crypts):
     return cryptset
 
 
-def decode_cryptset(cryptset, str=False):
+def decode_cryptset(cryptset, return_str=False):
     cryptsets = get_crypt_list()
     if cryptset == 0:
-        if str is True:
+        if return_str is True:
             return cryptsets[cryptset]
         else:
             return [cryptsets[cryptset]]
@@ -262,7 +261,7 @@ def decode_cryptset(cryptset, str=False):
                 pass
         pos += 1
 
-    if str is True:
+    if return_str is True:
         return ",".join(crypts).upper()
     else:
         return crypts
@@ -271,8 +270,9 @@ def decode_cryptset(cryptset, str=False):
 def decode_network_typeset(num):
     """see phy_80211.h from kismet
     """
-    bits = "{0:b}".format(int(num+1))
-    type_bits = ['unknown', 'beakon_ap', 'adhoc', 'client', 'wds', 'turbocell', 'inferred_wireless', 'inferred_wired', 'probe_ap']
+    bits = "{0:b}".format(int(num + 1))
+    type_bits = ['unknown', 'beakon_ap', 'adhoc', 'client', 'wds', 'turbocell', 'inferred_wireless', 'inferred_wired',
+                 'probe_ap']
 
     flags = []
     position = len(bits) - 1
@@ -294,6 +294,7 @@ def decode_network_typeset(num):
         print(num, "vs.", bits)
         print(flags)
         return 'unknown'
+
 
 if __name__ == "__main__":
     client = RestClient()

@@ -8,7 +8,7 @@ RUN if [ "${ubuntu_version}" = "18.04" ]; then apt-get -qq install python3-distu
 RUN apt-get -qq install gir1.2-gtk-3.0 gir1.2-gdkpixbuf-2.0 gir1.2-osmgpsmap-1.0
 RUN apt-get -qq install xvfb git
 
-RUN git clone https://github.com/dreadnought/kismet.git
+RUN git clone https://github.com/kismetwireless/kismet.git
 RUN cd kismet/python_modules/KismetRest && python3 setup.py install
 
 WORKDIR /code

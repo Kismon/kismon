@@ -168,9 +168,9 @@ class MainWindow(TemplateWindow):
 		sep = Gtk.SeparatorMenuItem()
 		file_menu.append(sep)
 		
-		exit = Gtk.MenuItem.new_with_mnemonic('_Quit')
-		exit.connect("activate", self.on_destroy)
-		file_menu.append(exit)
+		exit_menuitem = Gtk.MenuItem.new_with_mnemonic('_Quit')
+		exit_menuitem.connect("activate", self.on_destroy)
+		file_menu.append(exit_menuitem)
 		
 		menubar.append(file_menuitem)
 		
@@ -395,7 +395,7 @@ class MainWindow(TemplateWindow):
 	def on_map_hide(self, widget):
 		self.config["window"]["map_position"] = "hide"
 			
-	def on_map_window(self, widget, override=False):
+	def on_map_window(self, widget=None, override=False):
 		if (widget is not None and widget.get_active()) or override is True:
 			try:
 				self.map_window.gtkwin.hide()
@@ -434,9 +434,9 @@ class MainWindow(TemplateWindow):
 		dialog = Gtk.AboutDialog()
 		dialog.set_program_name("Kismon")
 		dialog.set_version(utils.get_version())
-		dialog.set_comments('PyGTK based kismet client')
+		dialog.set_comments('GUI client for kismet')
 		dialog.set_website('https://www.salecker.org/software/kismon.html')
-		dialog.set_copyright("(c) 2010-2015 Patrick Salecker")
+		dialog.set_copyright("(c) 2010-2019 Patrick Salecker")
 		dialog.run()
 		dialog.destroy()
 		
@@ -520,8 +520,5 @@ class MainWindow(TemplateWindow):
 		self.statusbar.push(self.statusbar_context, text)
 
 if __name__ == "__main__":
-	try:
-		from . import core
-	except SystemError:
-		import core
+	import kismet.core as core
 	core.main()

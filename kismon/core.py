@@ -30,8 +30,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 import os
 import sys
-import subprocess
-
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
@@ -152,8 +150,6 @@ class Core:
 			self.client_stop(server_id)
 		self.sources[server_id] = {}
 		self.init_client_thread(server_id)
-		if "--load-kismet-dump" in sys.argv:
-			self.client_threads[server_id].client.load_dump(sys.argv[2])
 		self.client_threads[server_id].start()
 		
 	def client_stop(self, server_id):
@@ -253,7 +249,7 @@ class Core:
 			self.main_window.server_tabs[server_id].update_sources_table(self.sources[server_id])
 
 	def datasources_dialog(self, server_id):
-		dialog_message = "The Kismet instance %s seams to have no active interfaces, do you want to activate them now? *\n\n* requires authentification" % (self.config["servers"][server_id]['uri'])
+		dialog_message = "The Kismet instance %s seems to have no active interfaces.\nDo you want to activate them now? *\n\n* Requires authentification" % (self.config["servers"][server_id]['uri'])
 		dialog = Gtk.MessageDialog(self.main_window.gtkwin, Gtk.DialogFlags.DESTROY_WITH_PARENT, Gtk.MessageType.QUESTION,
 								   Gtk.ButtonsType.YES_NO, dialog_message)
 
@@ -293,7 +289,6 @@ class Core:
 				if mac not in self.main_window.signal_graphs:
 					continue
 
-				#print(source)
 				if source['kismet.common.seenby.signal']['kismet.common.signal.type'] != 'dbm':
 					continue
 				self.main_window.signal_graphs[mac].add_value(source_data=self.sources[server_id][source_uuid],

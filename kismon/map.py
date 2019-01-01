@@ -27,16 +27,13 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 """
-import gi
 from gi.repository import Gtk
 from gi.repository import Gdk, GdkPixbuf
-from gi.repository import GObject
 from gi.repository import OsmGpsMap
 import cairo
 import io
 
 import os
-import hashlib
 
 class Map:
 	def __init__(self, config, user_agent=None):

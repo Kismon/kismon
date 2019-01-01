@@ -1,9 +1,7 @@
 import time
 
 from gi.repository import Gtk
-from gi.repository import Gdk, GdkPixbuf
 from gi.repository import GObject
-import cairo
 
 class SignalWindow:
 	def __init__(self, mac, destroy):
@@ -22,6 +20,8 @@ class SignalWindow:
 			(0.5, 0, 0),
 			(0, 0, 0.5),
 		]
+
+		self.graph_type = "signal"
 		
 		self.gtkwin = Gtk.Window()
 		self.gtkwin.set_position(Gtk.WindowPosition.CENTER)
@@ -106,7 +106,7 @@ class SignalWindow:
 			
 			line = ['#' , source["name"], source["type"],
 				source["signal"], source["signal_min"], source["signal_max"],
-				source["pps"], source["packets"], source["server"], self.get_color(uuid, hex=True)]
+				source["pps"], source["packets"], source["server"], self.get_color(uuid, return_hex=True)]
 			if "iter" in source:
 				source_iter = source["iter"]
 				num = 0
@@ -174,8 +174,6 @@ class SignalWindow:
 		ctx.move_to(border_left - 55, graph_height + 4)
 		ctx.show_text(text % data_min)
 		
-		value = (int((data_min + 2) / 10)) * 10
-
 		while True:
 			r = range(data_min, data_max, data_step)
 			if len(r) > 6: # max. 6 horizontal lines
@@ -236,13 +234,13 @@ class SignalWindow:
 		
 		return False
 		
-	def get_color(self, uuid, hex=False):
+	def get_color(self, uuid, return_hex=False):
 		try:
 			color = self.colors[self.sources[uuid]["number"]]
 		except ValueError:
 			color = (1, 1, 1)
 		
-		if hex:
+		if return_hex:
 			color = "#%0.2X%0.2X%0.2X" % (color[0] * 255, color[1] * 255, color[2] * 255)
 		
 		return color

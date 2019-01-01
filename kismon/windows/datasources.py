@@ -1,5 +1,6 @@
 from gi.repository import Gtk
 
+
 class DatasourcesWindow:
     def __init__(self, client_thread, parent):
         self.gtkwin = Gtk.Window()
@@ -50,7 +51,8 @@ class DatasourcesWindow:
             if in_use:
                 status_text = 'in use'
             elif interface['kismet.datasource.type_driver']['kismet.datasource.driver.type'] != 'linuxwifi':
-                status_text = 'unsupported type "%s"' % interface['kismet.datasource.type_driver']['kismet.datasource.driver.type']
+                status_text = 'unsupported type "%s"' % (
+                    interface['kismet.datasource.type_driver']['kismet.datasource.driver.type'])
                 unsupported = True
             else:
                 status_text = 'inactive'

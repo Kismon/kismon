@@ -271,7 +271,7 @@ class ServerTab:
 			
 		table = Gtk.Table(n_rows=(len(sources)*5)+1, n_columns=2)
 		for uuid in sources:
-			row = self.init_sources_table_source(sources[uuid], table)
+			self.init_sources_table_source(sources[uuid], table)
 		
 		table.show_all()
 		self.sources_table = table

@@ -1,5 +1,3 @@
-import os
-
 from gi.repository import Gtk
 
 class ConfigWindow:
@@ -234,4 +232,3 @@ class ConfigWindow:
 		
 	def on_update_marker_positions(self, widget):
 		self.config["map"]["update_marker_positions"] = widget.get_active()
-		

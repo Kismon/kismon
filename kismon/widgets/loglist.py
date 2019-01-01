@@ -2,10 +2,7 @@ import time
 from gi.repository import Gtk
 from gi.repository import GObject
 
-try:
-	import kismon.utils as utils
-except ImportError:
-	import utils
+import kismon.utils as utils
 
 class LogList:
 	def __init__(self, config):
