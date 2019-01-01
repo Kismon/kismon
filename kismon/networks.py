@@ -148,6 +148,8 @@ class Networks:
 				network['servers'] = []
 			if 'crypt' not in mac:
 				crypt = decode_cryptset(network['cryptset'], return_str=True)
+				if 'WEP,' in crypt and 'WPA' in crypt:
+					crypt = crypt.replace('WEP,', '')
 				network['crypt'] = crypt
 			if network["type"] == 'generic':
 				network["type"] = 'unknown'
