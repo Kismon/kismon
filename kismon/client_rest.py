@@ -81,18 +81,19 @@ class RestClient:
     def get_updated_devices(self, queue_list=None):
         fields = [
             'dot11.device',
-            'kismet.device.base.key',
-            'kismet.device.base.macaddr',
-            'kismet.device.base.first_time',
-            'kismet.device.base.last_time',
             'kismet.device.base.channel',
+            'kismet.device.base.crypt',
+            'kismet.device.base.first_time',
+            'kismet.device.base.key',
+            'kismet.device.base.last_time',
+            'kismet.device.base.location',
+            'kismet.device.base.macaddr',
             'kismet.device.base.manuf',
+            'kismet.device.base.seenby',
             'kismet.device.base.signal/kismet.common.signal.last_signal',
             'kismet.device.base.signal/kismet.common.signal.min_signal',
             'kismet.device.base.signal/kismet.common.signal.max_signal',
             'kismet.device.base.signal/kismet.common.signal.type',
-            'kismet.device.base.location',
-            'kismet.device.base.seenby',
         ]
         if queue_list:
             self.queue = queue_list

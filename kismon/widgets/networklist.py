@@ -144,7 +144,7 @@ class NetworkList:
 		try:
 			crypt = self.value_cache['crypt'][value]
 		except KeyError:
-			crypt = GObject.Value(GObject.TYPE_STRING, decode_cryptset(value, True))
+			crypt = GObject.Value(GObject.TYPE_STRING, value)
 			self.value_cache['crypt'][value] = crypt
 		return crypt
 		
@@ -235,7 +235,7 @@ class NetworkList:
 				self.prepare_network_type(network["type"]),
 				self.prepare_network_ssid(network["ssid"]),
 				self.prepare_network_channel(network["channel"]),
-				self.prepare_network_crypt(network["cryptset"]),
+				self.prepare_network_crypt(network["crypt"]),
 				self.prepare_network_time(network["firsttime"]),
 				self.prepare_network_time(network["lasttime"]),
 				self.prepare_network_coordinate(network["lat"]),

@@ -220,8 +220,8 @@ class Networks:
 		if self.refresh_disabled is True:
 			return
 		self.refresh_disabled = True
-		for hooks in self.disable_refresh_functions:
-			hooks()
+		for hook in self.disable_refresh_functions:
+			hook()
 
 	def notify_add_queue_process(self):
 		self.queue_running = True
@@ -247,8 +247,8 @@ class Networks:
 		self.queue_running = False
 		self.queue_task = None
 		if self.refresh_disabled is True:
-			for hooks in self.resume_refresh_functions:
-				hooks()
+			for hook in self.resume_refresh_functions:
+				hook()
 			self.refresh_disabled = False
 
 		yield False
@@ -324,6 +324,7 @@ class Networks:
 				"manuf": device['kismet.device.base.manuf'],
 				"ssid": ssid,
 				"cryptset": new_cryptset,
+				"crypt": device['kismet.device.base.crypt'],
 				"signal_dbm": {
 					"min": signal_dbm_min,
 					"max": signal_dbm_max,
@@ -360,6 +361,7 @@ class Networks:
 			network["signal_dbm"]["min"] = min(network["signal_dbm"]["min"], signal_dbm_min)
 			network["signal_dbm"]["max"] = min(network["signal_dbm"]["max"], signal_dbm_max)
 			network["type"] = decode_network_typeset(device['dot11.device']['dot11.device.typeset'])
+			network["crypt"] = device['kismet.device.base.crypt']
 			server_uri = self.config['servers'][server_id]['uri']
 			if server_uri not in network['servers']:
 				network['servers'].append(server_uri)
