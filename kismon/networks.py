@@ -138,11 +138,20 @@ class Networks:
 		print("Loading networks.json. Please wait.")
 
 		self.networks = json.load(f)
-		for network in self.networks:
-			if 'comment' not in self.networks[network]:
-				self.networks[network]['comment'] = ""
-			if 'servers' not in self.networks[network]:
-				self.networks[network]['servers'] = []
+
+		# "Upgrade" networks created by older versions of kismon
+		for mac in self.networks:
+			network = self.networks[mac]
+			if 'comment' not in network:
+				network['comment'] = ""
+			if 'servers' not in network:
+				network['servers'] = []
+			if 'crypt' not in mac:
+				crypt = decode_cryptset(network['cryptset'], return_str=True)
+				network['crypt'] = crypt
+			if network["type"] == 'generic':
+				network["type"] = 'unknown'
+
 		f.close()
 
 		print("Total networks %d" % (len(self.networks)))
@@ -154,8 +163,6 @@ class Networks:
 		self.start_queue()
 
 	def check_filter(self, mac, network):
-		if network["type"] == 'generic':
-			network["type"] = 'unknown'
 		if network["type"] not in self.config["filter_type"]:
 			print("fixme: unknown network type %s" % network["type"])
 			print(mac)
