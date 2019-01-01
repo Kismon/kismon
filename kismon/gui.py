@@ -174,30 +174,20 @@ class MainWindow(TemplateWindow):
 		
 		sep = Gtk.SeparatorMenuItem()
 		file_menu.append(sep)
+
+		config_menuitem = Gtk.MenuItem.new_with_mnemonic('_Preferences')
+		config_menuitem.connect("activate", self.on_config_window)
+		file_menu.append(config_menuitem)
+
+		sep = Gtk.SeparatorMenuItem()
+		file_menu.append(sep)
 		
 		exit_menuitem = Gtk.MenuItem.new_with_mnemonic('_Quit')
 		exit_menuitem.connect("activate", self.on_destroy)
 		file_menu.append(exit_menuitem)
 		
 		menubar.append(file_menuitem)
-		
-		view_menu = Gtk.Menu()
-		view_menuitem = Gtk.MenuItem.new_with_label("View")
-		view_menuitem.set_submenu(view_menu)
-		menubar.append(view_menuitem)
-		
-		for key in ("ssid", "bssid"):
-			regexpr_menuitem = Gtk.MenuItem.new_with_label("%s (regular expression)" % key.upper())
-			regexpr_menuitem.connect("activate", self.on_network_filter_regexpr, key)
-			view_menu.append(regexpr_menuitem)
-		
-		sep = Gtk.SeparatorMenuItem()
-		view_menu.append(sep)
-		
-		config_menuitem = Gtk.MenuItem.new_with_mnemonic('_Preferences')
-		config_menuitem.connect("activate", self.on_config_window)
-		view_menu.append(config_menuitem)
-		
+
 		help_menu = Gtk.Menu()
 		help_menuitem = Gtk.MenuItem.new_with_label("Help")
 		help_menuitem.set_submenu(help_menu)

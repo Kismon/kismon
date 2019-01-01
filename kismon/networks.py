@@ -181,7 +181,7 @@ class Networks:
 			if re.search(r"%s" % self.config["filter_regexpr"]["ssid"], network["ssid"]) is None:
 				return False
 		if self.config["filter_regexpr"]["bssid"] != "":
-			if re.search(r"%s" % self.config["filter_regexpr"]["bssid"], mac) is None:
+			if re.search(r"%s" % self.config["filter_regexpr"]["bssid"], mac, re.IGNORECASE) is None:
 				return False
 
 		return True

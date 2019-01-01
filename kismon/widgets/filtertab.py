@@ -12,7 +12,7 @@ class FilterTab:
 
         grid.set_column_spacing(10)
         grid.set_row_spacing(10)
-        grid.set_property('margin', 10)
+        grid.set_property('margin', 5)
 
         x = 0
         y = 0
@@ -35,6 +35,9 @@ class FilterTab:
 
         x += 1
         self.add_limiter_radiobuttons(main_x=x, main_y=y)
+
+        x += 1
+        self.add_regex_filters(main_x=x, main_y=y)
 
     def add_checkbox_list(self, config_key, title, kv, x, y):
         frame = Gtk.Frame()
@@ -94,15 +97,46 @@ class FilterTab:
             y += 1
         y = 0
 
+    def add_regex_filters(self, main_x, main_y):
+        frame = Gtk.Frame()
+        frame.set_label("Regular expression")
+        self.widget.attach(frame, main_x, main_y, 1, 1)
+
+        box = Gtk.Box()
+        box.set_property('orientation', Gtk.Orientation.VERTICAL)
+        box.set_property('margin', 5)
+        frame.add(box)
+
+        for key in ('ssid', 'bssid'):
+            entry = Gtk.Entry()
+            entry.set_width_chars(30)
+            entry.set_text(self.config["filter_regexpr"][key])
+            entry.connect('changed', self.on_regex_changed, key)
+            label = Gtk.Label("%s:" % key.upper(), True, True, 0)
+            hbox = Gtk.Box()
+            hbox.pack_start(label, False, False, 0)
+            hbox.pack_end(entry, False, False, 10)
+            box.pack_start(hbox, False, False, 0)
+
+    def apply(self):
+        self.networks.apply_filters()
+        self.networks_queue_progress()
+
     def on_network_filter(self, widget, config_key, filter_key):
         active = widget.get_active()
         self.config[config_key][filter_key] = active
-        self.networks.apply_filters()
-        self.networks_queue_progress()
+        self.apply()
 
     def on_toggle_limiter(self, widget, key, value):
         if not widget.get_active():
             return
         self.config["filter_networks"][key] = value
-        self.networks.apply_filters()
-        self.networks_queue_progress()
+        self.apply()
+
+    def on_regex_changed(self, widget, key):
+        text = widget.get_text()
+        if text == self.config["filter_regexpr"][key]:
+            return
+
+        self.config["filter_regexpr"][key] = text
+        self.apply()

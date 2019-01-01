@@ -15,11 +15,13 @@ class ConfigWindow:
 		self.gtkwin.add(self.notebook)
 		
 		general_page = Gtk.Table(n_rows=2, n_columns=1)
+		general_page.set_property('margin', 5)
 		self.notebook.append_page(general_page)
 		self.notebook.set_tab_label_text(general_page, "General")
 		self.init_general_page(general_page)
 		
 		map_page = Gtk.Table(n_rows=2, n_columns=1)
+		map_page.set_property('margin', 5)
 		self.notebook.append_page(map_page)
 		self.notebook.set_tab_label_text(map_page, "Map")
 		
