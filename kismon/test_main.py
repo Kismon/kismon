@@ -281,8 +281,8 @@ class TestKismon(unittest.TestCase):
         main_window.on_file_import(None)
 
         test_widget.text = "Infrastructure"
-        main_window.on_network_filter_type(test_widget, 'infrastructure')
-        main_window.on_network_filter_networks(test_widget, "map", "all")
+        main_window.filter_tab.on_network_filter(test_widget, 'filter_type', 'infrastructure')
+        main_window.filter_tab.on_toggle_limiter(test_widget, 'map', 'all')
 
     @unittest.skipUnless(gi_available, "gi module not available")
     def test_gui_channel_window(self):

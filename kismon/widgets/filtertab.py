@@ -72,14 +72,15 @@ class FilterTab:
         for name, key in (("Network List", "network_list"), ("Map", "map"), ("Export", "export")):
             x = 0
             label = Gtk.Label(label=name)
-            label.set_alignment(0, 0.5)
+            label.set_property("xalign", 0)
             limiter_grid.attach(label, x, y, 1, 1)
 
             for text, value in (('Disable', 'none'), ('Only current session', 'current'), ('All Networks', 'all')):
                 x += 1
                 if y == 1:
                     label = Gtk.Label(label=text)
-                    label.set_alignment(0, 0.5)
+                    label.set_property("xalign", 0)
+
                     limiter_grid.attach(label, x, 0, 1, 1)
 
                 if key not in groups:
@@ -112,7 +113,7 @@ class FilterTab:
             entry.set_width_chars(30)
             entry.set_text(self.config["filter_regexpr"][key])
             entry.connect('changed', self.on_regex_changed, key)
-            label = Gtk.Label("%s:" % key.upper(), True, True, 0)
+            label = Gtk.Label(label="%s:" % key.upper())
             hbox = Gtk.Box()
             hbox.pack_start(label, False, False, 0)
             hbox.pack_end(entry, False, False, 10)
