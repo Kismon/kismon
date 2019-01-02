@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import platform
-from distutils.core import setup
+from setuptools import setup
 from kismon.utils import get_version
 
 data_files = []
