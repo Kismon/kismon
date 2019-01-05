@@ -1,3 +1,9 @@
+kismon (0.9.0-3) unstable; urgency=low
+
+  * Add python3-setuptools to Build-Depends
+
+ -- Patrick Salecker <mail@salecker.org>  Sat, 05 Jan 2019 17:00:00 +0200
+
 kismon (0.9.0-2) unstable; urgency=low
 
   * Update Standards-Version to 4.3.0
