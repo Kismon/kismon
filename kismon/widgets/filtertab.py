@@ -7,12 +7,15 @@ class FilterTab:
         self.networks = networks
         self.networks_queue_progress = networks_queue_progress
 
-        grid = Gtk.Grid()
-        self.widget = grid
+        self.grid = Gtk.Grid()
+        self.grid.set_column_spacing(10)
+        self.grid.set_row_spacing(10)
+        self.grid.set_property('margin', 5)
 
-        grid.set_column_spacing(10)
-        grid.set_row_spacing(10)
-        grid.set_property('margin', 5)
+        scrolled = Gtk.ScrolledWindow()
+        scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        scrolled.add(self.grid)
+        self.widget = scrolled
 
         x = 0
         y = 0
@@ -42,7 +45,7 @@ class FilterTab:
     def add_checkbox_list(self, config_key, title, kv, x, y):
         frame = Gtk.Frame()
         frame.set_label(title)
-        self.widget.attach(frame, x, y, 1, 1)
+        self.grid.attach(frame, x, y, 1, 1)
 
         box = Gtk.Box()
         box.set_property('orientation', Gtk.Orientation.VERTICAL)
@@ -58,7 +61,7 @@ class FilterTab:
     def add_limiter_radiobuttons(self, main_x, main_y):
         frame = Gtk.Frame()
         frame.set_label("Limit networks")
-        self.widget.attach(frame, main_x, main_y, 1, 1)
+        self.grid.attach(frame, main_x, main_y, 1, 1)
 
         limiter_grid = Gtk.Grid()
         limiter_grid.set_column_spacing(5)
@@ -101,7 +104,7 @@ class FilterTab:
     def add_regex_filters(self, main_x, main_y):
         frame = Gtk.Frame()
         frame.set_label("Regular expression")
-        self.widget.attach(frame, main_x, main_y, 1, 1)
+        self.grid.attach(frame, main_x, main_y, 1, 1)
 
         box = Gtk.Box()
         box.set_property('orientation', Gtk.Orientation.VERTICAL)
