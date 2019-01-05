@@ -7,7 +7,6 @@ class DatasourcesWindow:
         self.gtkwin.set_transient_for(parent)
         self.gtkwin.set_modal(True)
         self.gtkwin.set_position(Gtk.WindowPosition.CENTER)
-        self.gtkwin.set_default_size(480, 240)
         self.gtkwin.set_title("Manage Datasources")
 
         self.client_thread = client_thread
@@ -17,10 +16,7 @@ class DatasourcesWindow:
 
     def init_box(self):
         table = Gtk.Grid()
-        sources_list_scroll = Gtk.ScrolledWindow()
-        sources_list_scroll.add(table)
-        sources_list_scroll.get_children()[0].set_shadow_type(Gtk.ShadowType.NONE)
-        sources_list_scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        table.set_property('margin', 5)
 
         x = 0
         y = 0
@@ -35,14 +31,20 @@ class DatasourcesWindow:
         table.set_row_spacing(10)
 
         available_datasources = self.client_thread.client.get_available_datasources()
+        interfaces = [i['kismet.datasource.probed.interface'] for i in available_datasources]
         for interface in available_datasources:
+            name = interface['kismet.datasource.probed.interface']
+            if name.endswith('mon') and name[:-3] in interfaces:
+                # e.g. if there is wlan0 and wlan0mon, skip wlan0mon
+                continue
+
             unsupported = False
             if interface['kismet.datasource.probed.in_use_uuid'] == '00000000-0000-0000-0000-000000000000':
                 in_use = False
             else:
                 in_use = True
 
-            interface_label = Gtk.Label(label=interface['kismet.datasource.probed.interface'])
+            interface_label = Gtk.Label(label=name)
             table.attach(interface_label, 0, y, 1, 1)
 
             hardware_label = Gtk.Label(label=interface['kismet.datasource.probed.hardware'])
@@ -58,7 +60,7 @@ class DatasourcesWindow:
                 status_text = 'inactive'
 
             status_label = Gtk.Label(label=status_text)
-            table.attach(status_label, 2, y, 1, 1)
+            table.attach(status_label, 2, y, 2 if unsupported else 1, 1)
 
             if not in_use and not unsupported:
                 activate_button = Gtk.Button.new_with_mnemonic('_Activate')
@@ -66,16 +68,18 @@ class DatasourcesWindow:
                 table.attach(activate_button, 3, y, 1, 1)
             y += 1
 
-        refresh_button = Gtk.Button.new_with_mnemonic('_Refresh')
+        image = Gtk.Image.new_from_icon_name('view-refresh', size=Gtk.IconSize.MENU)
+        refresh_button = Gtk.Button(image=image)
         refresh_button.connect("clicked", self.on_refresh)
+        refresh_button.set_tooltip_text('Refresh list')
         table.attach(refresh_button, 3, y, 1, 1)
 
         if self.widget:
             self.gtkwin.remove(self.widget)
 
-        self.gtkwin.add(sources_list_scroll)
+        self.gtkwin.add(table)
         self.gtkwin.show_all()
-        self.widget = sources_list_scroll
+        self.widget = table
 
     def on_activate(self, widget, interface):
         self.client_thread.client.add_datasource(interface['kismet.datasource.probed.interface'])

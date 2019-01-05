@@ -19,6 +19,7 @@ class ChannelWindow:
 
 	def init_box(self):
 		vbox = Gtk.VBox()
+		vbox.set_property('margin', 5)
 
 		self.sources_list = Gtk.VBox()
 		sources_list_scroll = Gtk.ScrolledWindow()
