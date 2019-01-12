@@ -1,9 +1,15 @@
-kismon 1.0.0 (2018-?-?)
+kismon 1.0.0 (2019-?-?)
 ===============================
 
 Changes:
-* Compatible with Kismet version 2018-?-?, incompatible with older server version
+* Compatible with Kismet version 2019-01-beta2, incompatible with older versions
+* Interfaces can be added to kismet from kismon
+* The network encryption is shown in a shorter format
+* Filters moved from the menu to a tab next to the log
 
+Dependencies:
+* The KismetRest Python module from kismet (>= 2019-01-beta2) is required
+* python3-setuptools replaces python3-distutils
 
 kismon 0.9.0 (2017-01-21)
 ===============================
