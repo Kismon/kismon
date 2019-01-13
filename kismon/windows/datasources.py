@@ -85,7 +85,7 @@ class DatasourcesWindow:
         self.client_thread.client.add_datasource(interface['kismet.datasource.probed.interface'])
         self.on_refresh()
 
-    def on_destroy(self, window):
+    def on_destroy(self, window=None):
         self.gtkwin = None
 
     def on_refresh(self, widget=None):

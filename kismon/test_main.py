@@ -213,6 +213,7 @@ class TestKismon(unittest.TestCase):
         test_core = Core()
         core_tests(test_core)
         test_core.add_network_to_map("00:12:2A:03:B9:12")
+        test_core.queues_handler()
         test_core.clients_stop()
 
         arg = "--disable-map"
@@ -239,6 +240,7 @@ class TestKismon(unittest.TestCase):
         test_config = Config(None).default_config
         test_map = Map(test_config["map"])
         test_networks = networks()
+        test_networks.networks['00:12:2A:03:B9:12']['servers'] = "http://127.0.0.1:2501"
         test_client_threads = {0: RestClientThread()}
         tmp_tracks_file = "%s%stest-tracks-%s.json" % (tempfile.gettempdir(), os.sep, int(time.time()))
         test_tracks = Tracks(tmp_tracks_file)
@@ -246,7 +248,9 @@ class TestKismon(unittest.TestCase):
                                  test_client_threads)
         main_window.network_list.crypt_cache = {}
 
-        main_window.log_list.add("Kismon", "test")
+        for x in range(1, 202):
+            main_window.log_list.add("Kismon", "test %s" % x)
+        main_window.log_list.cleanup()
         main_window.network_list.add_network('11:22:33:44:55:66')
         main_window.network_list.network_selected = '11:22:33:44:55:66'
         main_window.network_list.add_network('00:12:2A:03:B9:12')
@@ -256,6 +260,11 @@ class TestKismon(unittest.TestCase):
         main_window.network_list.on_copy_network(None)
         main_window.network_list.on_comment_editing_done(test_widget)
         main_window.network_list.remove_network('00:12:2A:03:B9:12')
+        main_window.network_list.remove_column('Ch')
+        main_window.network_list.add_column('Ch')
+        main_window.network_list.on_locate_marker(None)
+        main_window.network_list.pause()
+        main_window.network_list.resume()
         main_window.server_tabs[0].update_info_table({"networks": 100, "packets": 200})
         main_window.server_tabs[0].update_gps_table(fix=3, lat=52.0, lon=13.0)
         sources = {"1": {"uuid": "1", "name": "test", "type": "bla",
@@ -269,20 +278,27 @@ class TestKismon(unittest.TestCase):
         main_window.fullscreen()
         main_window.fullscreen()
         main_window.on_map_window(None, True)
+        dummy_button = Gtk.Button()
+        main_window.config_window.on_map_source(dummy_button, "custom")
         main_window.on_map_window(None, False)
         main_window.on_map_widget(None, True)
+        main_window.config_window.on_map_source(dummy_button, "custom")
         main_window.on_map_widget(None, False)
         # main_window.on_server_disconnect(None, 0)
         test_event = TestEvent()
         main_window.on_window_state(None, test_event)
 
-        config_window = main_window.config_window
-
         main_window.on_file_import(None)
+
+        main_window.networks_queue_progress()
+        main_window.networks_queue_progress_update()
 
         test_widget.text = "Infrastructure"
         main_window.filter_tab.on_network_filter(test_widget, 'filter_type', 'infrastructure')
         main_window.filter_tab.on_toggle_limiter(test_widget, 'map', 'all')
+        test_widget.text = 'something'
+        main_window.filter_tab.on_regex_changed(test_widget, 'ssid')
+        main_window.filter_tab.on_regex_changed(test_widget, 'ssid')
 
     @unittest.skipUnless(gi_available, "gi module not available")
     def test_gui_channel_window(self):
@@ -382,6 +398,25 @@ class TestKismon(unittest.TestCase):
         file_import_window.parse_file()
         file_import_window.parse_file()
         file_import_window.on_close(None)
+
+    @unittest.skipUnless(gi_available, "gi module not available")
+    def test_datasources_window(self):
+        from gi.repository import Gtk
+        from kismon.gui import DatasourcesWindow
+        from kismon.client_rest import RestClientThread
+
+        test_networks = networks()
+
+        def dummy_datasources():
+            return kismon.test_data.available_datasources
+
+        test_window = Gtk.Window()
+        client_thread = RestClientThread()
+        client_thread.client.get_available_datasources = dummy_datasources
+        datasources_window = DatasourcesWindow(client_thread,
+                                               parent=test_window)
+        datasources_window.on_refresh()
+        datasources_window.on_destroy()
 
     @unittest.skipUnless(gi_available, "gi module not available")
     def test_map(self):
