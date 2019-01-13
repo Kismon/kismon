@@ -53,10 +53,12 @@ class NetworkList:
             if column == "Signal dbm":
                 tvcolumn.add_attribute(renderer, "value", 12)
             num += 1
-            tvcolumbutton = tvcolumn.get_button()
-            tvcolumbutton.connect('button-press-event', self.on_column_clicked, num)
+
             if column in self.config['network_list_columns'] or enable_all_columns:
                 self.add_column(column)
+
+            tvcolumbutton = tvcolumn.get_button()
+            tvcolumbutton.connect('button-press-event', self.on_column_clicked, num)
 
         self.treeview.connect("button-press-event", self.on_treeview_clicked) # has to be done after TreeViewColumn's
 
