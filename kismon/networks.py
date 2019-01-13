@@ -72,7 +72,7 @@ class Networks:
             notify("Kismon", msg)
 
         tmpfilename = filename + ".new"
-        self.save_networks(tmpfilename, self.networks)
+        self.save_networks(tmpfilename)
         for num in range(self.config["networks"]["num_backups"] - 2, -1, -1):
             backup_filename = "%s.%s" % (filename, num)
             if os.path.isfile(backup_filename):
@@ -83,41 +83,10 @@ class Networks:
         os.rename(tmpfilename, filename)
         return True
 
-    def save_networks_json(self, filename):
-        f = open(filename, "w")
-        json.dump(self.networks, f, sort_keys=True, indent=2)
-        f.close()
-
-    def save_networks(self, filename, networks):
+    def save_networks(self, filename):
         new_file = "%s.new" % filename
         f = open(new_file, "w")
-        f.write('{\n')
-        macs = sorted(networks)
-        enc = json.JSONEncoder()
-        for mac in macs:
-            network = self.networks[mac]
-            f.write('  "%s": {\n' % mac)
-            f.write('    "channel": %s, \n' % network["channel"])
-            f.write('    "cryptset": %s, \n' % network["cryptset"])
-            f.write('    "firsttime": %s, \n' % network["firsttime"])
-            f.write('    "lasttime": %s, \n' % network["lasttime"])
-            f.write('    "lat": %s, \n' % network["lat"])
-            f.write('    "lon": %s, \n' % network["lon"])
-            f.write('    "manuf": %s, \n' % enc.encode(network["manuf"]))
-            if "signal_dbm" in network and "last" in network["signal_dbm"]:
-                f.write('    "signal_dbm": {\n')
-                f.write('      "last": %s, \n' % network["signal_dbm"]["last"])
-                f.write('      "max": %s, \n' % network["signal_dbm"]["max"])
-                f.write('      "min": %s\n' % network["signal_dbm"]["min"])
-                f.write('    }, \n')
-            f.write('    "ssid": %s, \n' % enc.encode(network["ssid"]))
-            f.write('    "type": "%s",\n' % network["type"])
-            f.write('    "comment": %s\n' % enc.encode(network["comment"]))
-            if mac != macs[-1]:
-                f.write('  }, \n')
-            else:
-                f.write('  }\n')
-        f.write('}')
+        json.dump(self.networks, f, sort_keys=True, indent=2)
         f.close()
         os.rename(new_file, filename)
 
