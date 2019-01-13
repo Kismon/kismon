@@ -117,7 +117,7 @@ class Networks:
                 network['comment'] = ""
             if 'servers' not in network:
                 network['servers'] = []
-            if 'crypt' not in mac:
+            if 'crypt' not in network:
                 crypt = decode_cryptset(network['cryptset'], return_str=True)
                 if 'WEP,' in crypt and 'WPA' in crypt:
                     crypt = crypt.replace('WEP,', '')
@@ -335,6 +335,7 @@ class Networks:
                 network["channel"] = new_channel
                 network["lasttime"] = device['kismet.device.base.last_time']
                 network["cryptset"] = new_cryptset
+                network["crypt"] = device['kismet.device.base.crypt']
                 network["signal_dbm"]["last"] = signal_dbm_last
                 network["ssid"] = ssid
 
@@ -342,7 +343,7 @@ class Networks:
             network["signal_dbm"]["min"] = min(network["signal_dbm"]["min"], signal_dbm_min)
             network["signal_dbm"]["max"] = min(network["signal_dbm"]["max"], signal_dbm_max)
             network["type"] = decode_network_typeset(device['dot11.device']['dot11.device.typeset'])
-            network["crypt"] = device['kismet.device.base.crypt']
+
             server_uri = self.config['servers'][server_id]['uri']
             if server_uri not in network['servers']:
                 network['servers'].append(server_uri)

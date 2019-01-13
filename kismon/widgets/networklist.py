@@ -3,7 +3,6 @@ from gi.repository import Gdk
 from gi.repository import GObject
 from gi.repository import GLib
 
-from kismon.client_rest import decode_cryptset
 import kismon.utils as utils
 
 
