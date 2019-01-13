@@ -31,102 +31,105 @@ POSSIBILITY OF SUCH DAMAGE.
 import json
 import os
 
+
 class Config:
-	def __init__(self, config_file):
-		self.config_file = config_file
-		
-		self.default_config={
-			"servers": [
-				{
-					'uri': 'http://127.0.0.1:2501',
-					'username': '',
-					'password': '',
-					'connect': True
-				},
-			],
-			"window": {
-				"maximized": False,
-				"width": 800,
-				"height": 600,
-				"map_position": "hide",
-				"log_list_max": 200,
-				},
-			"map": {
-				"source": "openstreetmap",
-				"update_marker_positions": True,
-				"last_position": "0/0",
-				"last_zoom": 12,
-				"custom_source_url": "http://localhost:8080/#Z/#X/#Y.png",
-				"custom_source_min": 12,
-				"custom_source_max": 17,
-				},
-			"networks": {
-				"autosave": 5,
-				"num_backups": 5,
-				},
-			"tracks": {
-				"store": False,
-				},
-			"filter_networks": {
-				"network_list": "current",
-				"map": "current",
-				"export": "all"
-				},
-			"filter_type": {
-				"unknown": True,
-				"client": False,
-				"infrastructure":True,
-				"ad-hoc": False,
-				},
-			"filter_crypt": {
-				"none": True,
-				"wep": True,
-				"wpa": True,
-				"wpa2": True,
-				"other": True,
-				},
-			"filter_regexpr": {
-				"ssid": "",
-				"bssid": "",
-				}
-			}
+    def __init__(self, config_file):
+        self.config_file = config_file
 
-	def read(self):
-		self.config = self.default_config
-		if not os.path.isfile(self.config_file):
-			print("config file %s not found, continuing with default settings" % self.config_file)
-			return
+        self.default_config = {
+            "servers": [
+                {
+                    'uri': 'http://127.0.0.1:2501',
+                    'username': '',
+                    'password': '',
+                    'connect': True
+                },
+            ],
+            "window": {
+                "maximized": False,
+                "width": 800,
+                "height": 600,
+                "map_position": "hide",
+                "log_list_max": 200,
+            },
+            "map": {
+                "source": "openstreetmap",
+                "update_marker_positions": True,
+                "last_position": "0/0",
+                "last_zoom": 12,
+                "custom_source_url": "http://localhost:8080/#Z/#X/#Y.png",
+                "custom_source_min": 12,
+                "custom_source_max": 17,
+            },
+            "networks": {
+                "autosave": 5,
+                "num_backups": 5,
+            },
+            "tracks": {
+                "store": False,
+            },
+            "filter_networks": {
+                "network_list": "current",
+                "map": "current",
+                "export": "all"
+            },
+            "filter_type": {
+                "unknown": True,
+                "client": False,
+                "infrastructure": True,
+                "ad-hoc": False,
+            },
+            "filter_crypt": {
+                "none": True,
+                "wep": True,
+                "wpa": True,
+                "wpa2": True,
+                "other": True,
+            },
+            "filter_regexpr": {
+                "ssid": "",
+                "bssid": "",
+            }
+        }
 
-		with open(self.config_file, 'r') as f:
-			first_line = f.readline()
-		if first_line.startswith('['):
-			print('skipping old ini config, using default')
-			return
-		elif first_line.startswith('{'):
-			# new json config
-			print('loading json config')
-			with open(self.config_file, 'r') as f:
-				loaded_config = json.load(f)
-			for key in self.config:
-				if key not in loaded_config:
-					# doesn't exist before
-					continue
-				if type(self.config[key]) != type(loaded_config[key]):
-					# type has changed
-					continue
-				if type(self.config[key]) == dict:
-					self.config[key].update(loaded_config[key])
-				elif type(self.config[key]) == list:
-					self.config[key] = loaded_config[key]
-		else:
-			print('unknown config format, using default')
-			return
+    def read(self):
+        self.config = self.default_config
+        if not os.path.isfile(self.config_file):
+            print("config file %s not found, continuing with default settings" % self.config_file)
+            return
 
-	def write(self):
-		print('writing json config')
-		with open(self.config_file, 'w') as f:
-			json.dump(self.config, f, indent=2)
+        with open(self.config_file, 'r') as f:
+            first_line = f.readline()
+        if first_line.startswith('['):
+            print('skipping old ini config, using default')
+            return
+        elif first_line.startswith('{'):
+            # new json config
+            print('loading json config')
+            with open(self.config_file, 'r') as f:
+                loaded_config = json.load(f)
+            for key in self.config:
+                if key not in loaded_config:
+                    # doesn't exist before
+                    continue
+                if type(self.config[key]) != type(loaded_config[key]):
+                    # type has changed
+                    continue
+                if type(self.config[key]) == dict:
+                    self.config[key].update(loaded_config[key])
+                elif type(self.config[key]) == list:
+                    self.config[key] = loaded_config[key]
+        else:
+            print('unknown config format, using default')
+            return
+
+    def write(self):
+        print('writing json config')
+        with open(self.config_file, 'w') as f:
+            json.dump(self.config, f, indent=2)
+
 
 if __name__ == "__main__":
-	from test import TestKismon
-	TestKismon.test_config(True)
+    from test import TestKismon
+
+    TestKismon.test_config(True)
