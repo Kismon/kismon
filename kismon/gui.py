@@ -58,7 +58,7 @@ class MainWindow(TemplateWindow):
         self.networks.notify_add_list["export"] = self.export_add_network
         self.networks.notify_remove_list["export"] = self.export_remove_network
 
-        self.network_list = NetworkList(self.networks, self.locate_marker, self.on_signal_graph)
+        self.network_list = NetworkList(self.networks, self.locate_marker, self.on_signal_graph, config=config)
 
         self.gtkwin.set_title("Kismon")
         self.gtkwin.connect("window-state-event", self.on_window_state)

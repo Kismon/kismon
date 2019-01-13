@@ -89,7 +89,8 @@ class Config:
             "filter_regexpr": {
                 "ssid": "",
                 "bssid": "",
-            }
+            },
+            "network_list_columns": []
         }
 
     def read(self):

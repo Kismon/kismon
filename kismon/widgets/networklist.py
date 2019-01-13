@@ -8,13 +8,14 @@ import kismon.utils as utils
 
 
 class NetworkList:
-    def __init__(self, networks, locate_network_on_map, on_signal_graph):
+    def __init__(self, networks, locate_network_on_map, on_signal_graph, config):
         self.network_lines = {}
         self.network_iter = {}
         self.network_selected = None
         self.locate_network_on_map = locate_network_on_map
         self.on_signal_graph = on_signal_graph
         self.networks = networks
+        self.config = config
         self.value_cache = {}
         for key in ('time', 'crypt', 'server', 'type', 'channel', 'signal', 'ssid'):
             self.value_cache[key] = {}
@@ -25,11 +26,16 @@ class NetworkList:
         self.networks.resume_refresh_functions.append(self.resume)
 
         self.treeview = Gtk.TreeView()
-        self.treeview.connect("button-press-event", self.on_treeview_clicked)
         num = 0
+        self.enabled_columns = {}
         self.columns = ("BSSID", "Type", "SSID", "Ch", "Crypt",
                         "First Seen", "Last Seen", "Latitude", "Longitude",
                         "Signal dbm", "Comment", "Servers")
+        self.available_columns = {}
+        if len(self.config['network_list_columns']) == 0:
+            enable_all_columns = True
+        else:
+            enable_all_columns = False
         for column in self.columns:
             renderer = Gtk.CellRendererText()
             if column == "Comment":
@@ -39,34 +45,38 @@ class NetworkList:
                 renderer = Gtk.CellRendererProgress()
 
             tvcolumn = Gtk.TreeViewColumn(column, renderer, text=num)
-            self.treeview.append_column(tvcolumn)
+            self.available_columns[column] = tvcolumn
             cell = Gtk.CellRendererText()
             tvcolumn.pack_start(cell, True)
             tvcolumn.set_sort_column_id(num)
             tvcolumn.set_clickable(True)
             tvcolumn.set_resizable(True)
-            tvcolumn.connect("clicked", self.on_column_clicked)
-            tvcolumn.num = num
             if column == "Signal dbm":
                 tvcolumn.add_attribute(renderer, "value", 12)
             num += 1
+            tvcolumbutton = tvcolumn.get_button()
+            tvcolumbutton.connect('button-press-event', self.on_column_clicked, num)
+            if column in self.config['network_list_columns'] or enable_all_columns:
+                self.add_column(column)
+
+        self.treeview.connect("button-press-event", self.on_treeview_clicked) # has to be done after TreeViewColumn's
+
         self.treeview.show()
-        self.treeview.remove_column(tvcolumn)
 
         self.store = Gtk.ListStore(
             GObject.TYPE_STRING,  # mac
             GObject.TYPE_STRING,  # type
             GObject.TYPE_STRING,  # ssid
-            GObject.TYPE_INT,  # channel
+            GObject.TYPE_INT,     # channel
             GObject.TYPE_STRING,  # cryptset
             GObject.TYPE_STRING,  # firsttime
             GObject.TYPE_STRING,  # lasttime
-            GObject.TYPE_FLOAT,  # lat
-            GObject.TYPE_FLOAT,  # lon
-            GObject.TYPE_INT,  # signal dbm
+            GObject.TYPE_FLOAT,   # lat
+            GObject.TYPE_FLOAT,   # lon
+            GObject.TYPE_INT,     # signal dbm
             GObject.TYPE_STRING,  # comment
             GObject.TYPE_STRING,  # servers
-            GObject.TYPE_INT,  # signal dbm + 100 (progressbar)
+            GObject.TYPE_INT,     # signal dbm + 100 (progressbar)
         )
         self.treeview.set_model(self.store)
 
@@ -103,9 +113,44 @@ class NetworkList:
         self.network_popup = network_popup
 
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        self.treeview_click_event = None
 
-    def on_column_clicked(self, widget):
-        self.treeview.set_search_column(widget.num)
+    def add_column(self, column):
+        self.treeview.insert_column(self.available_columns[column], self.columns.index(column))
+        self.enabled_columns[column] = self.available_columns[column]
+        self.config["network_list_columns"].append(column)
+
+    def remove_column(self, column):
+        self.treeview.remove_column(self.enabled_columns[column])
+        del self.enabled_columns[column]
+        self.config["network_list_columns"].remove(column)
+
+    def on_column_clicked(self, widget, event, num=None):
+        self.treeview_click_event = event
+
+        if event.button == 1:  # left click
+            self.treeview.set_search_column(num)
+        elif event.button == 3:  # right click
+            self.open_column_popup(event)
+
+    def open_column_popup(self, event):
+        column_popup = Gtk.Menu()
+        for column in self.available_columns:
+            item = Gtk.CheckMenuItem.new_with_label(column)
+            column_popup.append(item)
+            if column in self.enabled_columns:
+                item.activate()
+            item.connect("activate", self.on_column_activated, column)
+
+        column_popup.show_all()
+        column_popup.popup_at_pointer(event)
+
+    def on_column_activated(self, widget, column):
+        active = widget.get_active()
+        if active:
+            self.add_column(column)
+        else:
+            self.remove_column(column)
 
     def on_comment_editing_started(self, widget, editable, path):
         editable.connect("editing-done", self.on_comment_editing_done)
@@ -288,6 +333,8 @@ class NetworkList:
         self.treeview.thaw_child_notify()
 
     def on_treeview_clicked(self, treeview, event):
+        if self.treeview_click_event == event:
+            return
         x = int(event.x)
         y = int(event.y)
         pthinfo = treeview.get_path_at_pos(x, y)
@@ -318,7 +365,7 @@ class NetworkList:
     def on_copy_network(self, widget):
         text = []
         num = 0
-        for column in self.columns:
+        for column in self.available_columns:
             value = self.get_value_from_cell(self.network_selected, num)
             text.append("%s: %s" % (column, value))
             num += 1
