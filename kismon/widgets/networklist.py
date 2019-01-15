@@ -32,9 +32,7 @@ class NetworkList:
                         "Signal dbm", "Comment", "Servers")
         self.available_columns = {}
         if len(self.config['network_list_columns']) == 0:
-            enable_all_columns = True
-        else:
-            enable_all_columns = False
+            self.config['network_list_columns'] = list(self.columns)
         for column in self.columns:
             renderer = Gtk.CellRendererText()
             if column == "Comment":
@@ -50,17 +48,20 @@ class NetworkList:
             tvcolumn.set_sort_column_id(num)
             tvcolumn.set_clickable(True)
             tvcolumn.set_resizable(True)
+            tvcolumn.set_reorderable(True)
             if column == "Signal dbm":
                 tvcolumn.add_attribute(renderer, "value", 12)
             num += 1
 
-            if column in self.config['network_list_columns'] or enable_all_columns:
-                self.add_column(column)
-
             tvcolumbutton = tvcolumn.get_button()
             tvcolumbutton.connect('button-press-event', self.on_column_clicked, num)
 
-        self.treeview.connect("button-press-event", self.on_treeview_clicked) # has to be done after TreeViewColumn's
+        # read the column list from the config to preserve their order
+        for column in self.config['network_list_columns']:
+            self.add_column(column)
+
+        self.treeview.connect("button-press-event", self.on_treeview_clicked)  # has to be done after TreeViewColumn's
+        self.treeview.connect("columns-changed", self.on_columns_changed)
 
         self.treeview.show()
 
@@ -117,9 +118,24 @@ class NetworkList:
         self.treeview_click_event = None
 
     def add_column(self, column):
-        self.treeview.insert_column(self.available_columns[column], self.columns.index(column))
+        if column not in self.config["network_list_columns"]:
+            # Position the column next to its original neighbor column as defined in self.columns.
+            # If that column is not enabled, go further to the left.
+            x = 1
+            while True:
+                left_column_position = self.columns.index(column) - x
+                if self.columns[left_column_position] in self.config["network_list_columns"]:
+                    break
+                if x < 0:
+                    break
+                x += 1
+            column_position = left_column_position + 1
+            self.config["network_list_columns"].insert(column_position, column)
+        else:
+            column_position = self.config["network_list_columns"].index(column)
+
+        self.treeview.insert_column(self.available_columns[column], column_position)
         self.enabled_columns[column] = self.available_columns[column]
-        self.config["network_list_columns"].append(column)
 
     def remove_column(self, column):
         self.treeview.remove_column(self.enabled_columns[column])
@@ -133,6 +149,17 @@ class NetworkList:
             self.treeview.set_search_column(num)
         elif event.button == 3:  # right click
             self.open_column_popup(event)
+
+    def on_columns_changed(self, widget):
+        columns = self.treeview.get_columns()
+        if len(columns) != len(self.enabled_columns):
+            # when the widget gets destroyed, the event is triggered after each column was removed
+            return
+        new_list = []
+        for column in columns:
+            new_list.append(column.get_title())
+
+        self.config["network_list_columns"] = new_list
 
     def open_column_popup(self, event):
         column_popup = Gtk.Menu()

@@ -6,6 +6,7 @@ Changes:
 * Interfaces can be added to kismet from kismon
 * The network encryption is shown in a shorter format
 * Filters moved from the menu to a tab next to the log
+* The columns of the network list can be enabled/disabled by right-click and reordered by drag&drop
 
 Dependencies:
 * The KismetRest Python module from kismet (>= 2019-01-beta2) is required
