@@ -53,8 +53,10 @@ class NetworkList:
                 tvcolumn.add_attribute(renderer, "value", 12)
             num += 1
 
+            self.treeview.insert_column(tvcolumn, 0)  # the button only gets created when the column is inserted
             tvcolumbutton = tvcolumn.get_button()
             tvcolumbutton.connect('button-press-event', self.on_column_clicked, num)
+            self.treeview.remove_column(tvcolumn) # the columns get added again in the right order
 
         # read the column list from the config to preserve their order
         for column in self.config['network_list_columns']:
