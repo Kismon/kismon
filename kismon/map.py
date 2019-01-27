@@ -37,8 +37,9 @@ import os
 
 
 class Map:
-    def __init__(self, config, user_agent=None):
+    def __init__(self, config, logger, user_agent=None):
         self.config = config
+        self.logger = logger
         self.generator_is_running = False
         self.toggle_moving_button = None
         self.markers = {}
@@ -364,7 +365,7 @@ class Map:
 
     def locate_marker(self, key):
         if key not in self.markers:
-            print("marker %s not found" % key)
+            self.logger.debug("marker %s not found" % key)
             return
 
         marker = self.markers[key]
@@ -388,7 +389,7 @@ class Map:
         self.set_source(id)
 
     def set_source(self, id):
-        print("set source %s" % id)
+        self.logger.debug("set source %s" % id)
         if id == "opencyclemap":
             self.osm.set_property("map-source", OsmGpsMap.MapSource_t.OPENCYCLEMAP)
         elif id == "custom":

@@ -5,7 +5,7 @@ from kismon.windows import ChannelWindow, DatasourcesWindow
 
 class ServerTab:
     def __init__(self, server_id, map, config, client_threads, client_start, client_stop, set_server_tab_label,
-                 on_server_remove_clicked, window):
+                 on_server_remove_clicked, window, logger):
         self.server_id = server_id
         self.config = config
         self.map = map
@@ -15,6 +15,7 @@ class ServerTab:
         self.set_server_tab_label = set_server_tab_label
         self.on_server_remove_clicked = on_server_remove_clicked
         self.window = window
+        self.logger = logger
         self.sources = {}
         self.sources_tables = {}
         self.sources_table_sources = {}
@@ -385,7 +386,7 @@ class ServerTab:
         dialog.show_all()
         response = dialog.run()
         if response < 1:
-            print("dialog canceled (%s)" % response)
+            self.logger.info("dialog canceled (%s)" % response)
             dialog.destroy()
             return False
         uri = uri_entry.get_text()
@@ -468,5 +469,5 @@ class ServerTab:
             response = self.on_server_edit(widget=None, login_optional=False)
             if not response:  # if the dialog was canceled
                 return False
-            print("next try")
+            self.logger.info("next try")
         return True

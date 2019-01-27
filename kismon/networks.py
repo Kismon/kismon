@@ -41,9 +41,10 @@ import kismon.utils as utils
 
 
 class Networks:
-    def __init__(self, config):
+    def __init__(self, config, logger):
         self.networks = {}
         self.config = config
+        self.logger = logger
         self.recent_networks = []
         self.notify_add_list = {}
         self.notify_add_queue = {}
@@ -63,11 +64,11 @@ class Networks:
 
     def save(self, filename, notify=None, force=False):
         if self.queue_running and not force:
-            print("Cannot save networks - queue is running")
+            self.logger.info("Cannot save networks - queue is running")
             return True
 
         msg = "saving %s networks to %s" % (len(self.networks), filename)
-        print(msg)
+        self.logger.info(msg)
         if notify is not None:
             notify("Kismon", msg)
 
@@ -106,7 +107,7 @@ class Networks:
     def load(self, filename):
         f = open(filename)
 
-        print("Loading networks.json. Please wait.")
+        self.logger.info("Loading networks.json")
 
         self.networks = json.load(f)
 
@@ -127,7 +128,7 @@ class Networks:
 
         f.close()
 
-        print("Total networks %d" % (len(self.networks)))
+        self.logger.info("Total networks %d" % (len(self.networks)))
 
     def apply_filters(self):
         self.stop_queue()
@@ -137,9 +138,9 @@ class Networks:
 
     def check_filter(self, mac, network):
         if network["type"] not in self.config["filter_type"]:
-            print("fixme: unknown network type %s" % network["type"])
-            print(mac)
-            print(network)
+            self.logger.error("fixme: unknown network type %s" % network["type"])
+            self.logger.error(mac)
+            self.logger.error(network)
         elif not self.config["filter_type"][network["type"]]:
             return False
 
@@ -217,7 +218,7 @@ class Networks:
 
                 counter += 1
                 if time.time() - start_time > 0.9:
-                    print("%s networks added in %.1fsec, %s networks left" % (
+                    self.logger.info("%s networks added in %.1fsec, %s networks left" % (
                     counter, round(time.time() - start_time, 3), len(self.notify_add_queue)))
                     yield True
                     start_time = time.time()
@@ -258,7 +259,7 @@ class Networks:
 
         ssid_map = device['dot11.device']['dot11.device.advertised_ssid_map']
         if len(ssid_map) > 1:
-            print("todo: multiple SSIDs per device %s" % mac)
+            self.logger.error("todo: multiple SSIDs per device %s" % mac)
 
         new_cryptset = 0
         if len(ssid_map) > 0:
@@ -398,14 +399,14 @@ class Networks:
 
     def import_networks(self, filetype, filename):
         if filetype == "networks":
-            parser = Networks(None)
+            parser = Networks(None, logger=self.logger)
             parser.parse = parser.load
         if filetype == "netxml":
-            parser = Netxml()
+            parser = Netxml(logger=self.logger)
         elif filetype == "csv":
             parser = CSV()
         else:
-            print("unknown filetype")
+            self.logger.error("unknown filetype")
             return 0
 
         parser.parse(filename)
@@ -644,8 +645,9 @@ def print_cryptset(cryptset):
 
 
 class Netxml:
-    def __init__(self):
+    def __init__(self, logger):
         self.networks = {}
+        self.logger = logger
 
     def parse(self, filename):
         self.parser = {
@@ -666,7 +668,7 @@ class Netxml:
             p.ParseFile(f)
             f.close()
         else:
-            print("Parser: filename is not a file (%s)" % filename)
+            self.logger.error("Parser: filename is not a file (%s)" % filename)
 
         locale.setlocale(locale.LC_TIME, '')
 

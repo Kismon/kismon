@@ -34,7 +34,8 @@ import KismetRest
 
 
 class RestClient:
-    def __init__(self):
+    def __init__(self, logger):
+        self.logger = logger
         self.debug = False
         self.uri = "http://127.0.0.1:2501"
         self.connector = None
@@ -63,7 +64,7 @@ class RestClient:
         """
         sessioncache_path = "~/.kismon/kismet-session-%s" % ''.join(e if e.isalnum() else '-' for e in self.uri)
         self.connector = KismetRest.KismetConnector(self.uri, sessioncache_path=sessioncache_path)
-        print("Client: start %s" % self.uri)
+        self.logger.info("Client: start %s" % self.uri)
         if not self.update_system_status():
             return False
         self.connected = True
@@ -71,7 +72,7 @@ class RestClient:
     def stop(self):
         """Close connection to the server
         """
-        print("Client: stop")
+        self.logger.info("Client: stop %s" % self.uri)
         self.connected = False
 
     def _callback(self, device):
@@ -120,8 +121,8 @@ class RestClient:
             status = self.connector.system_status()
         except Exception as e:
             self.connected = False
-            print("Client: failed to connect")
-            print(e)
+            self.logger.error("Client: failed to connect")
+            self.logger.error(e)
             self.error.append("failed to connect: %s" % e)
             return False
         self.queue['status'] = status
@@ -148,28 +149,28 @@ class RestClient:
 
     def add_datasource(self, interface):
         response = self.connector.add_datasource(interface)
-        print(response)
+        self.logger.debug(response)
 
     def authenticate(self):
-        print("authenticating...")
+        self.logger.info("authenticating...")
         if not self.credentials:
-            print('no credentials')
+            self.logger.debug('no credentials')
             return False
 
         self.connector.set_login(self.credentials[0], self.credentials[1])
         response = self.connector.login()
         if response == False:
             self.authenticated = False
-            print("login failed")
+            self.logger.info("login failed")
             return False
         self.authenticated = True
-        print("authenticated")
+        self.logger.info("authenticated")
         return True
 
     def set_channel(self, uuid, mode, value):
-        print('set_channel', uuid, mode, value)
+        self.logger.debug('set_channel %s %s %s' % (uuid, mode, value))
         if not self.connected:
-            print('not connected')
+            self.logger.debug('not connected')
             return False
 
         if not self.authenticated:
@@ -183,10 +184,11 @@ class RestClient:
 
 
 class RestClientThread(threading.Thread):
-    def __init__(self, uri=None):
+    def __init__(self, logger, uri=None):
         threading.Thread.__init__(self)
+        self.logger = logger
         self.debug = False
-        self.client = RestClient()
+        self.client = RestClient(logger=logger)
         self.is_running = False
         if uri is not None:
             self.client.uri = uri
@@ -200,7 +202,7 @@ class RestClientThread(threading.Thread):
         try:
             return self.client.queue[name]
         except KeyError:
-            print("queue %s absent" % name)
+            self.logger.debug("queue %s absent" % name)
             return False
 
     def run(self):
@@ -209,6 +211,7 @@ class RestClientThread(threading.Thread):
         if self.client.start() is False:
             self.stop()
         while self.is_running is True and (self.client.connected is True):
+            # try:
             self.client.get_updated_devices()
             self.client.update_system_status()
             self.client.update_location()

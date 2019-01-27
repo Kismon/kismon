@@ -38,7 +38,7 @@ from gi.repository import GLib
 
 
 class MainWindow(TemplateWindow):
-    def __init__(self, config, client_start, client_stop, map, networks, sources, tracks, client_threads):
+    def __init__(self, config, client_start, client_stop, map, networks, sources, tracks, client_threads, logger):
         TemplateWindow.__init__(self)
         self.config = config
         self.config_window = None
@@ -48,6 +48,7 @@ class MainWindow(TemplateWindow):
         self.networks = networks
         self.map = map
         self.tracks = tracks
+        self.logger = logger
 
         if map is not None:
             self.locate_marker = map.locate_marker
@@ -136,7 +137,7 @@ class MainWindow(TemplateWindow):
             self.on_map_hide(None)
 
     def on_destroy(self, widget):
-        print("Window destroyed")
+        self.logger.debug("Window destroyed")
         self.gtkwin = None
         Gtk.main_quit()
 
@@ -261,7 +262,7 @@ class MainWindow(TemplateWindow):
     def add_server_tab(self, server_id):
         self.server_tabs[server_id] = ServerTab(server_id, self.map, self.config, self.client_threads,
                                                 self.client_start, self.client_stop, self.set_server_tab_label,
-                                                self.on_server_remove_clicked, window=self.gtkwin)
+                                                self.on_server_remove_clicked, window=self.gtkwin, logger=self.logger)
         self.server_notebook.append_page(self.server_tabs[server_id].widget)
         self.server_tabs[server_id].set_active()
 
@@ -306,7 +307,7 @@ class MainWindow(TemplateWindow):
 
     def on_add_server_clicked(self, widget):
         server_id = len(self.client_threads)
-        print("adding server", server_id + 1)
+        self.logger.debug("adding server %s" % (server_id + 1))
         self.config['servers'].append(
             {
                 'uri': "http://server%s:2501" % (server_id + 1),

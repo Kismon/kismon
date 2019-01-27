@@ -42,6 +42,9 @@ from kismon.config import Config
 from kismon.networks import Networks
 from kismon.tracks import Tracks
 import kismon.utils as utils
+import kismon.logger
+
+logger = kismon.logger.get_logger()
 
 
 def check_osmgpsmap():
@@ -56,16 +59,16 @@ class Core:
     def __init__(self):
         user_dir = "%s%s.kismon%s" % (os.path.expanduser("~"), os.sep, os.sep)
         if not os.path.isdir(user_dir):
-            print("Creating Kismon user directory %s" % user_dir)
+            logger.info("Creating Kismon user directory %s" % user_dir)
             os.mkdir(user_dir)
         config_file = "%skismon.conf" % user_dir
-        self.config_handler = Config(config_file)
+        self.config_handler = Config(config_file, logger=logger)
         self.config_handler.read()
         self.config = self.config_handler.config
 
         self.sources = {}
         self.crypt_cache = {}
-        self.networks = Networks(self.config)
+        self.networks = Networks(config=self.config, logger=logger)
         self.client_threads = {}
         self.init_client_threads()
         self.tracks = Tracks("%stracks.json" % user_dir)
@@ -78,7 +81,7 @@ class Core:
 
         if self.map_error is not None:
             self.map_error = "%s\nMap disabled" % self.map_error
-            print(self.map_error, "\n")
+            logger.warning("%s\n" % self.map_error)
 
         self.init_map()
 
@@ -89,7 +92,9 @@ class Core:
                                       self.networks,
                                       self.sources,
                                       self.tracks,
-                                      self.client_threads)
+                                      self.client_threads,
+                                      logger
+                                      )
         self.main_window.log_list.add("Kismon", "started")
         if self.map_error is not None:
             self.main_window.log_list.add("Kismon", self.map_error)
@@ -100,7 +105,7 @@ class Core:
                 self.networks.load(self.networks_file)
             except:
                 error = sys.exc_info()[1]
-                print(error)
+                logger.error(error)
                 dialog_message = "Could not read the networks file '%s':\n%s\n\nDo you want to continue?" % (
                 self.networks_file, error)
                 dialog = Gtk.MessageDialog(self.main_window.gtkwin, Gtk.DialogFlags.DESTROY_WITH_PARENT,
@@ -113,7 +118,7 @@ class Core:
                 dialog.run()
                 dialog.destroy()
                 if self.dialog_response == -9:
-                    print("exit")
+                    logger.error("exit")
                     self.clients_stop()
                     self.main_window.gtkwin = None
                     return
@@ -137,13 +142,13 @@ class Core:
         else:
             from kismon.map import Map
             user_agent = 'kismon/%s' % utils.get_version()
-            self.map = Map(self.config["map"], user_agent=user_agent)
+            self.map = Map(self.config["map"], user_agent=user_agent, logger=logger)
             self.map.set_last_from_config()
 
     def init_client_thread(self, server_id):
         server = self.config["servers"][server_id]
         server['id'] = server_id
-        self.client_threads[server_id] = RestClientThread(server['uri'])
+        self.client_threads[server_id] = RestClientThread(uri=server['uri'], logger=logger)
         if server['username'] != '' and server['password'] != '':
             self.client_threads[server_id].client.credentials = (server['username'], server['password'])
 
@@ -225,7 +230,7 @@ class Core:
 
         datasources = thread.get_queue('datasources')
         if len(datasources) == 0:
-            # print("no active datasources")
+            # logger.debug("no active datasources")
             if type(self.main_window.server_tabs[server_id].datasources_dialog_answer) == bool:
                 # question was already asked
                 pass
@@ -248,7 +253,6 @@ class Core:
                 'name': ds['kismet.datasource.name'],
                 'uuid': uuid,
             }
-            # print(source)
             if uuid in self.sources[server_id] and source['packets'] != self.sources[server_id][uuid]['packets']:
                 sources_updated = True
             self.sources[server_id][uuid] = source
@@ -267,9 +271,9 @@ class Core:
             answer = False
             if response_id == -8:
                 answer = True
-                print("yes")
+                logger.debug("yes")
             else:
-                print("no", response_id)
+                logger.debug("no", response_id)
             self.main_window.server_tabs[server_id].datasources_dialog_answer = answer
 
         dialog.connect("response", dialog_response)

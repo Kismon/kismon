@@ -34,8 +34,10 @@ import os
 import tempfile
 import unittest
 import kismon.test_data
+import kismon.logger
 import copy
 
+logger = kismon.logger.get_logger('warning')
 
 def is_gi_available():
     try:
@@ -124,9 +126,9 @@ def networks():
         return
 
     test_data = get_client_test_data()
-    test_config = Config(None).default_config
+    test_config = Config(None, logger=logger).default_config
 
-    networks = Networks(test_config)
+    networks = Networks(test_config, logger=logger)
     networks.notify_add_list["map"] = dummy
     networks.notify_add_list["network_list"] = dummy
     networks.notify_remove_list["map"] = dummy
@@ -165,12 +167,11 @@ def networks():
 class TestKismon(unittest.TestCase):
     def test_client(self):
         from kismon.client_rest import RestClient, RestClientThread, encode_cryptset, decode_cryptset
-
-        client = RestClient()
+        client = RestClient(logger=logger)
         client.uri = "invalid:xyz"
         client.start()
 
-        client = RestClient()
+        client = RestClient(logger=logger)
         errors = 0
 
         crypt_test = [
@@ -192,7 +193,7 @@ class TestKismon(unittest.TestCase):
         if errors != 0:
             sys.exit("client test failed, %s errors" % errors)
 
-        client_thread = RestClientThread()
+        client_thread = RestClientThread(logger=logger)
         client_thread.client = client
 
     # client_thread.run()
@@ -201,10 +202,10 @@ class TestKismon(unittest.TestCase):
     def test_config(self):
         from kismon.config import Config
         config_file = tempfile.gettempdir() + os.sep + "testconfig.conf"
-        conf = Config(config_file)
+        conf = Config(config_file, logger=logger)
         conf.read()
         conf.write()
-        conf = Config(config_file)
+        conf = Config(config_file, logger=logger)
         conf.read()
 
     @unittest.skipUnless(gi_available, "gi module not available")
@@ -237,15 +238,15 @@ class TestKismon(unittest.TestCase):
 
         test_widget = TestWidget()
 
-        test_config = Config(None).default_config
-        test_map = Map(test_config["map"])
+        test_config = Config(None, logger=logger).default_config
+        test_map = Map(test_config["map"], logger=logger)
         test_networks = networks()
         test_networks.networks['00:12:2A:03:B9:12']['servers'] = "http://127.0.0.1:2501"
-        test_client_threads = {0: RestClientThread()}
+        test_client_threads = {0: RestClientThread(logger=logger)}
         tmp_tracks_file = "%s%stest-tracks-%s.json" % (tempfile.gettempdir(), os.sep, int(time.time()))
         test_tracks = Tracks(tmp_tracks_file)
         main_window = MainWindow(test_config, dummy, dummy, test_map, test_networks, test_tracks, {0: None, 1: None},
-                                 test_client_threads)
+                                 test_client_threads, logger=logger)
         main_window.network_list.crypt_cache = {}
 
         for x in range(1, 202):
@@ -308,7 +309,7 @@ class TestKismon(unittest.TestCase):
             "123": {"uuid": "123", "hop": 3, "name": "wlan0", "hop_rate": 3, "channel": 1},
             "234": {"uuid": "234", "hop": 0, "name": "wlan1", "hop_rate": 3, "channel": 6}
         }
-        client_thread = RestClientThread()
+        client_thread = RestClientThread(logger=logger)
         channel_window = ChannelWindow(sources, client_thread, parent=None)
         test_widget = TestWidget()
         channel_window.on_change_mode(test_widget, "123", "hop")
@@ -322,8 +323,8 @@ class TestKismon(unittest.TestCase):
         from kismon.config import Config
         from kismon.map import Map
         from kismon.gui import MapWindow
-        test_config = Config(None).default_config["map"]
-        test_map = Map(test_config)
+        test_config = Config(None, logger=logger).default_config["map"]
+        test_map = Map(test_config, logger=logger)
         map_window = MapWindow(test_map)
         test_event = TestEvent()
         test_event.keyval = 65480  # F11
@@ -411,7 +412,7 @@ class TestKismon(unittest.TestCase):
             return kismon.test_data.available_datasources
 
         test_window = Gtk.Window()
-        client_thread = RestClientThread()
+        client_thread = RestClientThread(logger=logger)
         client_thread.client.get_available_datasources = dummy_datasources
         datasources_window = DatasourcesWindow(client_thread,
                                                parent=test_window)
@@ -423,8 +424,8 @@ class TestKismon(unittest.TestCase):
         from gi.repository import Gtk
         from kismon.config import Config
         from kismon.map import Map
-        test_config = Config(None).default_config["map"]
-        test_map = Map(test_config)
+        test_config = Config(None, logger=logger).default_config["map"]
+        test_map = Map(test_config, logger=logger)
 
         test_map.set_zoom(16)
         test_map.set_position(52.513, 13.323)

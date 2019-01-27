@@ -33,8 +33,9 @@ import os
 
 
 class Config:
-    def __init__(self, config_file):
+    def __init__(self, config_file, logger):
         self.config_file = config_file
+        self.logger = logger
 
         self.default_config = {
             "servers": [
@@ -96,17 +97,17 @@ class Config:
     def read(self):
         self.config = self.default_config
         if not os.path.isfile(self.config_file):
-            print("config file %s not found, continuing with default settings" % self.config_file)
+            self.logger.info("config file %s not found, continuing with default settings" % self.config_file)
             return
 
         with open(self.config_file, 'r') as f:
             first_line = f.readline()
         if first_line.startswith('['):
-            print('skipping old ini config, using default')
+            self.logger.info('skipping old ini config, using default')
             return
         elif first_line.startswith('{'):
             # new json config
-            print('loading json config')
+            self.logger.info('loading json config')
             with open(self.config_file, 'r') as f:
                 loaded_config = json.load(f)
             for key in self.config:
@@ -121,11 +122,11 @@ class Config:
                 elif type(self.config[key]) == list:
                     self.config[key] = loaded_config[key]
         else:
-            print('unknown config format, using default')
+            self.logger.warning('unknown config format, using default')
             return
 
     def write(self):
-        print('writing json config')
+        self.logger.info('writing json config')
         with open(self.config_file, 'w') as f:
             json.dump(self.config, f, indent=2)
 
