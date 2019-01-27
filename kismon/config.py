@@ -52,6 +52,7 @@ class Config:
                 "height": 600,
                 "map_position": "hide",
                 "log_list_max": 200,
+                "signal_window_seconds": 120,
             },
             "map": {
                 "source": "openstreetmap",

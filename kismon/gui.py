@@ -391,7 +391,7 @@ class MainWindow(TemplateWindow):
 
     def on_signal_graph(self, widget):
         mac = self.network_list.network_selected
-        signal_window = SignalWindow(mac, self.on_signal_graph_destroy)
+        signal_window = SignalWindow(mac, self.on_signal_graph_destroy, seconds=self.config['window']['signal_window_seconds'])
         self.signal_graphs[mac] = signal_window
 
     def on_signal_graph_destroy(self, window, mac):

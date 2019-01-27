@@ -5,11 +5,11 @@ from gi.repository import GObject
 
 
 class SignalWindow:
-    def __init__(self, mac, destroy):
+    def __init__(self, mac, destroy, seconds=120):
         self.mac = mac
         self.history = {}
         self.sources = {}
-        self.time_range = 60 * 2
+        self.time_range = seconds
 
         self.colors = [
             (0, 1, 0),
