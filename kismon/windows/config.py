@@ -147,7 +147,7 @@ class ConfigWindow:
         map_page.attach(source_frame, 0, 1, 1, 2, yoptions=Gtk.AttachOptions.SHRINK)
 
         first = None
-        for name, source in (("Openstreetmap (default)", "openstreetmap"),
+        for name, source in (("OpenStreetMap (default)", "openstreetmap"),
                              ("OpenCycleMap", "opencyclemap"),
                              ("Custom tile source", "custom")):
             map_source = Gtk.RadioButton(group=first, label=name)

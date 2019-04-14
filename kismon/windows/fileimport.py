@@ -53,17 +53,18 @@ class FileImportWindow:
         dialog.add_button('gtk-open', Gtk.ResponseType.OK)
         dialog.set_select_multiple(True)
 
-        filter = Gtk.FileFilter()
-        filter.set_name("All supported files")
-        filter.add_pattern("*.netxml")
-        filter.add_pattern("*.csv")
-        filter.add_pattern("*.json")
-        dialog.add_filter(filter)
+        if add_type == "file":
+            filter = Gtk.FileFilter()
+            filter.set_name("All supported files")
+            filter.add_pattern("*.netxml")
+            filter.add_pattern("*.csv")
+            filter.add_pattern("*.json")
+            dialog.add_filter(filter)
 
-        filter = Gtk.FileFilter()
-        filter.set_name("All files")
-        filter.add_pattern("*")
-        dialog.add_filter(filter)
+            filter = Gtk.FileFilter()
+            filter.set_name("All files")
+            filter.add_pattern("*")
+            dialog.add_filter(filter)
 
         return dialog
 

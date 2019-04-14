@@ -123,7 +123,7 @@ class Networks:
                 if 'WEP,' in crypt and 'WPA' in crypt:
                     crypt = crypt.replace('WEP,', '')
                 network['crypt'] = crypt
-            if network["type"] == 'generic':
+            if network["type"] in ('generic', 'probe', 'data'):
                 network["type"] = 'unknown'
 
         f.close()
@@ -682,6 +682,7 @@ class Netxml:
                 "lasttime": timestring2timestamp(attrs["last-time"]),
                 "ssid": "",
                 "cryptset": 0,
+                "crypt": "",
                 "lat": 0.0,
                 "lon": 0.0,
                 "signal_dbm": {}
@@ -712,6 +713,7 @@ class Netxml:
                         else:
                             crypts.append(crypt.lower().replace("-", "_"))
                     cryptset = encode_cryptset(crypts)
+                    self.parser["network"]["crypt"] = ",".join(crypts)
                     self.parser["network"]["cryptset"] = cryptset
             del self.parser["encryption"]
 
@@ -778,7 +780,8 @@ class CSV:
                 "lon": float(data["GPSBestLon"]),
                 "manuf": "",
                 "ssid": data["ESSID"],
-                "cryptset": encode_cryptset(crypts)
+                "cryptset": encode_cryptset(crypts),
+                "crypt": ",".join(crypts)
             }
         locale.setlocale(locale.LC_TIME, '')
         f.close()

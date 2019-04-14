@@ -31,6 +31,7 @@ POSSIBILITY OF SUCH DAMAGE.
 import threading
 import time
 import KismetRest
+import requests
 
 
 class RestClient:
@@ -62,9 +63,14 @@ class RestClient:
     def start(self):
         """Open connection to the server
         """
+        self.logger.info("Client: start %s" % self.uri)
+
+        if not self._simple_server_check():
+            self.connected = False
+            return False
+
         sessioncache_path = "~/.kismon/kismet-session-%s" % ''.join(e if e.isalnum() else '-' for e in self.uri)
         self.connector = KismetRest.KismetConnector(self.uri, sessioncache_path=sessioncache_path)
-        self.logger.info("Client: start %s" % self.uri)
         if not self.update_system_status():
             return False
         self.connected = True
@@ -74,6 +80,21 @@ class RestClient:
         """
         self.logger.info("Client: stop %s" % self.uri)
         self.connected = False
+
+    def _simple_server_check(self):
+        error_str = '%s is not reachable or not a valid Kismet HTTP endpoint\nError: %s'
+        try:
+            response = requests.get("%s/system/timestamp.json" % (self.uri))
+        except requests.exceptions.RequestException as e:
+            self.logger.error(error_str % (self.uri, e.args[0].reason))
+            self.error.append(error_str % (self.uri, e.args[0].reason))
+            return False
+        if response.status_code != 200:
+            self.logger.error(error_str % (self.uri, response.text))
+            self.error.append(error_str % (self.uri, response.text))
+            return False
+        else:
+            return True
 
     def _callback(self, device):
         # print(device['dot11.device']['dot11.device.last_beaconed_ssid'])
@@ -129,6 +150,8 @@ class RestClient:
         return True
 
     def update_location(self):
+        if not self.authenticated:
+            return False
         self.queue['location'].append(self.connector.location())
 
     def queue_new_messages(self):
