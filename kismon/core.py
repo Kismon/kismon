@@ -41,6 +41,7 @@ from kismon.gui import MainWindow
 from kismon.config import Config
 from kismon.networks import Networks
 from kismon.tracks import Tracks
+from kismon.nm import NetworkManagerScanner
 import kismon.utils as utils
 import kismon.logger
 
@@ -134,7 +135,10 @@ class Core:
 
         GLib.timeout_add(500, self.queues_handler)
         GLib.timeout_add(300, self.queues_handler_networks)
+        GLib.timeout_add(5000, self.queue_handler_nms)
         GLib.idle_add(self.networks.apply_filters)
+
+        self.nms = NetworkManagerScanner()
 
     def init_map(self):
         if self.map_error is not None:
@@ -284,7 +288,9 @@ class Core:
     def queues_handler(self):
         for server_id in self.client_threads:
             self.queue_handler(server_id)
+
         return True
+
 
     def queue_handler_networks(self, server_id):
         thread = self.client_threads[server_id]
@@ -325,6 +331,16 @@ class Core:
     def queues_handler_networks(self):
         for server_id in self.client_threads:
             self.queue_handler_networks(server_id)
+        return True
+
+    def queue_handler_nms(self):
+        try:
+            networks = self.nms.get_networks()
+        except Exception as e:
+            print(e)
+            networks = {}
+        for mac, network in networks.items():
+            self.networks.add_network_data(mac=mac, data=network)
         return True
 
     def quit(self):
