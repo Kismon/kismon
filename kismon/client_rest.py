@@ -86,8 +86,12 @@ class RestClient:
         try:
             response = requests.get("%s/system/timestamp.json" % (self.uri))
         except requests.exceptions.RequestException as e:
-            self.logger.error(error_str % (self.uri, e.args[0].reason))
-            self.error.append(error_str % (self.uri, e.args[0].reason))
+            if 'reason' in dir(e.args[0]):
+                message = error_str % (self.uri, e.args[0].reason)
+            else:
+                message = error_str % (self.uri, e.args[0])
+            self.logger.error(message)
+            self.error.append(message)
             return False
         if response.status_code != 200:
             self.logger.error(error_str % (self.uri, response.text))

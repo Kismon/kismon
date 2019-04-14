@@ -2,8 +2,8 @@ kismon 1.0.0 (2019-?-?)
 ===============================
 
 Changes:
-* Compatible with Kismet version 2019-01-beta2, incompatible with older versions
-* Interfaces can be added to kismet from kismon
+* Compatible with Kismet version 2019-01-beta2 & 2019-04-R1, incompatible with older versions
+* Interfaces / data sources can be added to kismet from kismon
 * The network encryption is shown in a shorter format
 * Filters moved from the menu to a tab next to the log
 * The columns of the network list can be enabled/disabled by right-click and reordered by drag&drop
