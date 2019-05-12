@@ -71,6 +71,7 @@ class RestClient:
 
         sessioncache_path = "~/.kismon/kismet-session-%s" % ''.join(e if e.isalnum() else '-' for e in self.uri)
         self.connector = KismetRest.KismetConnector(self.uri, sessioncache_path=sessioncache_path)
+        self.authenticate()
         if not self.update_system_status():
             return False
         self.connected = True
@@ -93,12 +94,14 @@ class RestClient:
             self.logger.error(message)
             self.error.append(message)
             return False
-        if response.status_code != 200:
+        if response.status_code == 200:
+            return True
+        elif response.status_code == 401:
+            return True
+        else:
             self.logger.error(error_str % (self.uri, response.text))
             self.error.append(error_str % (self.uri, response.text))
             return False
-        else:
-            return True
 
     def _callback(self, device):
         # print(device['dot11.device']['dot11.device.last_beaconed_ssid'])

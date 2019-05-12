@@ -322,7 +322,7 @@ class ServerTab:
     def set_active(self, active=True):
         self.server_switch.set_active(active)
 
-    def on_server_edit(self, widget, login_optional=True):
+    def on_server_edit(self, widget):
         self.control_popover.hide()
         dialog = Gtk.Dialog(title="Edit server")
         dialog.set_transient_for(self.window)
@@ -339,10 +339,7 @@ class ServerTab:
         row += 1
 
         label = Gtk.Label()
-        if login_optional:
-            label.set_markup("Username: ")
-        else:
-            label.set_markup("<b>Username</b>: ")
+        label.set_markup("<b>Username</b>: ")
 
         table.attach(label, 0, 1, row, row + 1)
 
@@ -357,10 +354,7 @@ class ServerTab:
         row += 1
 
         label = Gtk.Label()
-        if login_optional:
-            label.set_markup("Password*: ")
-        else:
-            label.set_markup("<b>Password*</b>: ")
+        label.set_markup("<b>Password*</b>: ")
 
         table.attach(label, 0, 1, row, row + 1)
 
@@ -372,10 +366,7 @@ class ServerTab:
         row += 1
 
         label = Gtk.Label()
-        if login_optional:
-            label.set_markup("<i>* Optional, see kismet_httpd.conf</i>")
-        else:
-            label.set_markup("<b>* Required, see kismet_httpd.conf</b>")
+        label.set_markup("<b>* Required, see kismet_httpd.conf</b>")
         table.attach(label, 0, 2, row, row + 1)
         row += 1
 
@@ -466,7 +457,7 @@ class ServerTab:
     def try_authentification(self):
         client = self.client_threads[self.server_id].client
         while not client.authenticate():
-            response = self.on_server_edit(widget=None, login_optional=False)
+            response = self.on_server_edit(widget=None)
             if not response:  # if the dialog was canceled
                 return False
             self.logger.info("next try")
