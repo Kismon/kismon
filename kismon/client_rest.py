@@ -30,9 +30,14 @@ POSSIBILITY OF SUCH DAMAGE.
 
 import threading
 import time
-import KismetRest
 import requests
 
+try:
+    # since Kismet 2019-05-R1
+    import kismet_rest as KismetRest
+except ModuleNotFoundError:
+    # up to Kismet 2019-04-R1
+    import KismetRest
 
 class RestClient:
     def __init__(self, logger):
