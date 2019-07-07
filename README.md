@@ -55,8 +55,8 @@ Or just use `make` instead of the python commands.
 The Python module of kismet isn't included in the most Linux distributions and has to be installed manually.
 
 ```
-$ git clone https://github.com/kismetwireless/kismet.git
-$ cd kismet/python_modules/KismetRest
+$ git clone https://github.com/kismetwireless/python-kismet-rest.git
+$ cd python-kismet-rest
 $ sudo python3 setup.py install
 ```
 
