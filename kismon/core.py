@@ -297,8 +297,7 @@ class Core:
             self.networks.add_device_data(device, server_id)
             mac = device['kismet.device.base.macaddr']
 
-            for sid in device['kismet.device.base.seenby']:
-                source = device['kismet.device.base.seenby'][sid]
+            for source in device['kismet.device.base.seenby']:
                 source_uuid = source['kismet.common.seenby.uuid']
                 if source_uuid not in self.sources[server_id]:
                     continue

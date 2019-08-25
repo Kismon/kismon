@@ -25,7 +25,7 @@ Be aware that kismon is starting with version 1.0 not compatible with kismet ser
 Here is a list of the known compatibility:
 
 * kismon git master
-  * Kismet git master (2019/07/07)
+  * Kismet git master (2019/08/23)
 * kismon 1.0
   * Kismet 2019-01-beta2 - 2019-04-R1
 * kismon 0.9
