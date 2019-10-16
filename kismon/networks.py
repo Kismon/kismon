@@ -219,7 +219,7 @@ class Networks:
                 counter += 1
                 if time.time() - start_time > 0.9:
                     self.logger.info("%s networks added in %.1fsec, %s networks left" % (
-                    counter, round(time.time() - start_time, 3), len(self.notify_add_queue)))
+                        counter, round(time.time() - start_time, 3), len(self.notify_add_queue)))
                     yield True
                     start_time = time.time()
                     counter = 0
@@ -262,11 +262,15 @@ class Networks:
             self.logger.error("todo: multiple SSIDs per device %s" % mac)
 
         new_cryptset = 0
+        new_ssid = ''
         if len(ssid_map) > 0:
             for key in ssid_map:
-                new_ssid = ssid_map[key]
-                new_cryptset = new_ssid['dot11.advertisedssid.crypt_set']
+                new_ssid = ssid_map[key]['dot11.advertisedssid.ssid']
+                new_cryptset = ssid_map[key]['dot11.advertisedssid.crypt_set']
                 break
+
+        if new_ssid == '' and 'dot11.device.last_beaconed_ssid' in device['dot11.device']:
+            new_ssid = device['dot11.device']['dot11.device.last_beaconed_ssid']
 
         try:
             location = device['kismet.device.base.location']
@@ -290,11 +294,6 @@ class Networks:
             signal_dbm_max = 0
             signal_dbm_last = 0
 
-        if 'dot11.device.last_beaconed_ssid' in device['dot11.device']:
-            ssid = device['dot11.device']['dot11.device.last_beaconed_ssid']
-        else:
-            ssid = ''
-
         if mac not in self.networks:
             network = {
                 "type": decode_network_typeset(device['dot11.device']['dot11.device.typeset']),
@@ -304,7 +303,7 @@ class Networks:
                 "lat": new_lat,
                 "lon": new_lon,
                 "manuf": device['kismet.device.base.manuf'],
-                "ssid": ssid,
+                "ssid": new_ssid,
                 "cryptset": new_cryptset,
                 "crypt": device['kismet.device.base.crypt'],
                 "signal_dbm": {
@@ -338,7 +337,7 @@ class Networks:
                 network["cryptset"] = new_cryptset
                 network["crypt"] = device['kismet.device.base.crypt']
                 network["signal_dbm"]["last"] = signal_dbm_last
-                network["ssid"] = ssid
+                network["ssid"] = new_ssid
 
             network["firsttime"] = min(network["firsttime"], device['kismet.device.base.first_time'])
             network["signal_dbm"]["min"] = min(network["signal_dbm"]["min"], signal_dbm_min)
