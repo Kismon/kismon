@@ -11,7 +11,7 @@ Kismon is GUI client for kismet (wireless scanner/sniffer/monitor) with several 
 
 ## Dependencies
 
-* kismet (>=2019-01-beta2)
+* kismet
   * Kismon requires the Python module of [kismet](https://github.com/kismetwireless/kismet), it has to be installed for Python 3
 * [osm-gps-map](https://github.com/nzjrs/osm-gps-map) (>=1.0.2)
   * osm-gps-map is optional, the map will be disabled if it's missing
@@ -24,6 +24,8 @@ Be aware that kismon is starting with version 1.0 not compatible with kismet ser
 
 Here is a list of the known compatibility:
 
+* kismon git
+  * Kismet 2019-12-R2
 * kismon 1.0.1
   * Kismet 2019-08-R1 - 2019-09-R1
 * kismon 1.0.0

@@ -264,9 +264,9 @@ class Networks:
         new_cryptset = 0
         new_ssid = ''
         if len(ssid_map) > 0:
-            for key in ssid_map:
-                new_ssid = ssid_map[key]['dot11.advertisedssid.ssid']
-                new_cryptset = ssid_map[key]['dot11.advertisedssid.crypt_set']
+            for ssid_entry in ssid_map:
+                new_ssid = ssid_entry['dot11.advertisedssid.ssid']
+                new_cryptset = ssid_entry['dot11.advertisedssid.crypt_set']
                 break
 
         if new_ssid == '' and 'dot11.device.last_beaconed_ssid' in device['dot11.device']:
@@ -277,8 +277,8 @@ class Networks:
         except KeyError:
             location = None
         if location and location['kismet.common.location.loc_fix'] >= 2:
-            new_lat = location['kismet.common.location.avg_loc']['kismet.common.location.lat']
-            new_lon = location['kismet.common.location.avg_loc']['kismet.common.location.lon']
+            new_lat = location['kismet.common.location.avg_loc']['kismet.common.location.geopoint'][1]
+            new_lon = location['kismet.common.location.avg_loc']['kismet.common.location.geopoint'][0]
             gps_fix = True
         else:
             new_lat = 0

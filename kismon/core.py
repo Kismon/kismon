@@ -203,8 +203,8 @@ class Core:
 
             if data['kismet.common.location.valid'] == 0:
                 continue
-            gps = {'lat': data['kismet.common.location.lat'],
-                   'lon': data['kismet.common.location.lon'],
+            gps = {'lat': data['kismet.common.location.geopoint'][1],
+                   'lon': data['kismet.common.location.geopoint'][0],
                    'alt': data['kismet.common.location.alt'],
                    'fix': data['kismet.common.location.fix'],
                    }
