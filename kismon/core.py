@@ -292,7 +292,7 @@ class Core:
         queue = thread.get_queue("dot11")
         for x in range(0, len(queue)):
             device = queue.pop(0)
-            if device['dot11.device'] == 0: # skip non-802.11 devices
+            if 'dot11.device' not in device or device['dot11.device'] == 0: # skip non-802.11 devices
                 continue
             self.networks.add_device_data(device, server_id)
             mac = device['kismet.device.base.macaddr']
