@@ -201,7 +201,7 @@ class Core:
             if not data:
                 continue
 
-            if data['kismet.common.location.valid'] == 0:
+            if data['kismet.common.location.fix'] == 0 or data['kismet.common.location.geopoint'] == [0, 0]:
                 continue
             gps = {'lat': data['kismet.common.location.geopoint'][1],
                    'lon': data['kismet.common.location.geopoint'][0],

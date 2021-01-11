@@ -257,9 +257,12 @@ class Networks:
         else:
             new_channel = 0
 
-        ssid_map = device['dot11.device']['dot11.device.advertised_ssid_map']
-        if len(ssid_map) > 1:
-            self.logger.error("todo: multiple SSIDs per device %s" % mac)
+        if 'dot11.device.advertised_ssid_map' in device['dot11.device']:
+            ssid_map = device['dot11.device']['dot11.device.advertised_ssid_map']
+            if len(ssid_map) > 1:
+                self.logger.error("todo: multiple SSIDs per device %s" % mac)
+        else:
+            ssid_map = []
 
         new_cryptset = 0
         new_ssid = ''
