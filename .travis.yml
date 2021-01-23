@@ -2,7 +2,7 @@ matrix:
   include:
   - env: ubuntu_version="16.04"
   - env: ubuntu_version="18.04"
-  - env: ubuntu_version="19.10"
+  - env: ubuntu_version="20.04"
 sudo: required
 services:
  - docker
