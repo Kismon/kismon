@@ -24,6 +24,8 @@ Be aware that kismon is starting with version 1.0 not compatible with kismet ser
 
 Here is a list of the known compatibility:
 
+* kismon 1.0.3
+  * Kismet 2019-12-R2 - 2020-12-R3
 * kismon 1.0.2
   * Kismet 2019-12-R2 - 2020-03-R1
 * kismon 1.0.1

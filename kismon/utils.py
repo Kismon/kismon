@@ -7,4 +7,4 @@ def format_timestamp(timestamp):
 
 
 def get_version():
-    return '1.0.2'
+    return '1.0.3'

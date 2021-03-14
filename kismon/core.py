@@ -46,6 +46,7 @@ import kismon.logger
 
 logger = kismon.logger.get_logger()
 
+from pprint import pprint
 
 def check_osmgpsmap():
     try:
